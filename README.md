@@ -1,6 +1,11 @@
-## Snake (the game itself)
+​⚔️ CRONISTA: RPG · ROGUELITE · SOLO
 
-Snake is a game in which a snake needs to explore an environment and catch the fruit without hitting any obstacle or itself. Every time the snake catches a fruit, its size increases.
 
-- [Coding "Snake" in 4 min 30 sec](https://www.youtube.com/watch?v=xGmXxpIj6vs)
-- [Mastering the Module Pattern](https://toddmotto.com/mastering-the-module-pattern/) (not really about Snake itself, but a pattern I tried to follow on the project)
+​Cronista é um RPG de sobrevivência minimalista com elementos de roguelite, projetado para ser jogado diretamente no navegador. Com uma atmosfera sombria e foco em escolhas narrativas e mecânicas, o jogo desafia o jogador a sobreviver em um mundo onde "cada cicatriz é um ensinamento absorvido".
+
+
+​📜 Sobre o Jogo
+
+
+​Em Cronista, você assume o papel de um aventureiro em busca de glória ou apenas sobrevivência. O jogo combina a profundidade dos RPGs clássicos com a jogabilidade rápida de um roguelite moderno. Explore, lute, suba de nível e tente não deixar que seu capítulo se encerre antes da hora.
+
