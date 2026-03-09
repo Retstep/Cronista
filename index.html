@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Cronista RPG</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00d4ff">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js');
+    });
+  }
+</script>
+</head>
+<body>
+
+<!-- TÍTULO -->
+<div class="screen" id="s-title">
+  <div class="t-rune">⚔️</div>
+  <h1 class="t-main">CRONISTA</h1>
+  <p class="t-sub">RPG · ROGUELITE · SOLO</p>
+  <div class="divider"><div class="divider-gem"></div></div>
+  <div class="cls-label">ESCOLHA SUA CLASSE</div>
+  <div class="class-grid" id="class-grid"></div>
+  <button class="btn-go" id="btn-go" disabled onclick="startGame()">— Iniciar Aventura —</button>
+  <p style="font-size:12px;color:var(--txt3);margin-top:10px;font-style:italic;">Cada run é única. Subclasses desbloqueiam no Nível 3.</p>
+  <button class="theme-toggle-btn" onclick="openThemeOverlay()">🎨 Personalizar Tema</button>
+</div>
+
+<!-- JOGO -->
+<div class="screen off" id="s-game">
+  <div id="hud">
+    <div class="hud-r1">
+      <div class="hud-ava" id="hud-ava"></div>
+      <div class="hud-center">
+        <div class="hud-id">
+          <div class="hud-name" id="hud-name">Herói</div>
+          <div class="hud-cls" id="hud-cls"></div>
+        </div>
+        <div class="hud-vitals">
+          <div class="vrow"><span class="vlbl hp">HP</span><div class="vtrack"><div class="vfill hp" id="vhp"></div></div><span class="vnum hp" id="nhp"></span></div>
+          <div class="vrow"><span class="vlbl mp">MP</span><div class="vtrack"><div class="vfill mp" id="vmp"></div></div><span class="vnum mp" id="nmp"></span></div>
+        </div>
+      </div>
+      <div class="hud-meta">
+        <div class="hud-lv" id="hlv"></div>
+        <div class="xpbar"><div class="xpfill" id="xpf"></div></div>
+        <div class="hud-gold" id="hgold"></div>
+      </div>
+    </div>
+    <div class="hud-r2" id="hstats"></div>
+    <button id="mute-btn" onclick="toggleMute()" class="mute-chip">🔊</button>
+  </div>
+  <div id="scroll"></div>
+  <div id="bbar">
+    <button class="nbtn active" id="nb-explore" onclick="navTo('explore')"><span class="nbtn-ico">🗺️</span>Explorar</button>
+    <button class="nbtn" id="nb-inv"    onclick="navTo('inv')"><span class="nbtn-ico">🎒</span>Mochila</button>
+    <button class="nbtn" id="nb-skills" onclick="navTo('skills')"><span class="nbtn-ico">✨</span>Skills</button>
+    <button class="nbtn" id="nb-stats"  onclick="navTo('stats')"><span class="nbtn-ico">📜</span>Status</button>
+  </div>
+</div>
+
+<!-- MORTE -->
+<div class="screen off" id="s-death" style="gap:0;overflow-y:auto;">
+</div>
+
+<!-- VITÓRIA -->
+<div class="screen off" id="s-win" style="gap:0;">
+  <div class="w-star">🏆</div>
+  <h2 class="w-title">VITÓRIA!</h2>
+  <p style="font-style:italic;color:var(--txt2);margin-bottom:20px;" id="w-msg"></p>
+  <div class="d-stats" id="w-stats"></div>
+  <div id="w-actions"></div>
+</div>
+
+<!-- OVERLAY DE TEMAS -->
+<div id="theme-overlay" class="off">
+  <div class="theme-sheet">
+    <div class="theme-sheet-title">🎨 PERSONALIZAR TEMA</div>
+    <div class="theme-grid">
+
+      <div class="theme-card" data-t="grimorio" onclick="applyTheme('grimorio')">
+        <div class="tc-swatch">
+          <div class="tc-accent"></div>
+          <div class="tc-b"></div>
+          <div class="tc-c"></div>
+        </div>
+        <div class="tc-name">Grimório</div>
+        <div class="tc-desc">Âmbar & sombras</div>
+      </div>
+
+      <div class="theme-card" data-t="ice" onclick="applyTheme('ice')">
+        <div class="tc-swatch">
+          <div class="tc-accent"></div>
+          <div class="tc-b"></div>
+          <div class="tc-c"></div>
+        </div>
+        <div class="tc-name">Cripta de Gelo</div>
+        <div class="tc-desc">Azul & cristal</div>
+      </div>
+
+      <div class="theme-card" data-t="inferno" onclick="applyTheme('inferno')">
+        <div class="tc-swatch">
+          <div class="tc-accent"></div>
+          <div class="tc-b"></div>
+          <div class="tc-c"></div>
+        </div>
+        <div class="tc-name">Forja Infernal</div>
+        <div class="tc-desc">Fogo & caos</div>
+      </div>
+
+      <div class="theme-card" data-t="void" onclick="applyTheme('void')">
+        <div class="tc-swatch">
+          <div class="tc-accent"></div>
+          <div class="tc-b"></div>
+          <div class="tc-c"></div>
+        </div>
+        <div class="tc-name">Vazio Arcano</div>
+        <div class="tc-desc">Roxo & névoa</div>
+      </div>
+
+      <div class="theme-card" data-t="nature" onclick="applyTheme('nature')">
+        <div class="tc-swatch">
+          <div class="tc-accent"></div>
+          <div class="tc-b"></div>
+          <div class="tc-c"></div>
+        </div>
+        <div class="tc-name">Floresta Antiga</div>
+        <div class="tc-desc">Verde & serenidade</div>
+      </div>
+
+      <div class="theme-card" data-t="blood" onclick="applyTheme('blood')">
+        <div class="tc-swatch">
+          <div class="tc-accent"></div>
+          <div class="tc-b"></div>
+          <div class="tc-c"></div>
+        </div>
+        <div class="tc-name">Pacto de Sangue</div>
+        <div class="tc-desc">Carmesim & trevas</div>
+      </div>
+
+      <div class="theme-card" data-t="abyss" onclick="applyTheme('abyss')">
+        <div class="tc-swatch">
+          <div class="tc-accent"></div>
+          <div class="tc-b"></div>
+          <div class="tc-c"></div>
+        </div>
+        <div class="tc-name">Abismo Profundo</div>
+        <div class="tc-desc">Trevas & profundidade</div>
+      </div>
+
+      <div class="theme-card" data-t="dawn" onclick="applyTheme('dawn')">
+        <div class="tc-swatch">
+          <div class="tc-accent"></div>
+          <div class="tc-b"></div>
+          <div class="tc-c"></div>
+        </div>
+        <div class="tc-name">Alvorada Celeste</div>
+        <div class="tc-desc">Luz & éter</div>
+      </div>
+
+    </div>
+
+    <!-- Toggle 16-bit -->
+    <div class="theme-16bit-row">
+      <span class="theme-16bit-lbl">👾 Interface 16-bit</span>
+      <button id="btn-16bit" class="theme-16bit-btn" onclick="toggle16Bit()">OFF</button>
+    </div>
+
+    <button class="theme-close-btn" onclick="closeThemeOverlay()">✕ Fechar</button>
+  </div>
+</div>
+
+<!-- ITEM OVERLAY -->
+<div id="item-overlay" class="off">
+  <div class="item-sheet">
+    <div class="isheet-title">🎒 USAR ITEM</div>
+    <div class="isheet-grid" id="isheet-grid"></div>
+    <button class="isheet-close" onclick="closeItemOverlay()">✕ Cancelar</button>
+  </div>
+</div>
+
+<!-- FUSION OVERLAY -->
+<div id="fusion-overlay" class="off">
+  <div class="item-sheet">
+    <div class="isheet-title">⚗️ FUSÃO ELEMENTAL</div>
+    <div class="fusion-subtitle" id="fusion-subtitle">Selecione uma fusão para disparar</div>
+    <div class="isheet-grid" id="fusion-grid"></div>
+    <button class="isheet-close" onclick="closeFusionOverlay()">✕ Cancelar</button>
+  </div>
+</div>
+
+<div id="toast" class="hide"></div>
+<script src="game.js"></script>
+</body>
+</html>
