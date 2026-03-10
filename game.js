@@ -273,6 +273,8 @@ const FUSIONS=[
   {id:'epidemia',        name:'Epidemia',              ico:'🦠',tier:2,mult:2.0,e1:'virus',      e2:'ar',          desc:'O ar torna-se o vetor de uma doença imparável e onipresente.'},
   {id:'luz_sonica',      name:'Luz Sônica',            ico:'💥',tier:2,mult:2.0,e1:'som',        e2:'luz',         desc:'Flash cegante acompanhado de uma onda de choque que explode órgãos.'},
   {id:'chama_negra',     name:'Chama Negra',           ico:'🖤',tier:2,mult:2.0,e1:'fogo',       e2:'escuridao',   desc:'Fogo que não ilumina; consome a alma e deixa o corpo físico intacto.'},
+  {id:'abismo_sombrio',  name:'Abismo Sombrio',        ico:'🌑',tier:2,mult:2.0,e1:'sombra',     e2:'escuridao',   desc:'Trevas absolutas que devoram luz e matéria; quem entra nunca retorna.'},
+  {id:'chama_solar',     name:'Chama Solar',           ico:'☀️',tier:2,mult:2.0,e1:'luz',        e2:'fogo',        desc:'Fogo puro da estrela; queima mesmo espíritos e seres imateriais.'},
   {id:'eletrolise',      name:'Eletrólise',            ico:'⚡',tier:3,mult:1.7,e1:'raio',       e2:'agua',        desc:'Condução elétrica total em líquidos; gera explosões gasosas de hidrogênio.'},
   {id:'liga_plasma',     name:'Liga de Plasma',        ico:'💫',tier:3,mult:1.7,e1:'plasma',     e2:'metal',       desc:'Metal energético que corta a nível molecular e se autorregenera.'},
   {id:'toxina_liq',      name:'Toxina Líquida',        ico:'🐍',tier:3,mult:1.7,e1:'veneno',     e2:'agua',        desc:'Contaminação em massa de oceanos; toque na pele gera paralisia instantânea.'},
@@ -2898,7 +2900,7 @@ function renderCheatItems(){
   const q=($('cheat-item-search')?.value||'').toLowerCase();
   const list=$('cheat-item-list');if(!list)return;
   const filtered=ITEMS_POOL.filter(i=>i.name.toLowerCase().includes(q)||i.desc.toLowerCase().includes(q));
-  list.innerHTML=filtered.slice(0,50).map(it=>`
+  list.innerHTML=(q?filtered:filtered.slice(0,20)).map(it=>`
     <button class="cheat-btn" style="justify-content:flex-start;gap:8px;text-align:left;" onclick="cheatAddItem('${it.id}')">
       <span style="font-size:16px;">${it.ico}</span>
       <span style="flex:1;font-size:11px;">${it.name}</span>
