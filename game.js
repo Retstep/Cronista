@@ -25,6 +25,7 @@ const CLASSES=[
    hp:115,mp:30,atk:14,def:8,mag:2,spd:5,crit:.1,dodge:.05,lifesteal:0,bars:{atk:88,def:60,mag:10},
    skill:{name:'Golpe Brutal',ico:'💥',mp:10,desc:'Dano pesado + atordoar.',type:'brutal'},
    skill2:{name:'Grito de Guerra',ico:'📯',mp:8,desc:'+6 ATK por 3 turnos.',type:'warcry'},
+   skill3:{name:'Escudo de Espinhos',ico:'🛡️',mp:14,desc:'Reflete 40% do dano por 3 turnos.',type:'thorns_shield'},
    items:['⚔️ Espada de Ferro','🛡️ Escudo Rachado'],
    subclasses:[
      {id:'paladin',key:'pld',name:'Paladino',ico:'🛡️✨',desc:'Defensor sagrado com cura.',bonus:'DEF+5, Cura 8HP/turno',fn:G=>{G.def+=5;G.passives.push('regen_strong');}},
@@ -43,6 +44,7 @@ const CLASSES=[
    hp:78,mp:52,atk:11,def:4,mag:5,spd:11,crit:.22,dodge:.12,lifesteal:0,bars:{atk:70,def:30,mag:30},
    skill:{name:'Ataque Furtivo',ico:'🌑',mp:12,desc:'Dano crítico garantido.',type:'sneak'},
    skill2:{name:'Veneno na Lâmina',ico:'🐍',mp:10,desc:'Envenena o inimigo por 4 turnos.',type:'poison'},
+   skill3:{name:'Marca Mortal',ico:'🎯',mp:15,desc:'Próximos 3 ataques causam +50% dano.',type:'death_mark'},
    items:['🗡️ Adagas Duplas','🧪 Poção Menor'],
    subclasses:[
      {id:'assassin',key:'shd',name:'Assassino',ico:'💀🗡️',desc:'Mata em um golpe ou morre tentando.',bonus:'CRIT+20%, ATK+6',fn:G=>{G.crit+=.20;G.atk+=6;}},
@@ -136,19 +138,6 @@ const ITEMS_POOL=[
     fn:G=>{G.mp=G.mpMax;upd();toast('💎 MP totalmente restaurado!');}},
   {id:'guardian_eye',  name:'Olho do Guardião',    ico:'👁️',rarity:'epic',   uses:null,slot:null,bonus:{},desc:'Revela atributos do inimigo antes do combate.',
     fn:G=>{G.passives.push('guardian_eye');toast('👁️ Você agora vê os atributos dos inimigos!');}},
-  // ═══ ITENS NOVOS ═══
-  {id:'vial_rage',     name:'Frasco da Fúria',      ico:'🔴',rarity:'rare',   uses:1, slot:null, desc:'Dobra o ATK por 2 salas.',
-    fn:G=>{const v=G.atk;G.atk*=2;G.tmpBuffs.push({stat:'atk',val:v,rooms:2});toast('🔴 ATK dobrado por 2 salas!');}},
-  {id:'shadow_cloak',  name:'Manto das Sombras',    ico:'🌑',rarity:'epic',   uses:1, slot:null, desc:'+25% esquiva por 3 salas.',
-    fn:G=>{G.dodge+=.25;G.tmpBuffs.push({stat:'dodge',val:.25,rooms:3});toast('🌑 Esquiva +25% por 3 salas!');}},
-  {id:'tome_frost',    name:'Tomo do Gelo',         ico:'❄️',rarity:'rare',   uses:1, slot:null, desc:'Congela o inimigo por 2 turnos.',
-    fn:(G,ctx)=>{if(ctx?.E){ctx.E.frozen=(ctx.E.frozen||0)+2;toast('❄️ Inimigo congelado por 2 turnos!');}else toast('Só usável em combate.');}},
-  {id:'blood_vial',    name:'Frasco de Sangue',     ico:'🩸',rarity:'epic',   uses:1, slot:null, desc:'Troca 30% HP por 30% MP.',
-    fn:G=>{const cost=Math.round(G.hpMax*.30);if(G.hp<=cost){toast('HP insuficiente!');return;}G.hp-=cost;const gain=Math.round(G.mpMax*.30);G.mp=Math.min(G.mpMax,G.mp+gain);upd();toast(`🩸 -${cost} HP → +${gain} MP`);}},
-  {id:'ancient_coin',  name:'Moeda Antiga',         ico:'🏺',rarity:'legendary',uses:1,slot:null,desc:'Converte todo o XP atual em ouro.',
-    fn:G=>{const g=Math.round(G.xp/2);addGold(g);G.xp=0;upd();toast(`🏺 +${g}💰 — XP convertido!`);}},
-  {id:'war_banner',    name:'Estandarte de Guerra', ico:'🚩',rarity:'legendary',uses:null,slot:null,bonus:{atk:6,def:4},desc:'+6 ATK +4 DEF — Moral elevada.',
-    fn:G=>{G.passives.push('war_banner');toast('🚩 Estandarte hasteado!');}},
   // ═══ SETS DE ARMADURA ═══
   // Set do Caçador (Ladino)
   {id:'set_hunter_bow',  name:'Arco Longo',          ico:'🏹',rarity:'epic',  uses:null,slot:'weapon',set:'hunter',bonus:{atk:7,spd:2},          desc:'+7 ATK +2 VEL | Set Caçador'},
@@ -534,7 +523,7 @@ function newG(cls){
     xp:0,xpNext:40,level:1,gold:20,floor:1,room:0,maxRooms:10,
     kills:0,totalDmg:0,events:0,passives:[],inv:[],
     equip:{head:null,chest:null,weapon:null,feet:null},
-    skills: cls.skill2 ? [{...cls.skill},{...cls.skill2}] : [{...cls.skill}],
+    skills: cls.skill3 ? [{...cls.skill},{...cls.skill2},{...cls.skill3}] : cls.skill2 ? [{...cls.skill},{...cls.skill2}] : [{...cls.skill}],
     elements:[],activeElement:null,_elChargeEl:null,_elChargeCount:0,runLog:[],
     subclass:null,upgrades:[],mpRegen:cls.id==='mage'?14:8,view:'explore',inCombat:false,
     t0:Date.now(),tmpBuffs:[],
@@ -1899,11 +1888,13 @@ function dentReadyBar(dmg){
 function startCombat(enemy,sc,disadv=false){
   G.inCombat=true;
   CE={...enemy,hpCur:enemy.hp,stunned:false,poisonTurns:0,burnTurns:0,freezeTurns:0};
+  G._firstAttack=true;G.thornsShieldTurns=0;G.deathMarkHits=0;G._assassinCapeUsed=false;
   combatLog=[];
   initReadyBar(CE);
   if(CE.elite)clog(`⚠ ${CE.name} é um inimigo elite! Cuidado.`,'li');
   if(CE.boss)clog(`☠ ${CE.name} possui ataque especial carregável! Fique atento.`,'ln');
   if(disadv)clog('⚠ Pego de surpresa!','le');
+  if(G.passives.includes('assassin_cape')){G._assassinCapeUsed=false;clog('🌑 Capa do Assassino: invisível no primeiro turno!','lc');}
   renderCombat(sc);
 }
 
@@ -1966,6 +1957,18 @@ function renderCombat(sc){
         <span class="mpcost">${Math.max(0,sk2.mp-(G.mpDiscount||0))}MP</span>
       </button>`;
     }
+  }
+
+  // Skill 3 (se tiver)
+  const sk3=G.skills[2];
+  let sk3Btn='';
+  if(sk3){
+    sk3Btn=`<button class="cbtn cskill2" id="cb-sk3" onclick="ca('sk3')">
+      <span class="cbtn-ico">${sk3.ico}</span>
+      <span class="cbtn-lbl">${sk3.name}</span>
+      <span class="cbtn-sub">${sk3.desc}</span>
+      <span class="mpcost">${Math.max(0,sk3.mp-(G.mpDiscount||0))}MP</span>
+    </button>`;
   }
 
   // Explosão Arcana (set mago 3 peças)
@@ -2032,6 +2035,7 @@ function renderCombat(sc){
         <span class="cbtn-sub">${chargeCount>=3?'⚡ CARGA MÁXIMA!':skDesc}</span><span class="mpcost">${skMp}MP</span>
       </button>
       ${sk2Btn}
+      ${sk3Btn}
       ${arcanaBtn}
       <button class="cbtn citem" id="cb-item" onclick="ca('item')"><span class="cbtn-ico">🎒</span><span class="cbtn-lbl">Item</span><span class="cbtn-sub">${G.inv.filter(i=>i.uses).length} disp.</span></button>
       <button class="cbtn cflee" id="cb-flee" onclick="ca('flee')"><span class="cbtn-ico">💨</span><span class="cbtn-lbl">Fugir</span><span class="cbtn-sub">VEL ${G.spd}</span></button>
@@ -2125,6 +2129,11 @@ function ca(action){
     const mpCost=Math.max(0,sk2.mp-(G.mpDiscount||0));
     if(G.mp<mpCost&&!G.passives.includes('manamode')){toast('MP insuficiente!');lockBtns(0);return;}
     G.mp=G.passives.includes('manamode')?G.mpMax:G.mp-mpCost;upd();doSkill(sk2.type);
+  } else if(action==='sk3'){
+    const sk3=G.skills[2];if(!sk3){lockBtns(0);return;}
+    const mpCost3=Math.max(0,sk3.mp-(G.mpDiscount||0));
+    if(G.mp<mpCost3&&!G.passives.includes('manamode')){toast('MP insuficiente!');lockBtns(0);return;}
+    G.mp=G.passives.includes('manamode')?G.mpMax:G.mp-mpCost3;upd();doSkill(sk3.type);
   } else if(action==='arcana'){
     if(!G.arcanaReady){toast('Explosão Arcana em cooldown!');lockBtns(0);return;}
     doSkill('arcana');
@@ -2154,6 +2163,13 @@ function pAtk(bonus=0,forceCrit=false){
   }
   let bz=G.passives.includes('berzerk')&&G.hp/G.hpMax<.3?Math.round(G.atk*.35):0;
   let dmg=Math.max(1,G.atk+bz-Math.floor(CE.def*.5)+r(8));
+  // Backstab — primeiro ataque do combate causa dano x2
+  if(G.passives.includes('backstab')&&G._firstAttack){dmg=Math.round(dmg*2);clog('🗡️ Golpe nas Costas! Dano dobrado!','lc');floatDmg('🗡️x2','#9b59b6',55,36);}
+  G._firstAttack=false;
+  // Death Mark — próximos 3 ataques +50% dano
+  if((G.deathMarkHits||0)>0){dmg=Math.round(dmg*1.5);G.deathMarkHits--;clog(`🎯 Marca Mortal! +50% dano (${G.deathMarkHits} rest.)!`,'lc');floatDmg('🎯+50%','#e74c3c',55,36);}
+  // Last Stand — abaixo de 25% HP
+  if(G.passives.includes('last_stand')&&G.hp/G.hpMax<.25)dmg=Math.round(dmg*1.3);
   let isCrit=forceCrit||Math.random()<G.crit;
   if(isCrit){dmg=Math.round(dmg*(G.critMult||2));clog(`⚡ Crítico! ${dmg} dano!`,'lc');floatDmg('⚡'+dmg,'#f1c40f',55,36);sfx('crit');spawnParticles(14,'#f1c40f');flashCard('rgba(241,196,15,.25)',250);}
   else{clog(`Você ataca ${CE.name} — ${dmg} dano.`,'lp');floatDmg('-'+dmg,'#e74c3c',55,36);sfx('atk');spawnParticles(8,'#e74c3c');flashCard('rgba(231,76,60,.3)',200);}
@@ -2170,6 +2186,10 @@ function pAtk(bonus=0,forceCrit=false){
     dentReadyBar(d2);
   }
   if(G.passives.includes('thorns')&&CE.hpCur>0)CE.hpCur=Math.max(0,CE.hpCur-2);
+  if(G.passives.includes('poison_dagger')&&CE.hpCur>0){
+    const pdmg=Math.max(2,Math.round(G.atk*.2));
+    applyStatus(CE,'poison',2,pdmg);
+  }
   updateCombatUI();
 }
 
@@ -2197,10 +2217,23 @@ function doSkill(type){
     clog(`🌑 Furtivo: ${dmg} (crítico garantido!)!`,'lc');floatDmg('🌑'+dmg,'#9b59b6',55,35);
   } else if(type==='poison'){
     // Veneno via Ladino: aplica acumulando
-    const pdmg=Math.max(3,Math.round(G.atk*.3));
-    applyStatus(CE,'poison',4,pdmg);
+    const _sharpBonus=G.passives.includes('sharp_blades')?2:0;
+    const pdmg=Math.max(3,Math.round(G.atk*.3))+_sharpBonus;
+    applyStatus(CE,'poison',4+_sharpBonus,pdmg);
     G._mSkillUses=(G._mSkillUses||0)+1;
     clog(`🐍 Veneno aplicado! ${pdmg} dano/turno por 4 turnos!`,'lc');floatDmg('🐍','#27ae60',55,35);
+  } else if(type==='thorns_shield'){
+    G.thornsShieldTurns=3;
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    clog('🛡️ Escudo de Espinhos! Reflete 40% do dano por 3 turnos!','lc');
+    floatDmg('🛡️ ESPINHOS','#e67e22',50,30);
+    updateCombatUI();return;
+  } else if(type==='death_mark'){
+    G.deathMarkHits=3;
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    clog('🎯 Marca Mortal! Próximos 3 ataques causam +50% dano!','lc');
+    floatDmg('🎯 MARCADO','#e74c3c',50,30);
+    updateCombatUI();return;
   } else if(type==='elemental'){
     const el=G.activeElement;
     if(!el){toast('Nenhum elemento ativo!');return;}
@@ -2312,8 +2345,21 @@ function enemyTurn(){
   }
 
   // ── 7. Dodge do jogador ──
+  // Assassin Cape: invisível no primeiro turno
+  if(G.passives.includes('assassin_cape')&&!G._assassinCapeUsed){
+    G._assassinCapeUsed=true;
+    clog('🌑 Capa do Assassino: ataque ignorado! (invisibilidade esgotada)','ls');
+    updateCombatUI();return;
+  }
   if(Math.random()<G.dodge){
     clog('Você esquivou do ataque de '+CE.name+'!','ls');
+    if(G.passives.includes('shadow_step')&&CE.hpCur>0){
+      const cdmg=Math.max(1,Math.round(G.atk*.5));
+      CE.hpCur=Math.max(0,CE.hpCur-cdmg);
+      G.totalDmg+=cdmg;
+      clog(`👤 Sombra Ágil! Contra-ataque: ${cdmg} dano!`,'lc');
+      floatDmg('👤'+cdmg,'#9b59b6',55,36);
+    }
     updateCombatUI();return;
   }
 
@@ -2333,6 +2379,14 @@ function enemyTurn(){
   if(CE.badges&&CE.badges.includes('Dreno de vida')){const dr=Math.round(dmg*.35);CE.hpCur=Math.min(CE.hp,CE.hpCur+dr);logMsg+=` (drena ${dr} HP)`;}
   G.hp=Math.max(0,G.hp-dmg);
   if(dmg>0)G._mNoDmg=false;
+  // Thorns Shield — reflete 40% do dano
+  if((G.thornsShieldTurns||0)>0&&CE.hpCur>0){
+    const ref=Math.round(dmg*.4);
+    CE.hpCur=Math.max(0,CE.hpCur-ref);
+    G.thornsShieldTurns--;
+    clog(`🛡️ Espinhos refletem ${ref} dano! (${G.thornsShieldTurns} turnos rest.)`, 'lc');
+    floatDmg('🛡️'+ref,'#e67e22',55,30);
+  }
   if(G.passives.includes('godmode'))G.hp=G.hpMax;
   if(G.passives.includes('bsk_set')&&G.hp/G.hpMax<.3)G.hp=Math.min(G.hpMax,G.hp+5);
   clog(logMsg,isCrit?'lc':'le');
@@ -2363,6 +2417,12 @@ function checkEnd(){
     updateCombatUI();return;
   }
   if(G.hp<=0){showDeath('O herói caiu em combate.');sfx('death');return;}
+  if(CE.hpCur<=0&&G.passives.includes('bloodthirst')){
+    const heal=Math.round(G.hpMax*.15);
+    G.hp=Math.min(G.hpMax,G.hp+heal);
+    clog(`🩸 Sede de Sangue! +${heal} HP!`,'lc');
+    floatDmg('+'+heal+'HP','#27ae60',45,40);
+  }
   if(CE.hpCur<=0){
     if(CE.type==='explode'){
       const exd=r(12)+6;G.hp=Math.max(0,G.hp-exd);
@@ -2900,7 +2960,7 @@ function renderCheatItems(){
   const q=($('cheat-item-search')?.value||'').toLowerCase();
   const list=$('cheat-item-list');if(!list)return;
   const filtered=ITEMS_POOL.filter(i=>i.name.toLowerCase().includes(q)||i.desc.toLowerCase().includes(q));
-  list.innerHTML=(q?filtered:filtered.slice(0,20)).map(it=>`
+  list.innerHTML=filtered.slice(0,20).map(it=>`
     <button class="cheat-btn" style="justify-content:flex-start;gap:8px;text-align:left;" onclick="cheatAddItem('${it.id}')">
       <span style="font-size:16px;">${it.ico}</span>
       <span style="flex:1;font-size:11px;">${it.name}</span>
