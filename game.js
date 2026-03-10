@@ -2898,7 +2898,7 @@ function renderCheatItems(){
   const q=($('cheat-item-search')?.value||'').toLowerCase();
   const list=$('cheat-item-list');if(!list)return;
   const filtered=ITEMS_POOL.filter(i=>i.name.toLowerCase().includes(q)||i.desc.toLowerCase().includes(q));
-  list.innerHTML=filtered.slice(0,20).map(it=>`
+  list.innerHTML=filtered.slice(0,50).map(it=>`
     <button class="cheat-btn" style="justify-content:flex-start;gap:8px;text-align:left;" onclick="cheatAddItem('${it.id}')">
       <span style="font-size:16px;">${it.ico}</span>
       <span style="flex:1;font-size:11px;">${it.name}</span>
