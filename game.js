@@ -25,7 +25,6 @@ const CLASSES=[
    hp:115,mp:30,atk:14,def:8,mag:2,spd:5,crit:.1,dodge:.05,lifesteal:0,bars:{atk:88,def:60,mag:10},
    skill:{name:'Golpe Brutal',ico:'💥',mp:10,desc:'Dano pesado + atordoar.',type:'brutal'},
    skill2:{name:'Grito de Guerra',ico:'📯',mp:8,desc:'+6 ATK por 3 turnos.',type:'warcry'},
-   skill3:{name:'Escudo de Espinhos',ico:'🛡️',mp:14,desc:'Reflete 40% do dano por 3 turnos.',type:'thorns_shield'},
    items:['⚔️ Espada de Ferro','🛡️ Escudo Rachado'],
    subclasses:[
      {id:'paladin',key:'pld',name:'Paladino',ico:'🛡️✨',desc:'Defensor sagrado com cura.',bonus:'DEF+5, Cura 8HP/turno',fn:G=>{G.def+=5;G.passives.push('regen_strong');}},
@@ -44,7 +43,6 @@ const CLASSES=[
    hp:78,mp:52,atk:11,def:4,mag:5,spd:11,crit:.22,dodge:.12,lifesteal:0,bars:{atk:70,def:30,mag:30},
    skill:{name:'Ataque Furtivo',ico:'🌑',mp:12,desc:'Dano crítico garantido.',type:'sneak'},
    skill2:{name:'Veneno na Lâmina',ico:'🐍',mp:10,desc:'Envenena o inimigo por 4 turnos.',type:'poison'},
-   skill3:{name:'Marca Mortal',ico:'🎯',mp:15,desc:'Próximos 3 ataques causam +50% dano.',type:'death_mark'},
    items:['🗡️ Adagas Duplas','🧪 Poção Menor'],
    subclasses:[
      {id:'assassin',key:'shd',name:'Assassino',ico:'💀🗡️',desc:'Mata em um golpe ou morre tentando.',bonus:'CRIT+20%, ATK+6',fn:G=>{G.crit+=.20;G.atk+=6;}},
@@ -80,6 +78,170 @@ const ENEMIES=[
 {name:'Arquilich',           ico:'💀', floor:5,hp:250,atk:35,def:18,xp:180,gold:[75,110],badges:['Maldição','Drena MP','Explosão'],boss:true},
 {name:'Deus do Vazio',       ico:'🌑', floor:6,hp:300,atk:40,def:20,xp:220,gold:[90,130],badges:['Regeneração','Fúria','Dreno de vida','Explosão'],boss:true},
 ];
+
+
+/* ═══════════════════════════════════════════════════════
+   GERADOR PROCEDURAL DE INIMIGOS
+═══════════════════════════════════════════════════════ */
+
+const PROC_ARCHETYPES = [
+  {name:'Goblin',      ico:'👺',type:'normal', hp:20,atk:6, def:2, badges:[]},
+  {name:'Esqueleto',   ico:'💀',type:'undead', hp:22,atk:7, def:2, badges:['Morto-vivo']},
+  {name:'Lobo',        ico:'🐺',type:'beast',  hp:18,atk:8, def:1, badges:[]},
+  {name:'Troll',       ico:'🧌',type:'normal', hp:40,atk:9, def:6, badges:['Regeneração']},
+  {name:'Demônio',     ico:'😈',type:'demon',  hp:30,atk:11,def:4, badges:['Resistência']},
+  {name:'Espectro',    ico:'👻',type:'undead', hp:25,atk:9, def:2, badges:['Morto-vivo']},
+  {name:'Golem',       ico:'🪨',type:'construct',hp:45,atk:8,def:10,badges:['Armadura']},
+  {name:'Cultista',    ico:'🧎',type:'magic',  hp:22,atk:7, def:3, badges:['Maldição']},
+  {name:'Serpente',    ico:'🐍',type:'beast',  hp:20,atk:8, def:2, badges:[]},
+  {name:'Vampiro',     ico:'🧛',type:'undead', hp:28,atk:10,def:3, badges:['Dreno de vida']},
+  {name:'Ogro',        ico:'👹',type:'normal', hp:50,atk:12,def:5, badges:['Fúria']},
+  {name:'Bruxa',       ico:'🧙',type:'magic',  hp:24,atk:9, def:2, badges:['Maldição']},
+  {name:'Aranha',      ico:'🕷️',type:'beast',  hp:16,atk:7, def:1, badges:[]},
+  {name:'Múmia',       ico:'🧟',type:'undead', hp:35,atk:8, def:6, badges:['Morto-vivo']},
+  {name:'Elemental',   ico:'🔥',type:'demon',  hp:30,atk:12,def:3, badges:['Resistência']},
+  {name:'Lich',        ico:'🌑',type:'undead', hp:28,atk:11,def:4, badges:['Maldição','Morto-vivo']},
+  {name:'Gargoyle',    ico:'🗿',type:'construct',hp:38,atk:10,def:8,badges:['Armadura']},
+  {name:'Harpia',      ico:'🦅',type:'beast',  hp:22,atk:9, def:2, badges:[]},
+  {name:'Nécromante',  ico:'🪄',type:'magic',  hp:26,atk:10,def:3, badges:['Invoca mortos']},
+  {name:'Colosso',     ico:'⛏️',type:'construct',hp:60,atk:11,def:12,badges:['Armadura']},
+];
+
+const PROC_MODIFIERS = [
+  {prefix:'Veloz',     ico:'💨',hpM:.8, atkM:1.2,defM:.9, badges:['Certeiro'],    xpM:1.1},
+  {prefix:'Blindado',  ico:'🛡️',hpM:1.2,atkM:.9, defM:1.5, badges:['Armadura'],   xpM:1.2},
+  {prefix:'Venenoso',  ico:'🐍',hpM:1.0,atkM:1.1,defM:1.0, badges:['Veneno'],     xpM:1.15},
+  {prefix:'Flamejante',ico:'🔥',hpM:1.0,atkM:1.3,defM:.9, badges:['Queimadura'], xpM:1.2},
+  {prefix:'Gélido',    ico:'❄️',hpM:1.1,atkM:1.0,defM:1.1, badges:['Gelo'],       xpM:1.1},
+  {prefix:'Regenerador',ico:'🌿',hpM:1.3,atkM:.9,defM:1.0, badges:['Regeneração'],xpM:1.15},
+  {prefix:'Drenador',  ico:'💙',hpM:1.0,atkM:1.1,defM:1.0, badges:['Drena MP'],   xpM:1.1},
+  {prefix:'Explosivo', ico:'💣',hpM:.9, atkM:1.2,defM:.8, badges:['Explosão'],   xpM:1.2},
+  {prefix:'Maldito',   ico:'☠️',hpM:1.0,atkM:1.1,defM:1.0, badges:['Maldição'],  xpM:1.1},
+  {prefix:'Vampírico', ico:'🩸',hpM:1.1,atkM:1.2,defM:.9, badges:['Dreno de vida'],xpM:1.2},
+  {prefix:'Colossal',  ico:'💪',hpM:1.5,atkM:1.1,defM:1.2, badges:['Fúria'],      xpM:1.3},
+  {prefix:'Sombrio',   ico:'🌑',hpM:1.0,atkM:1.1,defM:1.0, badges:['Resistência'],xpM:1.1},
+  {prefix:'Ancião',    ico:'⭐',hpM:1.2,atkM:1.2,defM:1.1, badges:[],             xpM:1.25},
+  {prefix:'Corrompido',ico:'🌀',hpM:1.1,atkM:1.3,defM:.9, badges:['Maldição'],  xpM:1.2},
+  {prefix:'Furioso',   ico:'😤',hpM:.9, atkM:1.4,defM:.8, badges:['Fúria'],      xpM:1.2},
+];
+
+const ELITE_PREFIXES = ['Campeão','Ancião','Corrompido','Lorde','Guardião','Arauto','Executioner','Tirano'];
+
+const BOSS_NAMES = [
+  ['Senhor','das Sombras'],['Devorador','de Almas'],['Arauto','do Vazio'],
+  ['Tirano','Eterno'],['Arquimago','das Trevas'],['Colosso','Primordial'],
+  ['Executioner','Imortal'],['Espectro','do Caos'],['Guardião','Maldito'],
+  ['Lorde','da Perdição'],['Entidade','Cósmica'],['Deus','do Esquecimento'],
+  ['Juiz','das Eras'],['Destruidor','de Mundos'],['Oráculo','da Morte'],
+];
+
+const BOSS_ICOS = ['👁️','🌑','💀','🐉','👑','🌌','😈','🦇','⚡','🔱','🌀','☠️','🗿','🧿','🔥'];
+
+const BOSS_BADGES_POOL = [
+  ['Chefe','Fúria'],['Chefe','Maldição'],['Chefe','Dreno de vida'],
+  ['Chefe','Explosão'],['Chefe','Regeneração'],['Chefe','Drena MP'],
+  ['Chefe','Imortal'],['Chefe','Invoca mortos'],['Chefe','Sopro de fogo'],
+];
+
+function floorScale(floor){
+  if(floor<=3) return 1+(floor-1)*0.25;
+  if(floor<=6) return 1+(3*0.25)+(floor-4)*0.30;
+  return 1+(3*0.25)+(3*0.30)+(floor-7)*0.18;
+}
+
+function genEnemy(floor){
+  const arch=pick(PROC_ARCHETYPES);
+  const mod=pick(PROC_MODIFIERS);
+  const scale=floorScale(floor);
+  const ngMult=G?.ngMult||1;
+  const total=scale*ngMult;
+
+  const hp=Math.round(arch.hp*mod.hpM*total);
+  const atk=Math.round(arch.atk*mod.atkM*total);
+  const def=Math.round(arch.def*mod.defM*(1+(floor-1)*0.12));
+  const xp=Math.round((10+floor*4)*mod.xpM);
+  const gold=[Math.round((2+floor)*total),Math.round((5+floor*2)*total)];
+
+  // Badges base do arquétipo + modificador, sem duplicatas
+  const badges=[...new Set([...arch.badges,...mod.badges])];
+
+  // Andares altos ganham badge extra
+  if(floor>=5&&Math.random()<0.4) badges.push(pick(['Fúria','Resistência','Certeiro','Drena MP']));
+
+  return {
+    id:'proc_'+r(99999),
+    name:`${mod.prefix} ${arch.name}`,
+    ico:`${mod.ico}${arch.ico}`,
+    sub:`${arch.type} · Andar ${floor}`,
+    hp,atk,def,xp,gold,badges,
+    boss:false,elite:false,
+    type:arch.type,
+    proc:true,
+  };
+}
+
+function genElite(floor){
+  const arch=pick(PROC_ARCHETYPES);
+  const mod1=pick(PROC_MODIFIERS);
+  let mod2=pick(PROC_MODIFIERS);
+  while(mod2.prefix===mod1.prefix) mod2=pick(PROC_MODIFIERS);
+  const prefix=pick(ELITE_PREFIXES);
+  const scale=floorScale(floor)*1.5;
+  const ngMult=G?.ngMult||1;
+  const total=scale*ngMult;
+
+  const hp=Math.round(arch.hp*mod1.hpM*mod2.hpM*total*1.4);
+  const atk=Math.round(arch.atk*mod1.atkM*mod2.atkM*total);
+  const def=Math.round(arch.def*mod1.defM*mod2.defM*(1+(floor-1)*0.12)*1.2);
+  const xp=Math.round((20+floor*6)*mod1.xpM*mod2.xpM);
+  const gold=[Math.round((5+floor*2)*total),Math.round((10+floor*3)*total)];
+  const badges=[...new Set(['Elite',...arch.badges,...mod1.badges,...mod2.badges])];
+
+  return {
+    id:'elite_'+r(99999),
+    name:`★ ${prefix} ${arch.name}`,
+    ico:`⭐${arch.ico}`,
+    sub:`Elite · ${mod1.prefix} & ${mod2.prefix}`,
+    hp,atk,def,xp,gold,badges,
+    boss:false,elite:true,
+    type:arch.type,
+    proc:true,
+  };
+}
+
+function genBoss(floor){
+  const [title,epithet]=pick(BOSS_NAMES);
+  const ico=pick(BOSS_ICOS);
+  const badges=pick(BOSS_BADGES_POOL);
+  const scale=floorScale(floor);
+  const ngMult=G?.ngMult||1;
+
+  const hp  = Math.round(80  * Math.pow(floor,1.4) * ngMult);
+  const atk = Math.round(8   * floor * scale * ngMult);
+  const def = Math.round(3   * floor * (1+(floor-1)*0.1) * ngMult);
+  const xp  = Math.round(60  * floor * 1.3);
+  const gold= [Math.round(20*floor*ngMult), Math.round(35*floor*ngMult)];
+
+  // Adiciona badge extra a partir do andar 5
+  if(floor>=5) badges.push(pick(['Fúria','Maldição','Drena MP','Explosão']));
+
+  // Ataque especial baseado nas badges
+  const atkSpecial=badges.includes('Sopro de fogo')||badges.includes('Queimadura')?'boss2':
+                   badges.includes('Maldição')||badges.includes('Imortal')?'boss3':'boss1';
+
+  return {
+    id:atkSpecial, // reutiliza ataque especial existente
+    name:`${title} ${epithet}`,
+    ico,
+    sub:`⚠ CHEFE — Andar ${floor}`,
+    hp,atk,def,xp,gold,badges,
+    boss:true,elite:false,
+    type:'demon',
+    proc:true,
+    _atkSpecialId: atkSpecial,
+  };
+}
+
 
 /* ═══ ITEMS ═══ */
 const ITEMS_POOL=[
@@ -262,8 +424,6 @@ const FUSIONS=[
   {id:'epidemia',        name:'Epidemia',              ico:'🦠',tier:2,mult:2.0,e1:'virus',      e2:'ar',          desc:'O ar torna-se o vetor de uma doença imparável e onipresente.'},
   {id:'luz_sonica',      name:'Luz Sônica',            ico:'💥',tier:2,mult:2.0,e1:'som',        e2:'luz',         desc:'Flash cegante acompanhado de uma onda de choque que explode órgãos.'},
   {id:'chama_negra',     name:'Chama Negra',           ico:'🖤',tier:2,mult:2.0,e1:'fogo',       e2:'escuridao',   desc:'Fogo que não ilumina; consome a alma e deixa o corpo físico intacto.'},
-  {id:'abismo_sombrio',  name:'Abismo Sombrio',        ico:'🌑',tier:2,mult:2.0,e1:'sombra',     e2:'escuridao',   desc:'Trevas absolutas que devoram luz e matéria; quem entra nunca retorna.'},
-  {id:'chama_solar',     name:'Chama Solar',           ico:'☀️',tier:2,mult:2.0,e1:'luz',        e2:'fogo',        desc:'Fogo puro da estrela; queima mesmo espíritos e seres imateriais.'},
   {id:'eletrolise',      name:'Eletrólise',            ico:'⚡',tier:3,mult:1.7,e1:'raio',       e2:'agua',        desc:'Condução elétrica total em líquidos; gera explosões gasosas de hidrogênio.'},
   {id:'liga_plasma',     name:'Liga de Plasma',        ico:'💫',tier:3,mult:1.7,e1:'plasma',     e2:'metal',       desc:'Metal energético que corta a nível molecular e se autorregenera.'},
   {id:'toxina_liq',      name:'Toxina Líquida',        ico:'🐍',tier:3,mult:1.7,e1:'veneno',     e2:'agua',        desc:'Contaminação em massa de oceanos; toque na pele gera paralisia instantânea.'},
@@ -486,6 +646,17 @@ const EVENTS=[
    {txt:'Estudar os tomos',hint:'Aprenda um novo elemento',fn:'book_event'},
    {txt:'Ignorar',hint:'',fn:'pass'},
  ]},
+  // ══ FERREIRO ══
+  {id:'blacksmith',type:'shop',title:'Ferreiro Errante',ico:'⚒️',
+   body:'Um ferreiro enorme ocupa um canto da masmorra, bigorna e forja improvisadas. <b>"Trago o ofício comigo. Ouro aceito, reclamação não."</b>',narr_key:'',
+   choices:[
+     {txt:'Melhorar item equipado',hint:'Fortifica um slot equipado',fn:'smith_upgrade'},
+     {txt:'Fundir dois itens',hint:'Combina stats — custa 80💰',fn:'smith_fuse',cost:{gold:80}},
+     {txt:'Reparar item maldito',hint:'Remove penalidades — 50💰',fn:'smith_repair',cost:{gold:50}},
+     {txt:'Craftar item novo',hint:'Forja item pelo andar — 70💰',fn:'smith_craft',cost:{gold:70}},
+     {txt:'Comprar/Vender itens',hint:'Troca de mercadorias',fn:'smith_trade'},
+     {txt:'Dispensar',hint:'',fn:'pass'},
+   ]},
   // ══ EVENTOS EM CADEIA ══
   {id:'chain_oracle',type:'story',title:'A Oráculo das Ruínas',ico:'🔮',
    body:'Uma figura encurvada bloqueia a passagem. Olhos brancos e vazios. <b>"Eu vejo o que você esconde, viajante."</b> Ela ergue uma mão — à esquerda, névoa; à direita, chamas.',narr_key:'',
@@ -523,7 +694,7 @@ function newG(cls){
     xp:0,xpNext:40,level:1,gold:20,floor:1,room:0,maxRooms:10,
     kills:0,totalDmg:0,events:0,passives:[],inv:[],
     equip:{head:null,chest:null,weapon:null,feet:null},
-    skills: cls.skill3 ? [{...cls.skill},{...cls.skill2},{...cls.skill3}] : cls.skill2 ? [{...cls.skill},{...cls.skill2}] : [{...cls.skill}],
+    skills: cls.skill2 ? [{...cls.skill},{...cls.skill2}] : [{...cls.skill}],
     elements:[],activeElement:null,_elChargeEl:null,_elChargeCount:0,runLog:[],
     subclass:null,upgrades:[],mpRegen:cls.id==='mage'?14:8,view:'explore',inCombat:false,
     t0:Date.now(),tmpBuffs:[],
@@ -925,7 +1096,8 @@ function upd(){
   let ico=G.cls.ico;
   if(G.equip.weapon)ico=G.equip.weapon.ico.split('')[0]||G.cls.ico;
   $('hud-ava').textContent=ico;
-  $('hud-cls').textContent=G.cls.name+(G.subclass?' · '+G.subclass.name:'')+' — Andar '+G.floor;
+  const floorLabel=G.floor>3?`∞ ${G.floor}`:`${G.floor}`;
+  $('hud-cls').textContent=G.cls.name+(G.subclass?' · '+G.subclass.name:'')+' — Andar '+floorLabel;
   $('vhp').style.width=pct(G.hp,G.hpMax);$('vmp').style.width=pct(G.mp,G.mpMax);
   $('nhp').textContent=G.hp+'/'+G.hpMax;$('nmp').textContent=G.mp+'/'+G.mpMax;
   $('hlv').textContent='Nv.'+G.level;$('xpf').style.width=pct(G.xp,G.xpNext);
@@ -1046,18 +1218,18 @@ function renderExplore(sc){
   }
 
   if(chosen==='combat'){
-    let pool=ENEMIES.filter(e=>e.floor<=G.floor&&!e.boss);
-    const enemy={...pick(pool)};
-    const floorMult=1+(G.floor-1)*0.25;
-    const ngMult=G.ngMult||1;
-    const totalMult=floorMult*ngMult;
-    enemy.hp=Math.round(enemy.hp*totalMult);
-    enemy.atk=Math.round(enemy.atk*totalMult);
-    enemy.def=Math.round(enemy.def*(1+(G.floor-1)*0.15));
-    enemy.badges=enemy.badges||[];
-    if(Math.random()<.20)makeElite(enemy);
+    let enemy;
+    if(Math.random()<.20){
+      enemy=genElite(G.floor);
+    } else {
+      enemy=genEnemy(G.floor);
+    }
     startCombat(enemy,sc);
   } else {
+    // Ferreiro: 20% de chance em eventos shop, a partir do andar 2
+    if(chosen==='shop'&&G.floor>=2&&Math.random()<.20){
+      showEvent(EVENTS.find(e=>e.id==='blacksmith'),sc);return;
+    }
     // Mapa do Tesouro — força evento de baú
     if(G.passives.includes('treasure_map')&&chosen==='explore'){
       const idx=G.passives.indexOf('treasure_map');G.passives.splice(idx,1);
@@ -1212,6 +1384,11 @@ function doChoice(ev,ch,sc){
   const oc=(type,ico,lbl,txt,tags,nk='')=>outcome(sc,type,ico,lbl,txt,tags,nk);
   const F={
     pass:()=>oc('neutral','🚶','Passou','Você segue em frente sem se envolver.',[],ev.narr_key),
+    smith_upgrade:()=>{smithUpgrade();},
+    smith_fuse:()=>{smithFuse();},
+    smith_repair:()=>{smithRepair();},
+    smith_craft:()=>{smithCraft();},
+    smith_trade:()=>{G._smithShopItems=null;smithTrade();},
     rest_camp:()=>{const h=r(20)+15,m=r(10)+5;G.hp=Math.min(G.hpMax,G.hp+h);G.mp=Math.min(G.mpMax,G.mp+m);oc('win','🔥','Descansou','O calor da fogueira restaura suas forças.',[{c:'heal',t:'+'+h+' HP'},{c:'mp',t:'+'+m+' MP'}]);},
     search_camp:()=>{if(Math.random()<.65){const it=randItemByRarity('common');addItemToInv(it);oc('win','🎒','Encontrou!','Havia algo útil dentro da mochila.',[{c:'item '+it.rarity,t:it.ico+' '+it.name}]);}else{const d=r(8)+3;G.hp=Math.max(0,G.hp-d);screenShake();oc('lose','🪤','Armadilha!','A mochila estava armada.',[{c:'dmg',t:'-'+d+' HP'}],'lose_hp');}},
     shrine_offer:()=>{G.hp=Math.min(G.hpMax,G.hp+30);G.mp=Math.min(G.mpMax,G.mp+20);oc('win','✨','Abençoado','Luz dourada te envolve.',[{c:'heal',t:'+30 HP'},{c:'mp',t:'+20 MP'}]);},
@@ -1235,7 +1412,7 @@ function doChoice(ev,ch,sc){
     trap_spd:()=>{if(r(20)+G.spd>=13){const g=r(25)+15;addGold(g);oc('win','💨','Chegou!','Rápido demais.',[{c:'gold',t:'+'+g+'💰'}]);}else{const d=r(18)+8;G.hp=Math.max(0,G.hp-d);screenShake();oc('lose','💥','Atingido!',' ',[{c:'dmg',t:'-'+d+' HP'}],'lose_hp');}},
     gamble:()=>{if(Math.random()<.5){addGold(20);oc('win','🎲','Venceu!','Dinheiro dobrado.',[{c:'gold',t:'+20💰'}]);}else{G.gold=Math.max(0,G.gold-20);upd();oc('lose','🎲','Perdeu!','Adeus, moedas.',[{c:'dmg',t:'-20💰'}],'greed');}},
     gamble_all:()=>{const g=G.gold;if(Math.random()<.45){addGold(g);oc('crit','🎲','JACKPOT!','Tudo dobrado!',[{c:'gold',t:'+'+g+'💰'}]);}else{G.gold=0;upd();oc('lose','💸','Falência','Perdeu tudo.',[{c:'dmg',t:'-'+g+'💰'}],'greed');}},
-    fight_ambush:()=>{startCombat({...pick(ENEMIES.filter(e=>e.floor<=G.floor&&!e.boss))},sc,true);},
+    fight_ambush:()=>{startCombat(genEnemy(G.floor),sc,true);},
     pay_bandits:()=>oc('neutral','💸','Pagou','Eles somem.',[]),
     flee_ambush:()=>{if(r(20)+G.spd>=13)oc('win','💨','Fugiu!','Deixou os bandidos para trás.',[]);else{const d=r(10)+4;G.hp=Math.max(0,G.hp-d);screenShake();oc('lose','🗡️','Acertaram','Faca nas costas.',[{c:'dmg',t:'-'+d+' HP'}],'lose_hp');}},
     dark_pact:()=>{G.hpMax=Math.max(20,G.hpMax-15);G.hp=Math.min(G.hp,G.hpMax);G.atk+=5;oc('crit','🕯️','Pacto Feito','Algo dentro de você muda.',[{c:'dmg',t:'-15 HP MAX'},{c:'xp',t:'+5 ATK'}],'curse');},
@@ -1619,6 +1796,339 @@ function showChainStep(sc, stepKey){
   scrollBot(sc);
 }
 
+
+/* ═══════════════════════════════════════════════════════
+   FERREIRO
+═══════════════════════════════════════════════════════ */
+
+function openSmith(sc){
+  // Reabre o ferreiro
+  showEvent(EVENTS.find(e=>e.id==='blacksmith'),sc);
+}
+
+// ─── Melhorar item equipado ───
+function smithUpgrade(){
+  const sc=$('scroll');
+  const equipped=Object.entries(G.equipped||{}).filter(([slot,it])=>it&&it.bonus);
+  if(!equipped.length){toast('Nenhum item equipado para melhorar!');return;}
+
+  const costs={common:30,rare:60,epic:100,legendary:150};
+  const gains={common:2,rare:3,epic:4,legendary:5};
+
+  const card=document.createElement('div');card.className='card esh';
+  const rows=equipped.map(([slot,it])=>{
+    const cost=costs[it.rarity]||60;
+    const gain=gains[it.rarity]||2;
+    const canBuy=G.gold>=cost;
+    const mainStat=Object.keys(it.bonus||{})[0]||'atk';
+    return `<div class="special-merch-item ${canBuy?'':'disabled'}" style="opacity:${canBuy?1:.5}" onclick="${canBuy?`doSmithUpgrade('${slot}',${cost},${gain},'${mainStat}')`:''}">
+      <span style="font-size:22px;">${it.ico}</span>
+      <div style="flex:1;">
+        <div style="font-family:var(--cinzel);font-size:12px;color:var(--${it.rarity});">${it.name}</div>
+        <div style="font-size:11px;color:var(--txt2);">+${gain} no stat principal</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:var(--cinzel);font-size:13px;color:var(--gold);">💰${cost}</div>
+        <div style="font-size:10px;color:${canBuy?'var(--grn2)':'var(--red2)'};">${canBuy?'Disponível':'Sem ouro'}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  card.innerHTML=`
+    <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">MELHORAR ITEM</span></div>
+    <div class="ctitle">⚒️ Fortalecer Equipamento</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">${rows||'<div style="color:var(--txt2);font-size:12px;">Nenhum item equipado.</div>'}</div>
+    <button class="btn-next" onclick="openSmith($('scroll'))">← Voltar ao Ferreiro</button>`;
+  sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
+}
+
+function doSmithUpgrade(slot,cost,gain,stat){
+  if(G.gold<cost){toast('Ouro insuficiente!');return;}
+  const it=G.equipped[slot];if(!it)return;
+  G.gold-=cost;
+  it.bonus=it.bonus||{};
+  it.bonus[stat]=(it.bonus[stat]||0)+gain;
+  // aplica bônus direto no player
+  if(stat==='atk')G.atk+=gain;
+  else if(stat==='def')G.def+=gain;
+  else if(stat==='mag')G.mag+=gain;
+  else if(stat==='spd')G.spd+=gain;
+  else if(stat==='hp'||stat==='hpMax'){G.hpMax+=gain;G.hp=Math.min(G.hp+gain,G.hpMax);}
+  else if(stat==='mp'||stat==='mpMax'){G.mpMax+=gain;G.mp=Math.min(G.mp+gain,G.mpMax);}
+  it.desc=(it.desc||'')+` [+${gain}]`;
+  upd();
+  toast(`⚒️ ${it.name} fortalecido! +${gain} ${stat.toUpperCase()}`,2500);
+  smithUpgrade();
+}
+
+// ─── Fundir dois itens ───
+function smithFuse(){
+  const sc=$('scroll');
+  if(G.inv.length<2){toast('Precisa de pelo menos 2 itens no inventário!');return;}
+  G._smithFuseSelected=[];
+
+  const card=document.createElement('div');card.className='card esh';
+  card.id='smith-fuse-card';
+
+  function renderFuseCard(){
+    const rows=G.inv.slice(0,12).map((it,i)=>{
+      const sel=G._smithFuseSelected.includes(i);
+      return `<div class="special-merch-item" id="sfuse-${i}" style="border-color:${sel?'var(--acc)':'var(--brd2)'};background:${sel?'rgba(200,130,75,.12)':'transparent'};cursor:pointer;" onclick="toggleSmithFuse(${i})">
+        <span style="font-size:20px;">${it.ico}</span>
+        <div style="flex:1;"><div style="font-family:var(--cinzel);font-size:11px;color:var(--${it.rarity});">${it.name}</div>
+        <div style="font-size:10px;color:var(--txt2);">${it.desc||''}</div></div>
+        ${sel?'<span style="color:var(--acc);font-size:18px;">✓</span>':''}
+      </div>`;
+    }).join('');
+
+    const canFuse=G._smithFuseSelected.length===2;
+    card.innerHTML=`
+      <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">FUNDIR ITENS</span></div>
+      <div class="ctitle">⚒️ Fusão de Itens</div>
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:10px;">Selecione 2 itens para fundir. O resultado combina os stats de ambos com raridade elevada.</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">${rows}</div>
+      <button class="btn-next" style="margin-bottom:8px;${canFuse?'':'opacity:.4;pointer-events:none;'}" onclick="doSmithFuse()">⚒️ Fundir (80💰)</button>
+      <button class="btn-next" style="background:transparent;border-color:var(--brd2);color:var(--txt2);" onclick="openSmith($('scroll'))">← Voltar</button>`;
+  }
+
+  renderFuseCard();
+  sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
+  G._renderFuseCard=renderFuseCard;
+}
+
+function toggleSmithFuse(i){
+  const sel=G._smithFuseSelected;
+  const idx=sel.indexOf(i);
+  if(idx>=0) sel.splice(idx,1);
+  else if(sel.length<2) sel.push(i);
+  else { sel.shift();sel.push(i); }
+  if(G._renderFuseCard) G._renderFuseCard();
+}
+
+function doSmithFuse(){
+  if(G._smithFuseSelected.length!==2){toast('Selecione 2 itens!');return;}
+  if(G.gold<80){toast('Ouro insuficiente!');return;}
+  const [i1,i2]=G._smithFuseSelected.sort((a,b)=>b-a);
+  const it1=G.inv[i1],it2=G.inv[Math.min(i2,G.inv.length-1)];
+  if(!it1||!it2){toast('Erro ao selecionar itens.');return;}
+
+  G.gold-=80;
+  // Remove os dois itens (maior índice primeiro)
+  G.inv.splice(i1,1);
+  const newI2=i2<i1?i2:i2-1;
+  if(newI2>=0&&newI2<G.inv.length) G.inv.splice(newI2,1);
+
+  // Combina stats
+  const rarOrder=['common','uncommon','rare','epic','legendary'];
+  const r1=rarOrder.indexOf(it1.rarity)||0,r2=rarOrder.indexOf(it2.rarity)||0;
+  const newRar=rarOrder[Math.min(Math.max(r1,r2)+1,4)];
+  const b1=it1.bonus||{},b2=it2.bonus||{};
+  const newBonus={};
+  [...new Set([...Object.keys(b1),...Object.keys(b2)])].forEach(k=>{
+    newBonus[k]=Math.round(((b1[k]||0)+(b2[k]||0))*0.75);
+  });
+  const fusedItem={
+    id:'fused_'+r(99999),
+    name:`${it1.name.split(' ')[0]}+${it2.name.split(' ')[0]}`,
+    ico:`${it1.ico}${it2.ico}`,
+    rarity:newRar,
+    slot:it1.slot||it2.slot||null,
+    uses:null,
+    bonus:newBonus,
+    desc:'Fusão: '+Object.entries(newBonus).map(([k,v])=>`+${v} ${k.toUpperCase()}`).join(' '),
+  };
+  addItemToInv(fusedItem);
+  upd();
+  toast(`⚒️ Fusão criada: ${fusedItem.name}!`,2500);
+  G._smithFuseSelected=[];
+  smithFuse();
+}
+
+// ─── Reparar item maldito ───
+function smithRepair(){
+  const sc=$('scroll');
+  const cursed=G.inv.filter(it=>it.bonus&&Object.values(it.bonus).some(v=>v<0));
+  if(!cursed.length){toast('Nenhum item com penalidades no inventário!');return;}
+
+  const card=document.createElement('div');card.className='card esh';
+  const rows=cursed.map((it,i)=>{
+    const negStats=Object.entries(it.bonus).filter(([k,v])=>v<0).map(([k,v])=>`${k.toUpperCase()} ${v}`).join(', ');
+    return `<div class="special-merch-item" onclick="doSmithRepair('${it.id}')">
+      <span style="font-size:20px;">${it.ico}</span>
+      <div style="flex:1;"><div style="font-family:var(--cinzel);font-size:11px;color:var(--${it.rarity});">${it.name}</div>
+      <div style="font-size:10px;color:var(--red2);">Penalidades: ${negStats}</div></div>
+      <div style="font-family:var(--cinzel);font-size:12px;color:var(--gold);">💰50</div>
+    </div>`;
+  }).join('');
+
+  card.innerHTML=`
+    <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">REPARAR ITEM</span></div>
+    <div class="ctitle">⚒️ Remover Penalidades</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">${rows}</div>
+    <button class="btn-next" style="background:transparent;border-color:var(--brd2);color:var(--txt2);" onclick="openSmith($('scroll'))">← Voltar</button>`;
+  sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
+}
+
+function doSmithRepair(id){
+  if(G.gold<50){toast('Ouro insuficiente!');return;}
+  const it=G.inv.find(i=>i.id===id);if(!it)return;
+  G.gold-=50;
+  let fixed=0;
+  Object.keys(it.bonus).forEach(k=>{if(it.bonus[k]<0){fixed++;it.bonus[k]=0;}});
+  it.desc=(it.desc||'').replace(/-\d+ \w+/g,'').trim()+' [Reparado]';
+  upd();
+  toast(`⚒️ ${it.name} reparado! ${fixed} penalidade(s) removida(s).`,2500);
+  smithRepair();
+}
+
+// ─── Craftar item novo ───
+function smithCraft(){
+  const sc=$('scroll');
+  if(G.gold<70){toast('Ouro insuficiente! (70💰)');return;}
+
+  const slots=['weapon','chest','head','feet'];
+  const card=document.createElement('div');card.className='card esh';
+  const rows=slots.map(slot=>{
+    const ico={weapon:'⚔️',chest:'🛡️',head:'⛑️',feet:'👟'}[slot];
+    const lbl={weapon:'Arma',chest:'Armadura',head:'Elmo',feet:'Botas'}[slot];
+    return `<div class="special-merch-item" onclick="doSmithCraft('${slot}')">
+      <span style="font-size:22px;">${ico}</span>
+      <div style="flex:1;"><div style="font-family:var(--cinzel);font-size:12px;color:var(--acc);">${lbl}</div>
+      <div style="font-size:11px;color:var(--txt2);">Raridade baseada no Andar ${G.floor}</div></div>
+      <div style="font-family:var(--cinzel);font-size:13px;color:var(--gold);">💰70</div>
+    </div>`;
+  }).join('');
+
+  card.innerHTML=`
+    <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">CRAFTAR ITEM</span></div>
+    <div class="ctitle">⚒️ Forjar Novo Item</div>
+    <div style="font-size:11px;color:var(--txt2);margin-bottom:10px;">Escolha o tipo. O ferreiro forja com materiais do andar atual.</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">${rows}</div>
+    <button class="btn-next" style="background:transparent;border-color:var(--brd2);color:var(--txt2);" onclick="openSmith($('scroll'))">← Voltar</button>`;
+  sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
+}
+
+function doSmithCraft(slot){
+  if(G.gold<70){toast('Ouro insuficiente!');return;}
+  G.gold-=70;
+
+  // Raridade baseada no andar
+  const rarRoll=Math.random();
+  const rarity= G.floor>=6 ? (rarRoll<.15?'legendary':rarRoll<.5?'epic':'rare')
+              : G.floor>=4 ? (rarRoll<.08?'legendary':rarRoll<.35?'epic':'rare')
+              : G.floor>=2 ? (rarRoll<.04?'legendary':rarRoll<.2?'epic':rarRoll<.55?'rare':'common')
+              :               (rarRoll<.1?'rare':rarRoll<.4?'common':'common');
+
+  // Gera stats baseados no slot e raridade
+  const statMult={common:1,rare:1.6,epic:2.4,legendary:3.5}[rarity]||1;
+  const base=Math.round((3+G.floor)*statMult);
+  const bonusMap={
+    weapon:{atk:base,crit:Math.round(base*.01*100)/100},
+    chest: {def:base,hp:base*2},
+    head:  {def:Math.round(base*.7),hp:base},
+    feet:  {spd:Math.round(base*.5),dodge:Math.round(base*.005*100)/100},
+  };
+  const names={
+    weapon:{common:'Espada Forjada',rare:'Lâmina Temperada',epic:'Lâmina do Ferreiro',legendary:'Obra-Prima do Ferreiro'},
+    chest: {common:'Armadura Forjada',rare:'Cota Temperada',epic:'Armadura do Artesão',legendary:'Armadura Mestra'},
+    head:  {common:'Elmo Forjado',rare:'Elmo Temperado',epic:'Elmo do Artesão',legendary:'Coroa do Mestre'},
+    feet:  {common:'Botas Forjadas',rare:'Botas Temperadas',epic:'Botas do Artesão',legendary:'Botas Mestras'},
+  };
+  const icos={weapon:'⚔️',chest:'🛡️',head:'⛑️',feet:'👟'};
+  const crafted={
+    id:'crafted_'+r(99999),
+    name:names[slot][rarity],
+    ico:icos[slot],
+    rarity,slot,uses:null,
+    bonus:bonusMap[slot],
+    desc:Object.entries(bonusMap[slot]).map(([k,v])=>`+${v} ${k.toUpperCase()}`).join(' ')+' [Forjado]',
+  };
+  addItemToInv(crafted);upd();
+  toast(`⚒️ ${crafted.name} (${rarity}) forjado!`,2500);
+  smithCraft();
+}
+
+// ─── Comprar/Vender ───
+function smithTrade(){
+  const sc=$('scroll');
+  const card=document.createElement('div');card.className='card esh';
+  card.id='smith-trade-card';
+
+  // Pool de compra: itens aleatórios por andar
+  if(!G._smithShopItems){
+    const pool=ITEMS_POOL.filter(i=>i.rarity!=='legendary');
+    G._smithShopItems=[...pool].sort(()=>Math.random()-.5).slice(0,5).map(i=>({
+      ...i,
+      price:({common:15,uncommon:25,rare:40,epic:65}[i.rarity]||30)+G.floor*5,
+      id:'smith_buy_'+r(99999),
+    }));
+  }
+
+  function renderTrade(){
+    const buyRows=G._smithShopItems.map((it,i)=>{
+      const canBuy=G.gold>=it.price&&G.inv.length<16;
+      return `<div class="special-merch-item ${canBuy?'':'disabled'}" style="opacity:${canBuy?1:.5}" onclick="${canBuy?`doSmithBuy(${i})`:''}">
+        <span style="font-size:20px;">${it.ico}</span>
+        <div style="flex:1;"><div style="font-family:var(--cinzel);font-size:11px;color:var(--${it.rarity});">${it.name}</div>
+        <div style="font-size:10px;color:var(--txt2);">${it.desc||''}</div></div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--cinzel);font-size:12px;color:var(--gold);">💰${it.price}</div>
+          <div style="font-size:10px;color:${canBuy?'var(--grn2)':'var(--red2)'};">${canBuy?'Comprar':'—'}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    const sellRows=G.inv.slice(0,12).map((it,i)=>{
+      const sellPrice=Math.max(5,Math.round(({common:10,uncommon:18,rare:30,epic:50,legendary:90}[it.rarity]||15)*0.6));
+      return `<div class="special-merch-item" onclick="doSmithSell(${i},${sellPrice})">
+        <span style="font-size:20px;">${it.ico}</span>
+        <div style="flex:1;"><div style="font-family:var(--cinzel);font-size:11px;color:var(--${it.rarity});">${it.name}</div>
+        <div style="font-size:10px;color:var(--txt2);">${it.desc||''}</div></div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--cinzel);font-size:12px;color:var(--gold);">💰${sellPrice}</div>
+          <div style="font-size:10px;color:var(--grn2);">Vender</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    card.innerHTML=`
+      <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">COMPRAR / VENDER</span></div>
+      <div class="ctitle">⚒️ Mercadoria do Ferreiro</div>
+      <div style="font-family:var(--cinzel);font-size:10px;color:var(--acc);margin:10px 0 6px;">— COMPRAR —</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">${buyRows||'<div style="color:var(--txt2);font-size:11px;">Sem estoque.</div>'}</div>
+      <div style="font-family:var(--cinzel);font-size:10px;color:var(--acc);margin:10px 0 6px;">— VENDER (60% do valor) —</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">${sellRows||'<div style="color:var(--txt2);font-size:11px;">Inventário vazio.</div>'}</div>
+      <button class="btn-next" style="background:transparent;border-color:var(--brd2);color:var(--txt2);" onclick="openSmith($('scroll'))">← Voltar</button>`;
+  }
+
+  renderTrade();
+  sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
+  G._renderTradeCard=renderTrade;
+}
+
+function doSmithBuy(i){
+  const it=G._smithShopItems&&G._smithShopItems[i];if(!it)return;
+  if(G.gold<it.price){toast('Ouro insuficiente!');return;}
+  if(G.inv.length>=16){toast('Mochila cheia!');return;}
+  G.gold-=it.price;
+  const copy={...it,id:'smithbuy_'+r(99999)};
+  addItemToInv(copy);
+  G._smithShopItems.splice(i,1);
+  upd();toast(`${it.ico} ${it.name} comprado!`,2000);
+  smithTrade();
+}
+
+function doSmithSell(i,price){
+  const it=G.inv[i];if(!it)return;
+  G.inv.splice(i,1);
+  addGold(price);
+  upd();toast(`💰 +${price} — ${it.name} vendido!`,2000);
+  G._smithShopItems=null; // reseta loja ao vender
+  smithTrade();
+}
+
+// ─── Handler de choices do ferreiro ───
+
 /* ═══ MERCADOR ESPECIAL (andar 3+) ═══ */
 function showSpecialMerchant(sc){
   G.specialMerchantSeen=true;
@@ -1838,7 +2348,7 @@ function resetReadyBar(){
 
 function getReadyAttack(){
   if(!CE)return READY_ATTACKS.elite;
-  return READY_ATTACKS[CE.id]||(CE.boss?READY_ATTACKS.boss1:READY_ATTACKS.elite);
+  return READY_ATTACKS[CE._atkSpecialId||CE.id]||(CE.boss?READY_ATTACKS.boss1:READY_ATTACKS.elite);
 }
 
 function fireReadyAttack(){
@@ -1888,27 +2398,29 @@ function dentReadyBar(dmg){
 function startCombat(enemy,sc,disadv=false){
   G.inCombat=true;
   CE={...enemy,hpCur:enemy.hp,stunned:false,poisonTurns:0,burnTurns:0,freezeTurns:0};
-  G._firstAttack=true;G.thornsShieldTurns=0;G.deathMarkHits=0;G._assassinCapeUsed=false;
   combatLog=[];
   initReadyBar(CE);
   if(CE.elite)clog(`⚠ ${CE.name} é um inimigo elite! Cuidado.`,'li');
   if(CE.boss)clog(`☠ ${CE.name} possui ataque especial carregável! Fique atento.`,'ln');
   if(disadv)clog('⚠ Pego de surpresa!','le');
-  if(G.passives.includes('assassin_cape')){G._assassinCapeUsed=false;clog('🌑 Capa do Assassino: invisível no primeiro turno!','lc');}
   renderCombat(sc);
 }
 
 function startBoss(sc){
-  const boss=ENEMIES.find(e=>e.id==='boss'+G.floor);
+  // Boss fixo para andares 1-3, procedural para andares 4+
+  const fixedBoss=ENEMIES.find(e=>e.id==='boss'+G.floor);
+  const boss=fixedBoss||genBoss(G.floor);
+  G._currentBoss=boss; // salva referência para o combate
   sc.innerHTML='';
   const card=mkCard('boss');
+  const floorLabel=G.floor>3?`Andar ${G.floor} — Profundidades ∞`:`Andar ${G.floor}`;
   card.innerHTML=`
     <div class="ctag"><div class="ctag-dot" style="background:#ff6b35"></div><span class="ctag-txt" style="color:#ff6b35">CHEFE DO ANDAR</span></div>
     <div class="ctitle" style="color:#ff9055">${boss.name}</div>
     <div class="cillo">${boss.ico}</div>
-    <div class="cbody">${boss.sub}<br><br>Um adversário diferente. <b>Prepare-se.</b></div>
+    <div class="cbody">${boss.sub}<br><br>${boss.proc?'Uma presença antiga emerge das trevas. <b>Algo diferente. Algo maior.</b>':'Um adversário diferente. <b>Prepare-se.</b>'}</div>
     <div class="narrator">"${narr('boss')}"</div>
-    <button class="btn-next" style="border-color:#ff6b35;color:#ff9055;" onclick="startCombat({...ENEMIES.find(e=>e.id==='${boss.id}')},$('scroll'))">⚔ Enfrentar o Chefe</button>`;
+    <button class="btn-next" style="border-color:#ff6b35;color:#ff9055;" onclick="startCombat(G._currentBoss,$('scroll'))">⚔ Enfrentar o Chefe</button>`;
   sc.appendChild(card);scrollBot(sc);
 }
 
@@ -1957,18 +2469,6 @@ function renderCombat(sc){
         <span class="mpcost">${Math.max(0,sk2.mp-(G.mpDiscount||0))}MP</span>
       </button>`;
     }
-  }
-
-  // Skill 3 (se tiver)
-  const sk3=G.skills[2];
-  let sk3Btn='';
-  if(sk3){
-    sk3Btn=`<button class="cbtn cskill2" id="cb-sk3" onclick="ca('sk3')">
-      <span class="cbtn-ico">${sk3.ico}</span>
-      <span class="cbtn-lbl">${sk3.name}</span>
-      <span class="cbtn-sub">${sk3.desc}</span>
-      <span class="mpcost">${Math.max(0,sk3.mp-(G.mpDiscount||0))}MP</span>
-    </button>`;
   }
 
   // Explosão Arcana (set mago 3 peças)
@@ -2035,7 +2535,6 @@ function renderCombat(sc){
         <span class="cbtn-sub">${chargeCount>=3?'⚡ CARGA MÁXIMA!':skDesc}</span><span class="mpcost">${skMp}MP</span>
       </button>
       ${sk2Btn}
-      ${sk3Btn}
       ${arcanaBtn}
       <button class="cbtn citem" id="cb-item" onclick="ca('item')"><span class="cbtn-ico">🎒</span><span class="cbtn-lbl">Item</span><span class="cbtn-sub">${G.inv.filter(i=>i.uses).length} disp.</span></button>
       <button class="cbtn cflee" id="cb-flee" onclick="ca('flee')"><span class="cbtn-ico">💨</span><span class="cbtn-lbl">Fugir</span><span class="cbtn-sub">VEL ${G.spd}</span></button>
@@ -2129,11 +2628,6 @@ function ca(action){
     const mpCost=Math.max(0,sk2.mp-(G.mpDiscount||0));
     if(G.mp<mpCost&&!G.passives.includes('manamode')){toast('MP insuficiente!');lockBtns(0);return;}
     G.mp=G.passives.includes('manamode')?G.mpMax:G.mp-mpCost;upd();doSkill(sk2.type);
-  } else if(action==='sk3'){
-    const sk3=G.skills[2];if(!sk3){lockBtns(0);return;}
-    const mpCost3=Math.max(0,sk3.mp-(G.mpDiscount||0));
-    if(G.mp<mpCost3&&!G.passives.includes('manamode')){toast('MP insuficiente!');lockBtns(0);return;}
-    G.mp=G.passives.includes('manamode')?G.mpMax:G.mp-mpCost3;upd();doSkill(sk3.type);
   } else if(action==='arcana'){
     if(!G.arcanaReady){toast('Explosão Arcana em cooldown!');lockBtns(0);return;}
     doSkill('arcana');
@@ -2163,13 +2657,6 @@ function pAtk(bonus=0,forceCrit=false){
   }
   let bz=G.passives.includes('berzerk')&&G.hp/G.hpMax<.3?Math.round(G.atk*.35):0;
   let dmg=Math.max(1,G.atk+bz-Math.floor(CE.def*.5)+r(8));
-  // Backstab — primeiro ataque do combate causa dano x2
-  if(G.passives.includes('backstab')&&G._firstAttack){dmg=Math.round(dmg*2);clog('🗡️ Golpe nas Costas! Dano dobrado!','lc');floatDmg('🗡️x2','#9b59b6',55,36);}
-  G._firstAttack=false;
-  // Death Mark — próximos 3 ataques +50% dano
-  if((G.deathMarkHits||0)>0){dmg=Math.round(dmg*1.5);G.deathMarkHits--;clog(`🎯 Marca Mortal! +50% dano (${G.deathMarkHits} rest.)!`,'lc');floatDmg('🎯+50%','#e74c3c',55,36);}
-  // Last Stand — abaixo de 25% HP
-  if(G.passives.includes('last_stand')&&G.hp/G.hpMax<.25)dmg=Math.round(dmg*1.3);
   let isCrit=forceCrit||Math.random()<G.crit;
   if(isCrit){dmg=Math.round(dmg*(G.critMult||2));clog(`⚡ Crítico! ${dmg} dano!`,'lc');floatDmg('⚡'+dmg,'#f1c40f',55,36);sfx('crit');spawnParticles(14,'#f1c40f');flashCard('rgba(241,196,15,.25)',250);}
   else{clog(`Você ataca ${CE.name} — ${dmg} dano.`,'lp');floatDmg('-'+dmg,'#e74c3c',55,36);sfx('atk');spawnParticles(8,'#e74c3c');flashCard('rgba(231,76,60,.3)',200);}
@@ -2186,10 +2673,6 @@ function pAtk(bonus=0,forceCrit=false){
     dentReadyBar(d2);
   }
   if(G.passives.includes('thorns')&&CE.hpCur>0)CE.hpCur=Math.max(0,CE.hpCur-2);
-  if(G.passives.includes('poison_dagger')&&CE.hpCur>0){
-    const pdmg=Math.max(2,Math.round(G.atk*.2));
-    applyStatus(CE,'poison',2,pdmg);
-  }
   updateCombatUI();
 }
 
@@ -2217,23 +2700,10 @@ function doSkill(type){
     clog(`🌑 Furtivo: ${dmg} (crítico garantido!)!`,'lc');floatDmg('🌑'+dmg,'#9b59b6',55,35);
   } else if(type==='poison'){
     // Veneno via Ladino: aplica acumulando
-    const _sharpBonus=G.passives.includes('sharp_blades')?2:0;
-    const pdmg=Math.max(3,Math.round(G.atk*.3))+_sharpBonus;
-    applyStatus(CE,'poison',4+_sharpBonus,pdmg);
+    const pdmg=Math.max(3,Math.round(G.atk*.3));
+    applyStatus(CE,'poison',4,pdmg);
     G._mSkillUses=(G._mSkillUses||0)+1;
     clog(`🐍 Veneno aplicado! ${pdmg} dano/turno por 4 turnos!`,'lc');floatDmg('🐍','#27ae60',55,35);
-  } else if(type==='thorns_shield'){
-    G.thornsShieldTurns=3;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog('🛡️ Escudo de Espinhos! Reflete 40% do dano por 3 turnos!','lc');
-    floatDmg('🛡️ ESPINHOS','#e67e22',50,30);
-    updateCombatUI();return;
-  } else if(type==='death_mark'){
-    G.deathMarkHits=3;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog('🎯 Marca Mortal! Próximos 3 ataques causam +50% dano!','lc');
-    floatDmg('🎯 MARCADO','#e74c3c',50,30);
-    updateCombatUI();return;
   } else if(type==='elemental'){
     const el=G.activeElement;
     if(!el){toast('Nenhum elemento ativo!');return;}
@@ -2345,21 +2815,8 @@ function enemyTurn(){
   }
 
   // ── 7. Dodge do jogador ──
-  // Assassin Cape: invisível no primeiro turno
-  if(G.passives.includes('assassin_cape')&&!G._assassinCapeUsed){
-    G._assassinCapeUsed=true;
-    clog('🌑 Capa do Assassino: ataque ignorado! (invisibilidade esgotada)','ls');
-    updateCombatUI();return;
-  }
   if(Math.random()<G.dodge){
     clog('Você esquivou do ataque de '+CE.name+'!','ls');
-    if(G.passives.includes('shadow_step')&&CE.hpCur>0){
-      const cdmg=Math.max(1,Math.round(G.atk*.5));
-      CE.hpCur=Math.max(0,CE.hpCur-cdmg);
-      G.totalDmg+=cdmg;
-      clog(`👤 Sombra Ágil! Contra-ataque: ${cdmg} dano!`,'lc');
-      floatDmg('👤'+cdmg,'#9b59b6',55,36);
-    }
     updateCombatUI();return;
   }
 
@@ -2379,14 +2836,6 @@ function enemyTurn(){
   if(CE.badges&&CE.badges.includes('Dreno de vida')){const dr=Math.round(dmg*.35);CE.hpCur=Math.min(CE.hp,CE.hpCur+dr);logMsg+=` (drena ${dr} HP)`;}
   G.hp=Math.max(0,G.hp-dmg);
   if(dmg>0)G._mNoDmg=false;
-  // Thorns Shield — reflete 40% do dano
-  if((G.thornsShieldTurns||0)>0&&CE.hpCur>0){
-    const ref=Math.round(dmg*.4);
-    CE.hpCur=Math.max(0,CE.hpCur-ref);
-    G.thornsShieldTurns--;
-    clog(`🛡️ Espinhos refletem ${ref} dano! (${G.thornsShieldTurns} turnos rest.)`, 'lc');
-    floatDmg('🛡️'+ref,'#e67e22',55,30);
-  }
   if(G.passives.includes('godmode'))G.hp=G.hpMax;
   if(G.passives.includes('bsk_set')&&G.hp/G.hpMax<.3)G.hp=Math.min(G.hpMax,G.hp+5);
   clog(logMsg,isCrit?'lc':'le');
@@ -2417,12 +2866,6 @@ function checkEnd(){
     updateCombatUI();return;
   }
   if(G.hp<=0){showDeath('O herói caiu em combate.');sfx('death');return;}
-  if(CE.hpCur<=0&&G.passives.includes('bloodthirst')){
-    const heal=Math.round(G.hpMax*.15);
-    G.hp=Math.min(G.hpMax,G.hp+heal);
-    clog(`🩸 Sede de Sangue! +${heal} HP!`,'lc');
-    floatDmg('+'+heal+'HP','#27ae60',45,40);
-  }
   if(CE.hpCur<=0){
     if(CE.type==='explode'){
       const exd=r(12)+6;G.hp=Math.max(0,G.hp-exd);
@@ -2460,8 +2903,26 @@ function checkEnd(){
     clog(`${ceName} derrotado! +${xg}XP +${gg}💰`,'ls');updateCombatUI();
     const wasBoss=isBoss,fl=G.floor;G.inCombat=false;CE=null;
     setTimeout(()=>{
-      if(wasBoss&&fl>=3&&fl%3===0){showVictory();return;}
-      if(wasBoss){G.floor++;G.room=0;G.challengeRoomDoneThisFloor=false;logRun('🏰',`Avançou para o Andar ${G.floor}`,'win');generateMissions();}
+      if(wasBoss&&fl===3){showVictory();return;}
+      if(wasBoss){
+        const prevFloor=G.floor;
+        G.floor++;G.room=0;G.challengeRoomDoneThisFloor=false;G.specialMerchantSeen=false;
+        logRun('🏰',`Avançou para o Andar ${G.floor}`,'win');
+        generateMissions();
+        if(prevFloor>=3){
+          // Andares 4+: transição narrativa direta, sem tela de vitória
+          const depthMsgs=[
+            'As trevas se aprofundam. O silêncio pesa mais do que qualquer armadura.',
+            'Você desce. A luz some. Algo lá embaixo te observa há muito tempo.',
+            'O dungeon não tem fundo. Apenas mais escuridão, mais poder, mais morte.',
+            'Cada andar é uma cicatriz. Você coleciona as suas com orgulho.',
+            'Não há glória aqui. Apenas sobrevivência. E você ainda está de pé.',
+          ];
+          toast(`🏰 Andar ${G.floor} — ${pick(depthMsgs)}`,3500);
+          const sc2=$('scroll');if(sc2)nextRoom();
+          return;
+        }
+      }
       showCombatVictory(wasBoss,xg,gg);
     },600);
   }
