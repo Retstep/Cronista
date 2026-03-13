@@ -149,55 +149,65 @@ function floorScale(floor){
   return 1+(3*0.25)+(3*0.30)+(floor-7)*0.18;
 }
 
-function genProcEnemy(floor, isElite=false){
+function genEnemy(floor){
   const arch=pick(PROC_ARCHETYPES);
-  const mod1=pick(PROC_MODIFIERS);
+  const mod=pick(PROC_MODIFIERS);
+  const scale=floorScale(floor);
   const ngMult=G?.ngMult||1;
-
-  // Elite usa dois modificadores e escala maior
-  let mod2=null;
-  if(isElite){
-    mod2=pick(PROC_MODIFIERS);
-    while(mod2.prefix===mod1.prefix) mod2=pick(PROC_MODIFIERS);
-  }
-  const scale=floorScale(floor)*(isElite?1.5:1);
   const total=scale*ngMult;
-  const hpM =isElite?mod1.hpM*mod2.hpM*1.4:mod1.hpM;
-  const atkM=isElite?mod1.atkM*mod2.atkM:mod1.atkM;
-  const defM=isElite?mod1.defM*mod2.defM*1.2:mod1.defM;
-  const xpM =isElite?mod1.xpM*mod2.xpM:mod1.xpM;
 
-  const hp =Math.round(arch.hp *hpM *total);
-  const atk=Math.round(arch.atk*atkM*total);
-  const def=Math.round(arch.def*defM*(1+(floor-1)*0.12));
-  const xp =Math.round((isElite?20+floor*6:10+floor*4)*xpM);
-  const gold=isElite
-    ?[Math.round((5+floor*2)*total), Math.round((10+floor*3)*total)]
-    :[Math.round((2+floor)*total),   Math.round((5+floor*2)*total)];
+  const hp=Math.round(arch.hp*mod.hpM*total);
+  const atk=Math.round(arch.atk*mod.atkM*total);
+  const def=Math.round(arch.def*mod.defM*(1+(floor-1)*0.12));
+  const xp=Math.round((10+floor*4)*mod.xpM);
+  const gold=[Math.round((2+floor)*total),Math.round((5+floor*2)*total)];
 
-  const badges=isElite
-    ?[...new Set(['Elite',...arch.badges,...mod1.badges,...mod2.badges])]
-    :[...new Set([...arch.badges,...mod1.badges])];
-  if(!isElite&&floor>=5&&Math.random()<0.4)
-    badges.push(pick(['Fúria','Resistência','Certeiro','Drena MP']));
+  // Badges base do arquétipo + modificador, sem duplicatas
+  const badges=[...new Set([...arch.badges,...mod.badges])];
 
-  const prefix=isElite?pick(ELITE_PREFIXES):null;
+  // Andares altos ganham badge extra
+  if(floor>=5&&Math.random()<0.4) badges.push(pick(['Fúria','Resistência','Certeiro','Drena MP']));
+
   return {
-    id:(isElite?'elite_':'proc_')+r(99999),
-    name:isElite?`★ ${prefix} ${arch.name}`:`${mod1.prefix} ${arch.name}`,
-    ico:isElite?`⭐${arch.ico}`:`${mod1.ico}${arch.ico}`,
-    sub:isElite?`Elite · ${mod1.prefix} & ${mod2.prefix}`:`${arch.type} · Andar ${floor}`,
+    id:'proc_'+r(99999),
+    name:`${mod.prefix} ${arch.name}`,
+    ico:`${mod.ico}${arch.ico}`,
+    sub:`${arch.type} · Andar ${floor}`,
     hp,atk,def,xp,gold,badges,
-    boss:false,elite:isElite,
+    boss:false,elite:false,
     type:arch.type,
     proc:true,
   };
 }
-// Atalhos mantidos para compatibilidade com o restante do código
-function genEnemy(floor){ return genProcEnemy(floor,false); }
-function genElite(floor){ return genProcEnemy(floor,true); }
 
+function genElite(floor){
+  const arch=pick(PROC_ARCHETYPES);
+  const mod1=pick(PROC_MODIFIERS);
+  let mod2=pick(PROC_MODIFIERS);
+  while(mod2.prefix===mod1.prefix) mod2=pick(PROC_MODIFIERS);
+  const prefix=pick(ELITE_PREFIXES);
+  const scale=floorScale(floor)*1.5;
+  const ngMult=G?.ngMult||1;
+  const total=scale*ngMult;
 
+  const hp=Math.round(arch.hp*mod1.hpM*mod2.hpM*total*1.4);
+  const atk=Math.round(arch.atk*mod1.atkM*mod2.atkM*total);
+  const def=Math.round(arch.def*mod1.defM*mod2.defM*(1+(floor-1)*0.12)*1.2);
+  const xp=Math.round((20+floor*6)*mod1.xpM*mod2.xpM);
+  const gold=[Math.round((5+floor*2)*total),Math.round((10+floor*3)*total)];
+  const badges=[...new Set(['Elite',...arch.badges,...mod1.badges,...mod2.badges])];
+
+  return {
+    id:'elite_'+r(99999),
+    name:`★ ${prefix} ${arch.name}`,
+    ico:`⭐${arch.ico}`,
+    sub:`Elite · ${mod1.prefix} & ${mod2.prefix}`,
+    hp,atk,def,xp,gold,badges,
+    boss:false,elite:true,
+    type:arch.type,
+    proc:true,
+  };
+}
 
 function genBoss(floor){
   const [title,epithet]=pick(BOSS_NAMES);
@@ -242,22 +252,22 @@ const ITEMS_POOL=[
   {id:'holyw',     name:'Água Benta',        ico:'✝️',rarity:'rare',   uses:1, slot:null,   desc:'Destrói mortos-vivos',     fn:(G,ctx)=>{if(ctx?.E?.type==='undead'){ctx.E.hpCur=0;toast('💀 Destruído!');updateCombatUI();}else{const h=r(20)+15;G.hp=Math.min(G.hpMax,G.hp+h);toast(`+${h} HP!`);}}},
   {id:'bomb',      name:'Bomba de Fumaça',   ico:'💣',rarity:'common', uses:1, slot:null,   desc:'Fuga garantida',           fn:(G,ctx)=>{if(ctx?.combat)ctx.flee(true);else toast('Só usável em combate.');}},
   {id:'elixir2',   name:'Élixir de Poder',   ico:'⚗️',rarity:'epic',   uses:1, slot:null,   desc:'+8 ATK por 3 salas',       fn:G=>{G.atk+=8;G.tmpBuffs.push({stat:'atk',val:8,rooms:3});toast('+8 ATK temporário!');}},
-  {id:'iron_sw',   name:'Espada de Ferro',   ico:'⚔️',rarity:'common', uses:null,slot:'weapon',bonus:{atk:5},               desc:'+5 ATK'},
-  {id:'fine_sw',   name:'Espada Fina',       ico:'🗡️',rarity:'rare',   uses:null,slot:'weapon',bonus:{atk:8,crit:.05},      desc:'+8 ATK +5% CRIT'},
-  {id:'cursed_sw', name:'Lâmina Maldita',    ico:'🌑⚔️',rarity:'epic',  uses:null,slot:'weapon',bonus:{atk:14,def:-3},      desc:'+14 ATK -3 DEF'},
-  {id:'runeblade', name:'Lâmina Rúnica',     ico:'⚡⚔️',rarity:'legendary',uses:null,slot:'weapon',bonus:{atk:18,mag:6,crit:.1},desc:'+18 ATK +6 MAG +10% CRIT'},
-  {id:'staff',     name:'Cajado Arcano',     ico:'🪄',rarity:'rare',   uses:null,slot:'weapon',bonus:{mag:8},               desc:'+8 MAG'},
-  {id:'staff2',    name:'Báculo Ancestral',  ico:'🔱',rarity:'epic',   uses:null,slot:'weapon',bonus:{mag:14,mp:20},        desc:'+14 MAG +20 MP'},
-  {id:'daggers',   name:'Adagas Duplas',     ico:'🗡️',rarity:'common', uses:null,slot:'weapon',bonus:{atk:4,spd:2,crit:.08},desc:'+4 ATK +2 VEL +8% CRIT'},
+  {id:'iron_sw',cls:'warrior',   name:'Espada de Ferro',   ico:'⚔️',rarity:'common', uses:null,slot:'weapon',bonus:{atk:5},               desc:'+5 ATK'},
+  {id:'fine_sw',cls:'warrior',   name:'Espada Fina',       ico:'🗡️',rarity:'rare',   uses:null,slot:'weapon',bonus:{atk:8,crit:.05},      desc:'+8 ATK +5% CRIT'},
+  {id:'cursed_sw',cls:'warrior', name:'Lâmina Maldita',    ico:'🌑⚔️',rarity:'epic',  uses:null,slot:'weapon',bonus:{atk:14,def:-3},      desc:'+14 ATK -3 DEF'},
+  {id:'runeblade',cls:'warrior', name:'Lâmina Rúnica',     ico:'⚡⚔️',rarity:'legendary',uses:null,slot:'weapon',bonus:{atk:18,mag:6,crit:.1},desc:'+18 ATK +6 MAG +10% CRIT'},
+  {id:'staff',cls:'mage',     name:'Cajado Arcano',     ico:'🪄',rarity:'rare',   uses:null,slot:'weapon',bonus:{mag:8},               desc:'+8 MAG'},
+  {id:'staff2',cls:'mage',    name:'Báculo Ancestral',  ico:'🔱',rarity:'epic',   uses:null,slot:'weapon',bonus:{mag:14,mp:20},        desc:'+14 MAG +20 MP'},
+  {id:'daggers',cls:'rogue',   name:'Adagas Duplas',     ico:'🗡️',rarity:'common', uses:null,slot:'weapon',bonus:{atk:4,spd:2,crit:.08},desc:'+4 ATK +2 VEL +8% CRIT'},
   {id:'leather',   name:'Armadura de Couro', ico:'🥋',rarity:'common', uses:null,slot:'chest',bonus:{def:4},                desc:'+4 DEF'},
-  {id:'chainmail', name:'Cota de Malha',     ico:'🛡️',rarity:'rare',   uses:null,slot:'chest',bonus:{def:7,hp:10},         desc:'+7 DEF +10 HP'},
-  {id:'platemail', name:'Armadura de Placas',ico:'🏛️',rarity:'epic',   uses:null,slot:'chest',bonus:{def:12,hp:20,spd:-2}, desc:'+12 DEF +20 HP -2 VEL'},
-  {id:'dragonmail',name:'Armadura do Dragão',ico:'🐉🛡️',rarity:'legendary',uses:null,slot:'chest',bonus:{def:16,hp:30,atk:5},desc:'+16 DEF +30 HP +5 ATK'},
-  {id:'hood',      name:'Capuz do Ladrão',   ico:'🎭',rarity:'common', uses:null,slot:'head',bonus:{spd:2,dodge:.05},       desc:'+2 VEL +5% ESQUIVA'},
-  {id:'helm',      name:'Elmo de Guerra',    ico:'⛑️',rarity:'rare',   uses:null,slot:'head',bonus:{def:5,hp:8},           desc:'+5 DEF +8 HP'},
-  {id:'crown',     name:'Coroa do Arquimago',ico:'👑',rarity:'epic',   uses:null,slot:'head',bonus:{mag:10,mp:25},          desc:'+10 MAG +25 MP'},
+  {id:'chainmail',cls:'warrior', name:'Cota de Malha',     ico:'🛡️',rarity:'rare',   uses:null,slot:'chest',bonus:{def:7,hp:10},         desc:'+7 DEF +10 HP'},
+  {id:'platemail',cls:'warrior', name:'Armadura de Placas',ico:'🏛️',rarity:'epic',   uses:null,slot:'chest',bonus:{def:12,hp:20,spd:-2}, desc:'+12 DEF +20 HP -2 VEL'},
+  {id:'dragonmail',cls:'warrior',name:'Armadura do Dragão',ico:'🐉🛡️',rarity:'legendary',uses:null,slot:'chest',bonus:{def:16,hp:30,atk:5},desc:'+16 DEF +30 HP +5 ATK'},
+  {id:'hood',cls:'rogue',      name:'Capuz do Ladrão',   ico:'🎭',rarity:'common', uses:null,slot:'head',bonus:{spd:2,dodge:.05},       desc:'+2 VEL +5% ESQUIVA'},
+  {id:'helm',cls:'warrior',      name:'Elmo de Guerra',    ico:'⛑️',rarity:'rare',   uses:null,slot:'head',bonus:{def:5,hp:8},           desc:'+5 DEF +8 HP'},
+  {id:'crown',cls:'mage',     name:'Coroa do Arquimago',ico:'👑',rarity:'epic',   uses:null,slot:'head',bonus:{mag:10,mp:25},          desc:'+10 MAG +25 MP'},
   {id:'death_mask',name:'Máscara da Morte',  ico:'💀',rarity:'legendary',uses:null,slot:'head',bonus:{atk:8,crit:.15,hp:-15},desc:'+8 ATK +15% CRIT -15 HP'},
-  {id:'boots',     name:'Botas Ágeis',       ico:'👟',rarity:'common', uses:null,slot:'feet', bonus:{spd:3},                desc:'+3 VEL'},
+  {id:'boots',cls:'rogue',     name:'Botas Ágeis',       ico:'👟',rarity:'common', uses:null,slot:'feet', bonus:{spd:3},                desc:'+3 VEL'},
   {id:'amulet',    name:'Amuleto Vital',     ico:'❤️',rarity:'rare',   uses:null,slot:null,   bonus:{hpMax:20},             desc:'+20 HP MAX'},
   {id:'ring',      name:'Anel de Poder',     ico:'💍',rarity:'epic',   uses:null,slot:null,   bonus:{atk:5,mag:5},          desc:'+5 ATK +5 MAG'},
   // ═══ ITENS ESPECIAIS ═══
@@ -290,19 +300,92 @@ const ITEMS_POOL=[
     fn:G=>{G.mp=G.mpMax;upd();toast('💎 MP totalmente restaurado!');}},
   {id:'guardian_eye',  name:'Olho do Guardião',    ico:'👁️',rarity:'epic',   uses:null,slot:null,bonus:{},desc:'Revela atributos do inimigo antes do combate.',
     fn:G=>{G.passives.push('guardian_eye');toast('👁️ Você agora vê os atributos dos inimigos!');}},
+
+  // ═══ ITENS EXCLUSIVOS POR CLASSE ═══
+
+  // ── Paladino (warrior) ──
+  {id:'holy_sword',    cls:'warrior',name:'Espada Sagrada',     ico:'✝️⚔️',rarity:'rare',   uses:null,slot:'weapon',bonus:{atk:9,def:3},            desc:'+9 ATK +3 DEF'},
+  {id:'divine_shield', cls:'warrior',name:'Escudo Divino',      ico:'🛡️✨',rarity:'epic',   uses:null,slot:'chest', bonus:{def:14,hp:25},            desc:'+14 DEF +25 HP'},
+  {id:'paladin_helm',  cls:'warrior',name:'Elmo do Paladino',   ico:'⛑️✝️',rarity:'rare',   uses:null,slot:'head',  bonus:{def:6,hp:12},             desc:'+6 DEF +12 HP'},
+  {id:'sacred_boots',  cls:'warrior',name:'Botas Sagradas',     ico:'👢✝️',rarity:'common', uses:null,slot:'feet',  bonus:{spd:2,def:2},             desc:'+2 VEL +2 DEF'},
+  {id:'holy_potion',   cls:'warrior',name:'Bálsamo Sagrado',    ico:'🏺',  rarity:'common', uses:1,   slot:null,                                     desc:'Cura 35 HP e remove veneno', fn:G=>{const h=35;G.hp=Math.min(G.hpMax,G.hp+h);G.poisonTurns=0;toast(`✝️ +${h} HP, veneno removido!`);}},
+  {id:'crusader_ring', cls:'warrior',name:'Anel do Cruzado',    ico:'💍✝️',rarity:'epic',   uses:null,slot:null,   bonus:{atk:6,def:4,hp:15},        desc:'+6 ATK +4 DEF +15 HP'},
+  {id:'warrior_tome',  cls:'warrior',name:'Tomo do Guerreiro',  ico:'📖⚔️',rarity:'legendary',uses:1, slot:null,                                    desc:'Aprende Golpe Sagrado se não souber', fn:G=>{const sk=G.cls.skill1;if(!sk){toast('Nenhuma skill!');return;}if(G.skills.some(s=>s.type===sk.type)){toast('Skill já conhecida!');return;}G.skills.push({...sk});toast(`📖 ${sk.name} aprendida!`);}},
+
+  // ── Mago ──
+  {id:'arcane_wand',   cls:'mage',  name:'Varinha Arcana',      ico:'🪄✨',rarity:'common', uses:null,slot:'weapon',bonus:{mag:6},                  desc:'+6 MAG'},
+  {id:'void_staff',    cls:'mage',  name:'Cajado do Vazio',     ico:'🌑🪄',rarity:'epic',   uses:null,slot:'weapon',bonus:{mag:16,mp:15,spd:-1},     desc:'+16 MAG +15 MP -1 VEL'},
+  {id:'mage_robe',     cls:'mage',  name:'Manto Arcano',        ico:'🥻',  rarity:'common', uses:null,slot:'chest', bonus:{mag:4,mp:10},             desc:'+4 MAG +10 MP'},
+  {id:'lich_crown',    cls:'mage',  name:'Coroa da Lich',       ico:'💀👑',rarity:'legendary',uses:null,slot:'head',bonus:{mag:14,mp:40,hp:-20},    desc:'+14 MAG +40 MP -20 HP'},
+  {id:'mana_boots',    cls:'mage',  name:'Botas da Concentração',ico:'👟💙',rarity:'rare',  uses:null,slot:'feet',  bonus:{mag:4,spd:1},             desc:'+4 MAG +1 VEL'},
+  {id:'spell_scroll',  cls:'mage',  name:'Pergaminho de Feitiço',ico:'📜🔮',rarity:'rare',  uses:1,   slot:null,                                     desc:'Dano mágico imediato em 1 inimigo (40-60)', fn:(G,ctx)=>{if(!ctx?.combat){toast('Só usável em combate!');return;}const d=r(20)+40;ctx.E.hpCur=Math.max(0,ctx.E.hpCur-d);toast(`📜 -${d} HP mágico!`);updateCombatUI();}},
+  {id:'mage_ring',     cls:'mage',  name:'Anel do Arcano',      ico:'💍🔮',rarity:'epic',   uses:null,slot:null,   bonus:{mag:8,mp:20},              desc:'+8 MAG +20 MP'},
+
+  // ── Ladino/Assassino (rogue) ──
+  {id:'shadow_blade',  cls:'rogue', name:'Lâmina das Sombras',  ico:'🌑🗡️',rarity:'rare',  uses:null,slot:'weapon',bonus:{atk:7,crit:.1,spd:2},     desc:'+7 ATK +10% CRIT +2 VEL'},
+  {id:'rogue_armor',   cls:'rogue', name:'Armadura do Ladrão',  ico:'🥷🎭',rarity:'rare',   uses:null,slot:'chest', bonus:{def:5,dodge:.06},          desc:'+5 DEF +6% ESQUIVA'},
+  {id:'assassin_mask', cls:'rogue', name:'Máscara do Assassino',ico:'🎭🌑',rarity:'epic',   uses:null,slot:'head',  bonus:{crit:.12,dodge:.05},       desc:'+12% CRIT +5% ESQUIVA'},
+  {id:'swift_boots',   cls:'rogue', name:'Botas Velozes',       ico:'👟💨',rarity:'common', uses:null,slot:'feet',  bonus:{spd:4,dodge:.03},          desc:'+4 VEL +3% ESQUIVA'},
+  {id:'poison_vial',   cls:'rogue', name:'Ampola de Veneno',    ico:'🐍💉',rarity:'epic',   uses:1,   slot:null,                                     desc:'Aplica veneno forte no inimigo (6dmg/turno, 5 turnos)', fn:(G,ctx)=>{if(!ctx?.combat){toast('Só usável em combate!');return;}ctx.E.poisonDmg=6;ctx.E.poisonTurns=5;toast('🐍 Veneno forte aplicado!');}},
+  {id:'rogue_ring',    cls:'rogue', name:'Anel do Ladrão',      ico:'💍🗡️',rarity:'epic',   uses:null,slot:null,   bonus:{atk:4,crit:.08,spd:2},     desc:'+4 ATK +8% CRIT +2 VEL'},
+
+  // ── Druida ──
+  {id:'nature_staff',  cls:'druid', name:'Cajado da Natureza',  ico:'🌿🪄',rarity:'rare',   uses:null,slot:'weapon',bonus:{mag:7,hp:10},             desc:'+7 MAG +10 HP'},
+  {id:'bark_armor',    cls:'druid', name:'Armadura de Casca',   ico:'🌳🛡️',rarity:'common', uses:null,slot:'chest', bonus:{def:5,hp:8},              desc:'+5 DEF +8 HP'},
+  {id:'druid_crown',   cls:'druid', name:'Coroa das Raízes',    ico:'🌿👑',rarity:'epic',   uses:null,slot:'head',  bonus:{mag:8,hp:15},             desc:'+8 MAG +15 HP'},
+  {id:'moss_boots',    cls:'druid', name:'Botas de Musgo',      ico:'🌿👟',rarity:'common', uses:null,slot:'feet',  bonus:{spd:2,hp:5},              desc:'+2 VEL +5 HP'},
+  {id:'healing_herb',  cls:'druid', name:'Erva Curativa',       ico:'🌿💚',rarity:'common', uses:1,   slot:null,                                     desc:'Cura 30 HP e regenera 10 HP por 3 turnos', fn:G=>{const h=30;G.hp=Math.min(G.hpMax,G.hp+h);G.regenTurns=(G.regenTurns||0)+3;G.regenAmt=10;toast(`🌿 +${h} HP + regen!`);}},
+  {id:'nature_ring',   cls:'druid', name:'Anel da Floresta',    ico:'💍🌿',rarity:'epic',   uses:null,slot:null,   bonus:{mag:6,hp:20},              desc:'+6 MAG +20 HP'},
+  {id:'druid_tome',    cls:'druid', name:'Tomo da Natureza',    ico:'📗🌿',rarity:'legendary',uses:1,  slot:null,                                   desc:'+15 HP máx e +5 MAG permanente', fn:G=>{G.hpMax+=15;G.hp=Math.min(G.hpMax,G.hp+15);G.mag+=5;upd();toast('📗 Poder da Natureza absorvido!');}},
+
+  // ── Caçador ──
+  {id:'hunter_bow',    cls:'hunter',name:'Arco do Caçador',     ico:'🏹',  rarity:'common', uses:null,slot:'weapon',bonus:{atk:5,spd:2},             desc:'+5 ATK +2 VEL'},
+  {id:'longbow',       cls:'hunter',name:'Arco Longo Reforçado',ico:'🏹💥',rarity:'epic',   uses:null,slot:'weapon',bonus:{atk:12,crit:.08,spd:1},   desc:'+12 ATK +8% CRIT +1 VEL'},
+  {id:'hunter_vest',   cls:'hunter',name:'Colete do Caçador',   ico:'🎯🥋',rarity:'rare',   uses:null,slot:'chest', bonus:{def:4,dodge:.05,spd:1},   desc:'+4 DEF +5% ESQUIVA +1 VEL'},
+  {id:'tracker_helm',  cls:'hunter',name:'Elmo do Rastreador',  ico:'🎯⛑️',rarity:'rare',   uses:null,slot:'head',  bonus:{crit:.07,spd:2},          desc:'+7% CRIT +2 VEL'},
+  {id:'ranger_boots',  cls:'hunter',name:'Botas do Ranger',     ico:'🥾🏹',rarity:'common', uses:null,slot:'feet',  bonus:{spd:4,dodge:.02},          desc:'+4 VEL +2% ESQUIVA'},
+  {id:'beast_trap',    cls:'hunter',name:'Armadilha de Fera',   ico:'🪤',  rarity:'epic',   uses:1,   slot:null,                                     desc:'Imobiliza inimigo por 2 turnos', fn:(G,ctx)=>{if(!ctx?.combat){toast('Só usável em combate!');return;}ctx.E.freezeTurns=(ctx.E.freezeTurns||0)+2;toast('🪤 Inimigo imobilizado por 2 turnos!');}},
+  {id:'hunter_ring',   cls:'hunter',name:'Anel da Presa',       ico:'💍🏹',rarity:'epic',   uses:null,slot:null,   bonus:{atk:5,crit:.07,spd:1},     desc:'+5 ATK +7% CRIT +1 VEL'},
+
+  // ── Feiticeiro ──
+  {id:'chaos_orb',     cls:'sorcerer',name:'Orbe do Caos',      ico:'🌀🔮',rarity:'rare',   uses:null,slot:'weapon',bonus:{mag:9,mp:5},              desc:'+9 MAG +5 MP'},
+  {id:'storm_staff',   cls:'sorcerer',name:'Cajado da Tempestade',ico:'⚡🪄',rarity:'epic',  uses:null,slot:'weapon',bonus:{mag:15,mp:20},            desc:'+15 MAG +20 MP'},
+  {id:'arcane_robe',   cls:'sorcerer',name:'Manto Caótico',     ico:'🌀🥻',rarity:'common', uses:null,slot:'chest', bonus:{mag:5,mp:12},             desc:'+5 MAG +12 MP'},
+  {id:'chaos_crown',   cls:'sorcerer',name:'Coroa do Caos',     ico:'🌀👑',rarity:'epic',   uses:null,slot:'head',  bonus:{mag:10,mp:18,hp:-10},     desc:'+10 MAG +18 MP -10 HP'},
+  {id:'sorc_boots',    cls:'sorcerer',name:'Botas Arcanas',     ico:'👟🌀',rarity:'common', uses:null,slot:'feet',  bonus:{mag:3,spd:1},             desc:'+3 MAG +1 VEL'},
+  {id:'chaos_elixir',  cls:'sorcerer',name:'Elixir do Caos',    ico:'⚗️🌀',rarity:'epic',   uses:1,   slot:null,                                    desc:'+12 MAG temporário por 3 salas', fn:G=>{G.mag+=12;G.tmpBuffs.push({stat:'mag',val:12,rooms:3});toast('🌀 +12 MAG caótico temporário!');}},
+  {id:'sorc_ring',     cls:'sorcerer',name:'Anel da Tempestade',ico:'💍⚡',rarity:'epic',   uses:null,slot:null,   bonus:{mag:9,mp:15},              desc:'+9 MAG +15 MP'},
+
+  // ── Bárbaro ──
+  {id:'great_axe',     cls:'barbarian',name:'Grande Machado',   ico:'🪓💥',rarity:'common', uses:null,slot:'weapon',bonus:{atk:9,spd:-1},            desc:'+9 ATK -1 VEL'},
+  {id:'war_hammer',    cls:'barbarian',name:'Martelo de Guerra',ico:'🔨',  rarity:'epic',   uses:null,slot:'weapon',bonus:{atk:16,def:4,spd:-2},     desc:'+16 ATK +4 DEF -2 VEL'},
+  {id:'berserk_armor', cls:'barbarian',name:'Armadura Bárbara', ico:'🔴🛡️',rarity:'rare',   uses:null,slot:'chest', bonus:{def:8,hp:20,atk:3},       desc:'+8 DEF +20 HP +3 ATK'},
+  {id:'warrior_helm',  cls:'barbarian',name:'Elmo da Fúria',    ico:'🪖🔴',rarity:'rare',   uses:null,slot:'head',  bonus:{atk:5,hp:12},             desc:'+5 ATK +12 HP'},
+  {id:'berserker_boots',cls:'barbarian',name:'Botas do Bárbaro',ico:'👢🔴',rarity:'common', uses:null,slot:'feet',  bonus:{spd:2,atk:2},             desc:'+2 VEL +2 ATK'},
+  {id:'rage_potion',   cls:'barbarian',name:'Poção de Fúria',   ico:'🍺🔴',rarity:'rare',   uses:1,   slot:null,                                     desc:'+10 ATK e fúria: ignora 50% do dano por 2 turnos', fn:G=>{G.atk+=10;G.tmpBuffs.push({stat:'atk',val:10,rooms:2});G.rageTurns=(G.rageTurns||0)+2;toast('🍺 FÚRIA! +10 ATK temporário!');}},
+  {id:'barb_ring',     cls:'barbarian',name:'Anel do Guerreiro',ico:'💍🔴',rarity:'epic',   uses:null,slot:null,   bonus:{atk:8,hp:20},              desc:'+8 ATK +20 HP'},
+
+  // ── Assassino ──
+  {id:'poison_dagger', cls:'assassin_cls',name:'Adaga Envenenada',ico:'🗡️🐍',rarity:'rare', uses:null,slot:'weapon',bonus:{atk:7,crit:.09},          desc:'+7 ATK +9% CRIT (veneno passivo)'},
+  {id:'shadow_cloak',  cls:'assassin_cls',name:'Manto das Sombras',ico:'🌑🥷',rarity:'epic', uses:null,slot:'chest', bonus:{dodge:.1,spd:2},           desc:'+10% ESQUIVA +2 VEL'},
+  {id:'death_hood',    cls:'assassin_cls',name:'Capuz da Morte',  ico:'💀🎭',rarity:'epic',  uses:null,slot:'head',  bonus:{crit:.13,dodge:.04},       desc:'+13% CRIT +4% ESQUIVA'},
+  {id:'shadow_boots',  cls:'assassin_cls',name:'Botas Silenciosas',ico:'👟🌑',rarity:'common',uses:null,slot:'feet', bonus:{spd:4,dodge:.04},           desc:'+4 VEL +4% ESQUIVA'},
+  {id:'smoke_bomb',    cls:'assassin_cls',name:'Bomba de Névoa',  ico:'💨🌑',rarity:'rare',  uses:1,   slot:null,                                     desc:'30% chance inimigo errar por 3 turnos', fn:(G,ctx)=>{if(!ctx?.combat){toast('Só usável em combate!');return;}ctx.E._foggedTurns=3;toast('💨 Névoa das sombras liberada!');}},
+  {id:'assassin_ring', cls:'assassin_cls',name:'Anel do Assassino',ico:'💍🌑',rarity:'epic', uses:null,slot:null,   bonus:{crit:.1,spd:3,atk:3},       desc:'+10% CRIT +3 VEL +3 ATK'},
+
   // ═══ SETS DE ARMADURA ═══
   // Set do Caçador (Ladino)
-  {id:'set_hunter_bow',  name:'Arco Longo',          ico:'🏹',rarity:'epic',  uses:null,slot:'weapon',set:'hunter',bonus:{atk:7,spd:2},          desc:'+7 ATK +2 VEL | Set Caçador'},
-  {id:'set_hunter_hood', name:'Capuz do Caçador',    ico:'🎯',rarity:'epic',  uses:null,slot:'head',  set:'hunter',bonus:{dodge:.08},             desc:'+8% ESQUIVA | Set Caçador'},
-  {id:'set_hunter_boots',name:'Botas do Caçador',    ico:'🥾',rarity:'epic',  uses:null,slot:'feet',  set:'hunter',bonus:{spd:3},                 desc:'+3 VEL | Set Caçador'},
+  {id:'set_hunter_bow',cls:'rogue',  name:'Arco Longo',          ico:'🏹',rarity:'epic',  uses:null,slot:'weapon',set:'hunter',bonus:{atk:7,spd:2},          desc:'+7 ATK +2 VEL | Set Caçador'},
+  {id:'set_hunter_hood',cls:'rogue', name:'Capuz do Caçador',    ico:'🎯',rarity:'epic',  uses:null,slot:'head',  set:'hunter',bonus:{dodge:.08},             desc:'+8% ESQUIVA | Set Caçador'},
+  {id:'set_hunter_boots',cls:'rogue',name:'Botas do Caçador',    ico:'🥾',rarity:'epic',  uses:null,slot:'feet',  set:'hunter',bonus:{spd:3},                 desc:'+3 VEL | Set Caçador'},
   // Set do Mago Ancestral (Mago)
-  {id:'set_mage_staff',  name:'Cajado Ancestral+',   ico:'🔱',rarity:'epic',  uses:null,slot:'weapon',set:'mage_anc',bonus:{mag:10},              desc:'+10 MAG | Set Mago Ancestral'},
-  {id:'set_mage_robe',   name:'Túnica Arcana',       ico:'🥻',rarity:'epic',  uses:null,slot:'chest', set:'mage_anc',bonus:{mag:6,mp:10},         desc:'+6 MAG +10 MP | Set Mago Ancestral'},
-  {id:'set_mage_crown',  name:'Coroa da Sabedoria',  ico:'👑',rarity:'epic',  uses:null,slot:'head',  set:'mage_anc',bonus:{mag:8,mp:20},         desc:'+8 MAG +20 MP | Set Mago Ancestral'},
+  {id:'set_mage_staff',cls:'mage',  name:'Cajado Ancestral+',   ico:'🔱',rarity:'epic',  uses:null,slot:'weapon',set:'mage_anc',bonus:{mag:10},              desc:'+10 MAG | Set Mago Ancestral'},
+  {id:'set_mage_robe',cls:'mage',   name:'Túnica Arcana',       ico:'🥻',rarity:'epic',  uses:null,slot:'chest', set:'mage_anc',bonus:{mag:6,mp:10},         desc:'+6 MAG +10 MP | Set Mago Ancestral'},
+  {id:'set_mage_crown',cls:'mage',  name:'Coroa da Sabedoria',  ico:'👑',rarity:'epic',  uses:null,slot:'head',  set:'mage_anc',bonus:{mag:8,mp:20},         desc:'+8 MAG +20 MP | Set Mago Ancestral'},
   // Set do Berserker (Guerreiro)
-  {id:'set_bsk_axe',     name:'Machado Duplo',       ico:'🪓',rarity:'epic',  uses:null,slot:'weapon',set:'berserker',bonus:{atk:14,spd:-3},      desc:'+14 ATK -3 VEL | Set Berserker'},
-  {id:'set_bsk_armor',   name:'Armadura do Berserker',ico:'🔴',rarity:'epic', uses:null,slot:'chest', set:'berserker',bonus:{atk:5,def:-2},       desc:'+5 ATK -2 DEF | Set Berserker'},
-  {id:'set_bsk_helm',    name:'Elmo do Berserker',   ico:'🪖',rarity:'epic',  uses:null,slot:'head',  set:'berserker',bonus:{atk:6,def:-2},       desc:'+6 ATK -2 DEF | Set Berserker'},
+  {id:'set_bsk_axe',cls:'warrior',     name:'Machado Duplo',       ico:'🪓',rarity:'epic',  uses:null,slot:'weapon',set:'berserker',bonus:{atk:14,spd:-3},      desc:'+14 ATK -3 VEL | Set Berserker'},
+  {id:'set_bsk_armor',cls:'warrior',   name:'Armadura do Berserker',ico:'🔴',rarity:'epic', uses:null,slot:'chest', set:'berserker',bonus:{atk:5,def:-2},       desc:'+5 ATK -2 DEF | Set Berserker'},
+  {id:'set_bsk_helm',cls:'warrior',    name:'Elmo do Berserker',   ico:'🪖',rarity:'epic',  uses:null,slot:'head',  set:'berserker',bonus:{atk:6,def:-2},       desc:'+6 ATK -2 DEF | Set Berserker'},
 ];
 
 /* ═══ UPGRADES ═══ */
@@ -566,7 +649,7 @@ function renderElementPicker(sc){
       availFusions.forEach(f=>{
         const el1=ELEMENTS.find(e=>e.id===f.e1);
         const el2=ELEMENTS.find(e=>e.id===f.e2);
-        html+=`<div onclick="fuseElements('${f.id}','grimoire')" style="border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:11px;background:rgba(200,168,75,.04);cursor:pointer;margin-bottom:6px;transition:.2s;">
+        html+=`<div onclick="fuseElements('${f.id}')" style="border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:11px;background:rgba(200,168,75,.04);cursor:pointer;margin-bottom:6px;transition:.2s;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
             <span style="font-size:18px;">${el1?el1.ico:'?'}</span>
             <span style="font-family:var(--cinzel);font-size:10px;color:var(--txt2);">+</span>
@@ -586,22 +669,20 @@ function renderElementPicker(sc){
   sc.appendChild(card);scrollBot(sc);
 }
 
-function setActiveElement(id, origin='picker'){
-  const el=G.elements.find(e=>e.id===id);
+function setActiveElement(id){
+  const el = G.elements.find(e=>e.id===id);
   if(!el)return;
-  G.activeElement=G.activeElement?.id===id?null:el;
-  toast(G.activeElement?`${el.ico} ${el.name} ativado!`:'Elemento desativado.');
-  if(origin==='grimoire') renderGrimoirePanel('elements');
-  else renderElementPicker($('scroll'));
+  G.activeElement = G.activeElement?.id===id ? null : el;
+  toast(G.activeElement ? `${el.ico} ${el.name} ativado!` : 'Elemento desativado.');
+  renderElementPicker($('scroll'));
 }
 
-function fuseElements(fusionId, origin='picker'){
+function fuseElements(fusionId){
   const f = FUSIONS.find(x=>x.id===fusionId);
   if(!f||!hasElement(f.e1)||!hasElement(f.e2)||hasElement(f.id))return;
   G.elements.push({...f});
   toast(`✨ Fusão: ${f.ico} ${f.name} criada!`,2500);
-  if(origin==='grimoire') renderGrimoirePanel('elements');
-  else renderElementPicker($('scroll'));
+  renderElementPicker($('scroll'));
 }
 
 /* ═══ EVENTS ═══ */
@@ -1813,7 +1894,7 @@ function smithUpgrade(){
     const gain=gains[it.rarity]||2;
     const canBuy=G.gold>=cost;
     const mainStat=Object.keys(it.bonus||{})[0]||'atk';
-    return `<div class="special-merch-item ${canBuy?'':'disabled'}" style="opacity:${canBuy?1:.5}" onclick="${canBuy?`smithUpgrade('${slot}',${cost},${gain},'${mainStat}')`:''}">
+    return `<div class="special-merch-item ${canBuy?'':'disabled'}" style="opacity:${canBuy?1:.5}" onclick="${canBuy?`doSmithUpgrade('${slot}',${cost},${gain},'${mainStat}')`:''}">
       <span style="font-size:22px;">${it.ico}</span>
       <div style="flex:1;">
         <div style="font-family:var(--cinzel);font-size:12px;color:var(--${it.rarity});">${it.name}</div>
@@ -1834,7 +1915,7 @@ function smithUpgrade(){
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
 }
 
-function smithUpgrade(slot,cost,gain,stat){
+function doSmithUpgrade(slot,cost,gain,stat){
   if(G.gold<cost){toast('Ouro insuficiente!');return;}
   const it=G.equipped[slot];if(!it)return;
   G.gold-=cost;
@@ -1879,7 +1960,7 @@ function smithFuse(){
       <div class="ctitle">⚒️ Fusão de Itens</div>
       <div style="font-size:11px;color:var(--txt2);margin-bottom:10px;">Selecione 2 itens para fundir. O resultado combina os stats de ambos com raridade elevada.</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">${rows}</div>
-      <button class="btn-next" style="margin-bottom:8px;${canFuse?'':'opacity:.4;pointer-events:none;'}" onclick="smithFuse(true)">⚒️ Fundir (80💰)</button>
+      <button class="btn-next" style="margin-bottom:8px;${canFuse?'':'opacity:.4;pointer-events:none;'}" onclick="doSmithFuse()">⚒️ Fundir (80💰)</button>
       <button class="btn-next" style="background:transparent;border-color:var(--brd2);color:var(--txt2);" onclick="openSmith($('scroll'))">← Voltar</button>`;
   }
 
@@ -1897,7 +1978,7 @@ function toggleSmithFuse(i){
   if(G._renderFuseCard) G._renderFuseCard();
 }
 
-function smithFuse(execFuse=false){
+function doSmithFuse(){
   if(G._smithFuseSelected.length!==2){toast('Selecione 2 itens!');return;}
   if(G.gold<80){toast('Ouro insuficiente!');return;}
   const [i1,i2]=G._smithFuseSelected.sort((a,b)=>b-a);
@@ -1945,7 +2026,7 @@ function smithRepair(){
   const card=document.createElement('div');card.className='card esh';
   const rows=cursed.map((it,i)=>{
     const negStats=Object.entries(it.bonus).filter(([k,v])=>v<0).map(([k,v])=>`${k.toUpperCase()} ${v}`).join(', ');
-    return `<div class="special-merch-item" onclick="smithRepair('${it.id}')">
+    return `<div class="special-merch-item" onclick="doSmithRepair('${it.id}')">
       <span style="font-size:20px;">${it.ico}</span>
       <div style="flex:1;"><div style="font-family:var(--cinzel);font-size:11px;color:var(--${it.rarity});">${it.name}</div>
       <div style="font-size:10px;color:var(--red2);">Penalidades: ${negStats}</div></div>
@@ -1961,7 +2042,7 @@ function smithRepair(){
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
 }
 
-function smithRepair(id){
+function doSmithRepair(id){
   if(G.gold<50){toast('Ouro insuficiente!');return;}
   const it=G.inv.find(i=>i.id===id);if(!it)return;
   G.gold-=50;
@@ -1974,57 +2055,23 @@ function smithRepair(id){
 }
 
 // ─── Craftar item novo ───
-function smithCraft(execSlot){
-  // Com argumento: executa o craft. Sem argumento: exibe o painel.
-  if(execSlot!==undefined){
-    if(G.gold<70){toast('Ouro insuficiente!');return;}
-    G.gold-=70;
-    const rarRoll=Math.random();
-    const rarity= G.floor>=6 ? (rarRoll<.15?'legendary':rarRoll<.5?'epic':'rare')
-                : G.floor>=4 ? (rarRoll<.08?'legendary':rarRoll<.35?'epic':'rare')
-                : G.floor>=2 ? (rarRoll<.04?'legendary':rarRoll<.2?'epic':rarRoll<.55?'rare':'common')
-                :               (rarRoll<.1?'rare':rarRoll<.4?'common':'common');
-    const statMult={common:1,rare:1.6,epic:2.4,legendary:3.5}[rarity]||1;
-    const base=Math.round((3+G.floor)*statMult);
-    const bonusMap={
-      weapon:{atk:base,crit:Math.round(base*.01*100)/100},
-      chest: {def:base,hp:base*2},
-      head:  {def:Math.round(base*.7),hp:base},
-      feet:  {spd:Math.round(base*.5),dodge:Math.round(base*.005*100)/100},
-    };
-    const names={
-      weapon:{common:'Espada Forjada',rare:'Lâmina Temperada',epic:'Lâmina do Ferreiro',legendary:'Obra-Prima do Ferreiro'},
-      chest: {common:'Armadura Forjada',rare:'Cota Temperada',epic:'Armadura do Artesão',legendary:'Armadura Mestra'},
-      head:  {common:'Elmo Forjado',rare:'Elmo Temperado',epic:'Elmo do Artesão',legendary:'Coroa do Mestre'},
-      feet:  {common:'Botas Forjadas',rare:'Botas Temperadas',epic:'Botas do Artesão',legendary:'Botas Mestras'},
-    };
-    const icos={weapon:'⚔️',chest:'🛡️',head:'⛑️',feet:'👟'};
-    const crafted={
-      id:'crafted_'+r(99999),
-      name:names[execSlot][rarity],
-      ico:icos[execSlot],
-      rarity,slot:execSlot,uses:null,
-      bonus:bonusMap[execSlot],
-      desc:Object.entries(bonusMap[execSlot]).map(([k,v])=>`+${v} ${k.toUpperCase()}`).join(' ')+' [Forjado]',
-    };
-    addItemToInv(crafted);upd();
-    toast(`⚒️ ${crafted.name} (${rarity}) forjado!`,2500);
-    smithCraft(); return; // recarrega o painel
-  }
+function smithCraft(){
   const sc=$('scroll');
   if(G.gold<70){toast('Ouro insuficiente! (70💰)');return;}
+
   const slots=['weapon','chest','head','feet'];
   const card=document.createElement('div');card.className='card esh';
   const rows=slots.map(slot=>{
     const ico={weapon:'⚔️',chest:'🛡️',head:'⛑️',feet:'👟'}[slot];
     const lbl={weapon:'Arma',chest:'Armadura',head:'Elmo',feet:'Botas'}[slot];
-    return `<div class="special-merch-item" onclick="smithCraft('${slot}')">
+    return `<div class="special-merch-item" onclick="doSmithCraft('${slot}')">
       <span style="font-size:22px;">${ico}</span>
       <div style="flex:1;"><div style="font-family:var(--cinzel);font-size:12px;color:var(--acc);">${lbl}</div>
       <div style="font-size:11px;color:var(--txt2);">Raridade baseada no Andar ${G.floor}</div></div>
       <div style="font-family:var(--cinzel);font-size:13px;color:var(--gold);">💰70</div>
     </div>`;
   }).join('');
+
   card.innerHTML=`
     <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">CRAFTAR ITEM</span></div>
     <div class="ctitle">⚒️ Forjar Novo Item</div>
@@ -2032,6 +2079,46 @@ function smithCraft(execSlot){
     <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">${rows}</div>
     <button class="btn-next" style="background:transparent;border-color:var(--brd2);color:var(--txt2);" onclick="openSmith($('scroll'))">← Voltar</button>`;
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
+}
+
+function doSmithCraft(slot){
+  if(G.gold<70){toast('Ouro insuficiente!');return;}
+  G.gold-=70;
+
+  // Raridade baseada no andar
+  const rarRoll=Math.random();
+  const rarity= G.floor>=6 ? (rarRoll<.15?'legendary':rarRoll<.5?'epic':'rare')
+              : G.floor>=4 ? (rarRoll<.08?'legendary':rarRoll<.35?'epic':'rare')
+              : G.floor>=2 ? (rarRoll<.04?'legendary':rarRoll<.2?'epic':rarRoll<.55?'rare':'common')
+              :               (rarRoll<.1?'rare':rarRoll<.4?'common':'common');
+
+  // Gera stats baseados no slot e raridade
+  const statMult={common:1,rare:1.6,epic:2.4,legendary:3.5}[rarity]||1;
+  const base=Math.round((3+G.floor)*statMult);
+  const bonusMap={
+    weapon:{atk:base,crit:Math.round(base*.01*100)/100},
+    chest: {def:base,hp:base*2},
+    head:  {def:Math.round(base*.7),hp:base},
+    feet:  {spd:Math.round(base*.5),dodge:Math.round(base*.005*100)/100},
+  };
+  const names={
+    weapon:{common:'Espada Forjada',rare:'Lâmina Temperada',epic:'Lâmina do Ferreiro',legendary:'Obra-Prima do Ferreiro'},
+    chest: {common:'Armadura Forjada',rare:'Cota Temperada',epic:'Armadura do Artesão',legendary:'Armadura Mestra'},
+    head:  {common:'Elmo Forjado',rare:'Elmo Temperado',epic:'Elmo do Artesão',legendary:'Coroa do Mestre'},
+    feet:  {common:'Botas Forjadas',rare:'Botas Temperadas',epic:'Botas do Artesão',legendary:'Botas Mestras'},
+  };
+  const icos={weapon:'⚔️',chest:'🛡️',head:'⛑️',feet:'👟'};
+  const crafted={
+    id:'crafted_'+r(99999),
+    name:names[slot][rarity],
+    ico:icos[slot],
+    rarity,slot,uses:null,
+    bonus:bonusMap[slot],
+    desc:Object.entries(bonusMap[slot]).map(([k,v])=>`+${v} ${k.toUpperCase()}`).join(' ')+' [Forjado]',
+  };
+  addItemToInv(crafted);upd();
+  toast(`⚒️ ${crafted.name} (${rarity}) forjado!`,2500);
+  smithCraft();
 }
 
 // ─── Comprar/Vender ───
@@ -2236,43 +2323,49 @@ function applyStatus(target, type, turns, dmg){
   }
 }
 
-function tickStatus(target, isPlayer=false){
-  // target: CE (inimigo) ou G (jogador)
-  // Retorna true se o alvo morreu (só relevante para inimigo)
-  const hpKey  = isPlayer?'hp':'hpCur';
-  const hpMax  = isPlayer?target.hpMax:target.hp;
-  const label  = isPlayer?'você':target.name;
-  const logLvl = isPlayer?'le':'li';
+function tickStatusOnEnemy(){
+  if(!CE)return;
   let died=false;
-
   // Veneno
-  if(target.poisonTurns>0){
-    const d=target.poisonDmg||(isPlayer?3:0);
-    target[hpKey]=Math.max(0,target[hpKey]-d);
-    target.poisonTurns--;
-    clog(`🐍 Veneno: -${d} HP em ${label}. (${target.poisonTurns} rest.)`,
-      target[hpKey]<=0?'ls':logLvl);
-    if(target[hpKey]<=0) died=true;
+  if(CE.poisonTurns>0){
+    CE.hpCur=Math.max(0,CE.hpCur-CE.poisonDmg);
+    CE.poisonTurns--;
+    clog(`🐍 Veneno: -${CE.poisonDmg} HP em ${CE.name}. (${CE.poisonTurns} rest.)`,CE.hpCur<=0?'ls':'li');
+    if(CE.hpCur<=0){died=true;}
   }
-  // Queimadura (não expira por turno — só ao fim do combate)
-  if(!died&&target.burnTurns>0){
-    const d=target.burnDmg||(isPlayer?4:0);
-    target[hpKey]=Math.max(0,target[hpKey]-d);
-    clog(`🔥 Queimadura: -${d} HP em ${label}.`,
-      target[hpKey]<=0?'ls':logLvl);
-    if(target[hpKey]<=0) died=true;
+  // Queimadura
+  if(!died&&CE.burnTurns>0){
+    CE.hpCur=Math.max(0,CE.hpCur-CE.burnDmg);
+    // queimadura não expira por turno — só ao fim do combate
+    clog(`🔥 Queimadura: -${CE.burnDmg} HP em ${CE.name}.`,CE.hpCur<=0?'ls':'li');
+    if(CE.hpCur<=0){died=true;}
   }
-  // Congelamento (só no jogador — decai aqui, efeito tratado em enemyTurn)
-  if(isPlayer&&target.freezeTurns>0) target.freezeTurns--;
-
-  if(isPlayer&&target.passives?.includes('godmode')) target.hp=target.hpMax;
   return died;
 }
-// Atalhos mantidos para compatibilidade com o restante do código
-function tickStatusOnEnemy(){ return tickStatus(CE,false); }
-function tickStatusOnPlayer(){ tickStatus(G,true); }
 
-
+function tickStatusOnPlayer(){
+  let msgs=[];
+  // Veneno no jogador
+  if(G.poisonTurns>0){
+    const d=G.poisonDmg||3;
+    G.hp=Math.max(0,G.hp-d);
+    G.poisonTurns--;
+    msgs.push(`🐍 Veneno: -${d} HP. (${G.poisonTurns} rest.)`);
+  }
+  // Queimadura no jogador (permanente até fim do combate)
+  if(G.burnTurns>0){
+    const d=G.burnDmg||4;
+    G.hp=Math.max(0,G.hp-d);
+    msgs.push(`🔥 Queimadura: -${d} HP.`);
+  }
+  // Congelamento no jogador
+  if(G.freezeTurns>0){
+    G.freezeTurns--;
+    // efeito de congelamento tratado em enemyTurn
+  }
+  msgs.forEach(m=>clog(m,'le'));
+  if(G.passives.includes('godmode'))G.hp=G.hpMax;
+}
 
 function clearCombatStatus(target){
   // Limpa ao fim do combate
@@ -3193,7 +3286,7 @@ function renderGrimoirePanel(tab){
         html+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:4px;">`;
         byTier[tier].forEach(el=>{
           const active=G.activeElement&&G.activeElement.id===el.id;
-          html+=`<div onclick="setActiveElement('${el.id}')" style="border:1px solid ${active?tierColors[tier]:'var(--brd2)'};border-radius:8px;padding:10px 6px;background:${active?'rgba(255,255,255,.06)':'rgba(255,255,255,.02)'};text-align:center;cursor:pointer;transition:.2s;">
+          html+=`<div onclick="setActiveElementPanel('${el.id}')" style="border:1px solid ${active?tierColors[tier]:'var(--brd2)'};border-radius:8px;padding:10px 6px;background:${active?'rgba(255,255,255,.06)':'rgba(255,255,255,.02)'};text-align:center;cursor:pointer;transition:.2s;">
             <div style="font-size:22px;">${el.ico}</div>
             <div style="font-family:var(--cinzel);font-size:9px;color:${active?tierColors[tier]:'var(--txt2)'};margin-top:4px;">${el.name}</div>
           </div>`;
@@ -3206,7 +3299,7 @@ function renderGrimoirePanel(tab){
         html+=`<div style="font-family:var(--cinzel);font-size:9px;color:var(--gold);letter-spacing:2px;margin:14px 0 8px;padding-top:10px;border-top:1px solid var(--brd);">⚗️ FUSÕES PRONTAS</div>`;
         availFusions.forEach(f=>{
           const el1=ELEMENTS.find(e=>e.id===f.e1);const el2=ELEMENTS.find(e=>e.id===f.e2);
-          html+=`<div onclick="fuseElements('${f.id}','grimoire')" style="border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:11px;background:rgba(200,168,75,.04);cursor:pointer;margin-bottom:6px;transition:.2s;">
+          html+=`<div onclick="fuseElementsPanel('${f.id}')" style="border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:11px;background:rgba(200,168,75,.04);cursor:pointer;margin-bottom:6px;transition:.2s;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
               <span style="font-size:18px;">${el1?el1.ico:'?'}</span><span style="font-family:var(--cinzel);font-size:10px;color:var(--txt2);">+</span>
               <span style="font-size:18px;">${el2?el2.ico:'?'}</span><span style="font-family:var(--cinzel);font-size:10px;color:var(--txt2);">→</span>
@@ -3226,9 +3319,21 @@ function renderGrimoirePanel(tab){
   }
 }
 
+function setActiveElementPanel(id){
+  const el=G.elements.find(e=>e.id===id);
+  if(!el)return;
+  G.activeElement=G.activeElement?.id===id?null:el;
+  toast(G.activeElement?`${el.ico} ${el.name} ativado!`:'Elemento desativado.');
+  renderGrimoirePanel('elements');
+}
 
-
-
+function fuseElementsPanel(fusionId){
+  const f=FUSIONS.find(x=>x.id===fusionId);
+  if(!f||!hasElement(f.e1)||!hasElement(f.e2)||hasElement(f.id))return;
+  G.elements.push({...f});
+  toast(`✨ Fusão: ${f.ico} ${f.name} criada!`,2500);
+  renderGrimoirePanel('elements');
+}
 
 function renderGrimoirePage(panel){
   // Insere searchbar + container de resultados
@@ -3528,16 +3633,22 @@ function doFusionSkill(f){
 
 /* ═══ ITEM HELPERS ═══ */
 function randItemByRarity(mode){
+  // Filtra itens pela classe do jogador:
+  // itens sem cls (genéricos) + itens da classe atual
+  const clsId=G?.cls?.id||null;
+  const classPool=ITEMS_POOL.filter(i=>!i.cls||i.cls===clsId);
+
   let pool;
-  if(mode==='common')pool=ITEMS_POOL.filter(i=>i.rarity==='common');
-  else if(mode==='rare+')pool=ITEMS_POOL.filter(i=>['rare','epic','legendary'].includes(i.rarity));
+  if(mode==='common')pool=classPool.filter(i=>i.rarity==='common');
+  else if(mode==='rare+')pool=classPool.filter(i=>['rare','epic','legendary'].includes(i.rarity));
   else{
     const w={common:.5,rare:.32,epic:.14,legendary:.04};
     const rn=Math.random();let cum=0,chosen='common';
     for(const[k,v] of Object.entries(w)){cum+=v;if(rn<cum){chosen=k;break;}}
-    pool=ITEMS_POOL.filter(i=>i.rarity===chosen);
+    pool=classPool.filter(i=>i.rarity===chosen);
   }
-  if(!pool||!pool.length)pool=ITEMS_POOL;
+  // Fallback: se pool vazio, usa classPool completo
+  if(!pool||!pool.length)pool=classPool.length?classPool:ITEMS_POOL;
   return{...pick(pool),id:'item_'+r(99999)};
 }
 function addItemToInv(it){
