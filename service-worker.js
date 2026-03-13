@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cronista-v1';
+const CACHE_NAME = 'cronista-v2';
 const ASSETS = [
   './',
   './index.html',
