@@ -21,14 +21,14 @@ const narr=key=>{const a=NARR[key]||NARR.win_combat;return a[Math.floor(Math.ran
 
 /* ═══ CLASSES ═══ */
 const CLASSES=[
-  {id:'warrior',name:'Guerreiro',ico:'⚔️',flavor:'Força bruta e resiliência inabalável.',
-   hp:115,mp:30,atk:14,def:8,mag:2,spd:5,crit:.1,dodge:.05,lifesteal:0,bars:{atk:88,def:60,mag:10},
-   skill:{name:'Golpe Brutal',ico:'💥',mp:10,desc:'Dano pesado + atordoar.',type:'brutal'},
-   skill2:{name:'Grito de Guerra',ico:'📯',mp:8,desc:'+6 ATK por 3 turnos.',type:'warcry'},
-   items:['⚔️ Espada de Ferro','🛡️ Escudo Rachado'],
+  {id:'warrior',name:'Paladino',ico:'🛡️',flavor:'Guardião sagrado — protege, pune e persiste.',
+   hp:120,mp:40,atk:13,def:10,mag:4,spd:5,crit:.09,dodge:.05,lifesteal:0,bars:{atk:82,def:72,mag:22},
+   skill:{name:'Golpe Sagrado',ico:'✨',mp:12,desc:'Dano físico + sagrado. Cura 8 HP.',type:'holy_strike'},
+   skill2:{name:'Escudo Divino',ico:'🛡️',mp:10,desc:'Bloqueia próximo ataque. +4 DEF por 2 turnos.',type:'divine_shield'},
+   items:['🛡️ Escudo Abençoado','⚔️ Espada da Luz'],
    subclasses:[
-     {id:'paladin',key:'pld',name:'Paladino',ico:'🛡️✨',desc:'Defensor sagrado com cura.',bonus:'DEF+5, Cura 8HP/turno',fn:G=>{G.def+=5;G.passives.push('regen_strong');}},
-     {id:'berserker',key:'bsk',name:'Berserker',ico:'🔥⚔️',desc:'Fúria pura. Ataca duas vezes.',bonus:'ATK+8, Duplo ataque',fn:G=>{G.atk+=8;G.passives.push('dbl','berzerk');}},
+     {id:'paladin_holy',key:'pld',name:'Arauto Sagrado',ico:'☀️🛡️',desc:'Cura poderosa e proteção divina.',bonus:'DEF+6, Cura 12HP/turno',fn:G=>{G.def+=6;G.passives.push('regen_strong');}},
+     {id:'crusader',key:'bsk',name:'Cruzado',ico:'⚔️✨',desc:'Ataque sagrado com dano duplo contra mortos-vivos.',bonus:'ATK+7, Dano +50% vs Undead',fn:G=>{G.atk+=7;G.passives.push('holy_dmg');}},
    ]},
   {id:'mage',name:'Mago',ico:'🔮',flavor:'Destrói com o poder arcano.',
    hp:62,mp:95,atk:5,def:3,mag:17,spd:6,crit:.08,dodge:.06,lifesteal:0,bars:{atk:35,def:18,mag:95},
@@ -47,6 +47,51 @@ const CLASSES=[
    subclasses:[
      {id:'assassin',key:'shd',name:'Assassino',ico:'💀🗡️',desc:'Mata em um golpe ou morre tentando.',bonus:'CRIT+20%, ATK+6',fn:G=>{G.crit+=.20;G.atk+=6;}},
      {id:'ranger',key:'pld',name:'Arqueiro',ico:'🏹',desc:'Ataque à distância, sempre esquiva.',bonus:'VEL+4, DODGE+15%',fn:G=>{G.spd+=4;G.dodge+=.15;}},
+   ]},
+  {id:'druid',name:'Druida',ico:'🌿',flavor:'A natureza cura — mas também devora.',
+   hp:90,mp:75,atk:7,def:6,mag:13,spd:7,crit:.10,dodge:.08,lifesteal:.04,bars:{atk:44,def:44,mag:78},
+   skill:{name:'Espinhos da Floresta',ico:'🌿',mp:14,desc:'Dano de natureza + veneno por 3 turnos.',type:'thorns'},
+   skill2:{name:'Pulso Vital',ico:'💚',mp:16,desc:'Cura 25% do HP máximo.',type:'vital_pulse'},
+   items:['🌿 Cajado de Raiz','🍄 Fungo Curativo'],
+   subclasses:[
+     {id:'archdruid',key:'arc',name:'Arquidruida',ico:'🌳🌿',desc:'Mestre da natureza — venenos letais e cura ampliada.',bonus:'MAG+6, Veneno dura +2 turnos',fn:G=>{G.mag+=6;G.passives.push('long_poison');}},
+     {id:'shapeshifter',key:'shd',name:'Metamorfo',ico:'🐻🌿',desc:'Transforma-se, ganhando HP e ATK temporários.',bonus:'HP+25, ATK+5 por combate',fn:G=>{G.hpMax+=25;G.hp=Math.min(G.hpMax,G.hp+25);G.atk+=5;}},
+   ]},
+  {id:'hunter',name:'Caçador',ico:'🏹',flavor:'Nenhuma presa escapa. Nenhum erro é tolerado.',
+   hp:85,mp:48,atk:13,def:5,mag:3,spd:12,crit:.18,dodge:.14,lifesteal:0,bars:{atk:82,def:32,mag:18},
+   skill:{name:'Flecha Certeira',ico:'🏹',mp:10,desc:'Dano físico alto. Bônus se inimigo estiver marcado.',type:'precise_arrow'},
+   skill2:{name:'Marcar Presa',ico:'🎯',mp:8,desc:'Marca o inimigo: +25% dano recebido por 3 turnos.',type:'mark_prey'},
+   items:['🏹 Arco Longo','🪤 Armadilha de Ferro'],
+   subclasses:[
+     {id:'trapper',key:'pld',name:'Trapaceiro',ico:'🪤🏹',desc:'Especialista em armadilhas — paralisa e sangra inimigos.',bonus:'VEL+3, Paralisia ao marcar',fn:G=>{G.spd+=3;G.passives.push('trap_master');}},
+     {id:'beastmaster',key:'shd',name:'Domador',ico:'🐺🏹',desc:'Companheiro animal concede bônus em combate.',bonus:'CRIT+10%, DODGE+8%',fn:G=>{G.crit+=.10;G.dodge+=.08;}},
+   ]},
+  {id:'sorcerer',name:'Feiticeiro',ico:'⚡',flavor:'Poder caótico e instável. Grandioso ou devastador.',
+   hp:55,mp:110,atk:4,def:2,mag:20,spd:7,crit:.15,dodge:.07,lifesteal:0,bars:{atk:25,def:12,mag:100},
+   skill:{name:'Descarga Caótica',ico:'⚡',mp:20,desc:'Dano mágico aleatório (pode ser massivo ou fraco).',type:'chaos_bolt'},
+   skill2:{name:'Surto Arcano',ico:'🌀',mp:25,desc:'Dano mágico garantido alto. Custa 15 HP próprio.',type:'arcane_surge'},
+   items:['⚡ Varinha do Caos','📜 Pergaminho Instável'],
+   subclasses:[
+     {id:'chaos_mage',key:'arc',name:'Mago do Caos',ico:'🌀⚡',desc:'Amplifica o caos — dano extremo com riscos extremos.',bonus:'MAG+10, Chance de explodir (dano duplo ou zero)',fn:G=>{G.mag+=10;G.passives.push('chaos_master');}},
+     {id:'storm_caller',key:'shd',name:'Invocador da Tempestade',ico:'🌩️⚡',desc:'Controla o caos com raios em cadeia.',bonus:'MAG+6, Dano em cadeia nos inimigos',fn:G=>{G.mag+=6;G.passives.push('chain_lightning');}},
+   ]},
+  {id:'barbarian',name:'Bárbaro',ico:'🪓',flavor:'Não há estratégia. Apenas fúria. Apenas sangue.',
+   hp:140,mp:20,atk:18,def:5,mag:1,spd:6,crit:.14,dodge:.04,lifesteal:.03,bars:{atk:100,def:35,mag:5},
+   skill:{name:'Frenesi',ico:'🪓',mp:8,desc:'Ataca 2-3 vezes. Dano aumenta com HP baixo.',type:'frenzy'},
+   skill2:{name:'Rugido Selvagem',ico:'😤',mp:6,desc:'Intimida: -4 ATK do inimigo por 3 turnos.',type:'wild_roar'},
+   items:['🪓 Machado de Osso','🩸 Amuleto de Fúria'],
+   subclasses:[
+     {id:'warchief',key:'bsk',name:'Chefe de Guerra',ico:'🔥🪓',desc:'Entra em fúria total abaixo de 30% HP.',bonus:'ATK+10, Fúria ativa abaixo de 30% HP',fn:G=>{G.atk+=10;G.passives.push('berzerk','war_rage');}},
+     {id:'juggernaut',key:'pld',name:'Juggernaut',ico:'🪨🪓',desc:'Imparável — ignora parte da defesa inimiga.',bonus:'HP+30, Ignora 30% DEF inimiga',fn:G=>{G.hpMax+=30;G.hp=Math.min(G.hpMax,G.hp+30);G.passives.push('armor_pierce');}},
+   ]},
+  {id:'assassin_cls',name:'Assassino',ico:'🌑',flavor:'Você não o viu chegar. Não o verá partir.',
+   hp:70,mp:60,atk:10,def:3,mag:6,spd:13,crit:.20,dodge:.16,lifesteal:.02,bars:{atk:65,def:20,mag:38},
+   skill:{name:'Golpe das Sombras',ico:'🌑',mp:14,desc:'Primeiro turno: dano triplicado. Demais: dano duplo.',type:'shadow_strike'},
+   skill2:{name:'Névoa Tóxica',ico:'☠️',mp:12,desc:'Envenena e reduz precisão do inimigo por 3 turnos.',type:'toxic_mist'},
+   items:['🌑 Lâmina das Sombras','☠️ Veneno de Aranha'],
+   subclasses:[
+     {id:'phantom',key:'shd',name:'Fantasma',ico:'👻🌑',desc:'Torna-se intangível — esquiva quase garantida.',bonus:'DODGE+20%, VEL+4',fn:G=>{G.dodge+=.20;G.spd+=4;}},
+     {id:'venomancer',key:'arc',name:'Envenenador',ico:'🐍🌑',desc:'Venenos em cadeia — múltiplos inimigos envenenados.',bonus:'Veneno em área, MAG+4',fn:G=>{G.mag+=4;G.passives.push('chain_poison');}},
    ]},
 ];
 
@@ -149,65 +194,53 @@ function floorScale(floor){
   return 1+(3*0.25)+(3*0.30)+(floor-7)*0.18;
 }
 
-function genEnemy(floor){
-  const arch=pick(PROC_ARCHETYPES);
-  const mod=pick(PROC_MODIFIERS);
-  const scale=floorScale(floor);
-  const ngMult=G?.ngMult||1;
-  const total=scale*ngMult;
-
-  const hp=Math.round(arch.hp*mod.hpM*total);
-  const atk=Math.round(arch.atk*mod.atkM*total);
-  const def=Math.round(arch.def*mod.defM*(1+(floor-1)*0.12));
-  const xp=Math.round((10+floor*4)*mod.xpM);
-  const gold=[Math.round((2+floor)*total),Math.round((5+floor*2)*total)];
-
-  // Badges base do arquétipo + modificador, sem duplicatas
-  const badges=[...new Set([...arch.badges,...mod.badges])];
-
-  // Andares altos ganham badge extra
-  if(floor>=5&&Math.random()<0.4) badges.push(pick(['Fúria','Resistência','Certeiro','Drena MP']));
-
-  return {
-    id:'proc_'+r(99999),
-    name:`${mod.prefix} ${arch.name}`,
-    ico:`${mod.ico}${arch.ico}`,
-    sub:`${arch.type} · Andar ${floor}`,
-    hp,atk,def,xp,gold,badges,
-    boss:false,elite:false,
-    type:arch.type,
-    proc:true,
-  };
-}
-
-function genElite(floor){
+function genProcEnemy(floor, isElite=false){
   const arch=pick(PROC_ARCHETYPES);
   const mod1=pick(PROC_MODIFIERS);
-  let mod2=pick(PROC_MODIFIERS);
-  while(mod2.prefix===mod1.prefix) mod2=pick(PROC_MODIFIERS);
-  const prefix=pick(ELITE_PREFIXES);
-  const scale=floorScale(floor)*1.5;
   const ngMult=G?.ngMult||1;
+
+  // Elite usa dois modificadores e escala maior
+  let mod2=null;
+  if(isElite){
+    mod2=pick(PROC_MODIFIERS);
+    while(mod2.prefix===mod1.prefix) mod2=pick(PROC_MODIFIERS);
+  }
+  const scale=floorScale(floor)*(isElite?1.5:1);
   const total=scale*ngMult;
+  const hpM =isElite?mod1.hpM*mod2.hpM*1.4:mod1.hpM;
+  const atkM=isElite?mod1.atkM*mod2.atkM:mod1.atkM;
+  const defM=isElite?mod1.defM*mod2.defM*1.2:mod1.defM;
+  const xpM =isElite?mod1.xpM*mod2.xpM:mod1.xpM;
 
-  const hp=Math.round(arch.hp*mod1.hpM*mod2.hpM*total*1.4);
-  const atk=Math.round(arch.atk*mod1.atkM*mod2.atkM*total);
-  const def=Math.round(arch.def*mod1.defM*mod2.defM*(1+(floor-1)*0.12)*1.2);
-  const xp=Math.round((20+floor*6)*mod1.xpM*mod2.xpM);
-  const gold=[Math.round((5+floor*2)*total),Math.round((10+floor*3)*total)];
-  const badges=[...new Set(['Elite',...arch.badges,...mod1.badges,...mod2.badges])];
+  const hp =Math.round(arch.hp *hpM *total);
+  const atk=Math.round(arch.atk*atkM*total);
+  const def=Math.round(arch.def*defM*(1+(floor-1)*0.12));
+  const xp =Math.round((isElite?20+floor*6:10+floor*4)*xpM);
+  const gold=isElite
+    ?[Math.round((5+floor*2)*total), Math.round((10+floor*3)*total)]
+    :[Math.round((2+floor)*total),   Math.round((5+floor*2)*total)];
 
+  const badges=isElite
+    ?[...new Set(['Elite',...arch.badges,...mod1.badges,...mod2.badges])]
+    :[...new Set([...arch.badges,...mod1.badges])];
+  if(!isElite&&floor>=5&&Math.random()<0.4)
+    badges.push(pick(['Fúria','Resistência','Certeiro','Drena MP']));
+
+  const prefix=isElite?pick(ELITE_PREFIXES):null;
   return {
-    id:'elite_'+r(99999),
-    name:`★ ${prefix} ${arch.name}`,
-    ico:`⭐${arch.ico}`,
-    sub:`Elite · ${mod1.prefix} & ${mod2.prefix}`,
+    id:(isElite?'elite_':'proc_')+r(99999),
+    name:isElite?`★ ${prefix} ${arch.name}`:`${mod1.prefix} ${arch.name}`,
+    ico:isElite?`⭐${arch.ico}`:`${mod1.ico}${arch.ico}`,
+    sub:isElite?`Elite · ${mod1.prefix} & ${mod2.prefix}`:`${arch.type} · Andar ${floor}`,
     hp,atk,def,xp,gold,badges,
-    boss:false,elite:true,
+    boss:false,elite:isElite,
     type:arch.type,
     proc:true,
   };
 }
+function genEnemy(floor){ return genProcEnemy(floor,false); }
+
+function genElite(floor){ return genProcEnemy(floor,true); }
 
 function genBoss(floor){
   const [title,epithet]=pick(BOSS_NAMES);
@@ -305,12 +338,11 @@ const ITEMS_POOL=[
 
   // ── Paladino (warrior) ──
   {id:'holy_sword',    cls:'warrior',name:'Espada Sagrada',     ico:'✝️⚔️',rarity:'rare',   uses:null,slot:'weapon',bonus:{atk:9,def:3},            desc:'+9 ATK +3 DEF'},
-  {id:'divine_shield', cls:'warrior',name:'Escudo Divino',      ico:'🛡️✨',rarity:'epic',   uses:null,slot:'chest', bonus:{def:14,hp:25},            desc:'+14 DEF +25 HP'},
+  {id:'divine_shield_item',cls:'warrior',name:'Escudo Divino',  ico:'🛡️✨',rarity:'epic',   uses:null,slot:'chest', bonus:{def:14,hp:25},            desc:'+14 DEF +25 HP'},
   {id:'paladin_helm',  cls:'warrior',name:'Elmo do Paladino',   ico:'⛑️✝️',rarity:'rare',   uses:null,slot:'head',  bonus:{def:6,hp:12},             desc:'+6 DEF +12 HP'},
   {id:'sacred_boots',  cls:'warrior',name:'Botas Sagradas',     ico:'👢✝️',rarity:'common', uses:null,slot:'feet',  bonus:{spd:2,def:2},             desc:'+2 VEL +2 DEF'},
-  {id:'holy_potion',   cls:'warrior',name:'Bálsamo Sagrado',    ico:'🏺',  rarity:'common', uses:1,   slot:null,                                     desc:'Cura 35 HP e remove veneno', fn:G=>{const h=35;G.hp=Math.min(G.hpMax,G.hp+h);G.poisonTurns=0;toast(`✝️ +${h} HP, veneno removido!`);}},
+  {id:'holy_potion',   cls:'warrior',name:'Bálsamo Sagrado',    ico:'🏺',  rarity:'common', uses:1,   slot:null,    desc:'Cura 35 HP e remove veneno',fn:G=>{const h=35;G.hp=Math.min(G.hpMax,G.hp+h);G.poisonTurns=0;toast(`✝️ +${h} HP, veneno removido!`);}},
   {id:'crusader_ring', cls:'warrior',name:'Anel do Cruzado',    ico:'💍✝️',rarity:'epic',   uses:null,slot:null,   bonus:{atk:6,def:4,hp:15},        desc:'+6 ATK +4 DEF +15 HP'},
-  {id:'warrior_tome',  cls:'warrior',name:'Tomo do Guerreiro',  ico:'📖⚔️',rarity:'legendary',uses:1, slot:null,                                    desc:'Aprende Golpe Sagrado se não souber', fn:G=>{const sk=G.cls.skill1;if(!sk){toast('Nenhuma skill!');return;}if(G.skills.some(s=>s.type===sk.type)){toast('Skill já conhecida!');return;}G.skills.push({...sk});toast(`📖 ${sk.name} aprendida!`);}},
 
   // ── Mago ──
   {id:'arcane_wand',   cls:'mage',  name:'Varinha Arcana',      ico:'🪄✨',rarity:'common', uses:null,slot:'weapon',bonus:{mag:6},                  desc:'+6 MAG'},
@@ -318,7 +350,7 @@ const ITEMS_POOL=[
   {id:'mage_robe',     cls:'mage',  name:'Manto Arcano',        ico:'🥻',  rarity:'common', uses:null,slot:'chest', bonus:{mag:4,mp:10},             desc:'+4 MAG +10 MP'},
   {id:'lich_crown',    cls:'mage',  name:'Coroa da Lich',       ico:'💀👑',rarity:'legendary',uses:null,slot:'head',bonus:{mag:14,mp:40,hp:-20},    desc:'+14 MAG +40 MP -20 HP'},
   {id:'mana_boots',    cls:'mage',  name:'Botas da Concentração',ico:'👟💙',rarity:'rare',  uses:null,slot:'feet',  bonus:{mag:4,spd:1},             desc:'+4 MAG +1 VEL'},
-  {id:'spell_scroll',  cls:'mage',  name:'Pergaminho de Feitiço',ico:'📜🔮',rarity:'rare',  uses:1,   slot:null,                                     desc:'Dano mágico imediato em 1 inimigo (40-60)', fn:(G,ctx)=>{if(!ctx?.combat){toast('Só usável em combate!');return;}const d=r(20)+40;ctx.E.hpCur=Math.max(0,ctx.E.hpCur-d);toast(`📜 -${d} HP mágico!`);updateCombatUI();}},
+  {id:'spell_scroll',  cls:'mage',  name:'Pergaminho de Feitiço',ico:'📜🔮',rarity:'rare',  uses:1,   slot:null,    desc:'Dano mágico imediato (40-60)',fn:(G,ctx)=>{if(!ctx?.combat){toast('Só em combate!');return;}const d=r(20)+40;ctx.E.hpCur=Math.max(0,ctx.E.hpCur-d);toast(`📜 -${d} HP mágico!`);updateCombatUI();}},
   {id:'mage_ring',     cls:'mage',  name:'Anel do Arcano',      ico:'💍🔮',rarity:'epic',   uses:null,slot:null,   bonus:{mag:8,mp:20},              desc:'+8 MAG +20 MP'},
 
   // ── Ladino/Assassino (rogue) ──
@@ -326,7 +358,7 @@ const ITEMS_POOL=[
   {id:'rogue_armor',   cls:'rogue', name:'Armadura do Ladrão',  ico:'🥷🎭',rarity:'rare',   uses:null,slot:'chest', bonus:{def:5,dodge:.06},          desc:'+5 DEF +6% ESQUIVA'},
   {id:'assassin_mask', cls:'rogue', name:'Máscara do Assassino',ico:'🎭🌑',rarity:'epic',   uses:null,slot:'head',  bonus:{crit:.12,dodge:.05},       desc:'+12% CRIT +5% ESQUIVA'},
   {id:'swift_boots',   cls:'rogue', name:'Botas Velozes',       ico:'👟💨',rarity:'common', uses:null,slot:'feet',  bonus:{spd:4,dodge:.03},          desc:'+4 VEL +3% ESQUIVA'},
-  {id:'poison_vial',   cls:'rogue', name:'Ampola de Veneno',    ico:'🐍💉',rarity:'epic',   uses:1,   slot:null,                                     desc:'Aplica veneno forte no inimigo (6dmg/turno, 5 turnos)', fn:(G,ctx)=>{if(!ctx?.combat){toast('Só usável em combate!');return;}ctx.E.poisonDmg=6;ctx.E.poisonTurns=5;toast('🐍 Veneno forte aplicado!');}},
+  {id:'poison_vial',   cls:'rogue', name:'Ampola de Veneno',    ico:'🐍💉',rarity:'epic',   uses:1,   slot:null,    desc:'Veneno forte (6dmg/turno, 5t)',fn:(G,ctx)=>{if(!ctx?.combat){toast('Só em combate!');return;}ctx.E.poisonDmg=6;ctx.E.poisonTurns=5;toast('🐍 Veneno forte aplicado!');}},
   {id:'rogue_ring',    cls:'rogue', name:'Anel do Ladrão',      ico:'💍🗡️',rarity:'epic',   uses:null,slot:null,   bonus:{atk:4,crit:.08,spd:2},     desc:'+4 ATK +8% CRIT +2 VEL'},
 
   // ── Druida ──
@@ -334,9 +366,9 @@ const ITEMS_POOL=[
   {id:'bark_armor',    cls:'druid', name:'Armadura de Casca',   ico:'🌳🛡️',rarity:'common', uses:null,slot:'chest', bonus:{def:5,hp:8},              desc:'+5 DEF +8 HP'},
   {id:'druid_crown',   cls:'druid', name:'Coroa das Raízes',    ico:'🌿👑',rarity:'epic',   uses:null,slot:'head',  bonus:{mag:8,hp:15},             desc:'+8 MAG +15 HP'},
   {id:'moss_boots',    cls:'druid', name:'Botas de Musgo',      ico:'🌿👟',rarity:'common', uses:null,slot:'feet',  bonus:{spd:2,hp:5},              desc:'+2 VEL +5 HP'},
-  {id:'healing_herb',  cls:'druid', name:'Erva Curativa',       ico:'🌿💚',rarity:'common', uses:1,   slot:null,                                     desc:'Cura 30 HP e regenera 10 HP por 3 turnos', fn:G=>{const h=30;G.hp=Math.min(G.hpMax,G.hp+h);G.regenTurns=(G.regenTurns||0)+3;G.regenAmt=10;toast(`🌿 +${h} HP + regen!`);}},
+  {id:'healing_herb',  cls:'druid', name:'Erva Curativa',       ico:'🌿💚',rarity:'common', uses:1,   slot:null,    desc:'Cura 30 HP + regen 10HP/turno por 3t',fn:G=>{const h=30;G.hp=Math.min(G.hpMax,G.hp+h);G.regenTurns=(G.regenTurns||0)+3;G.regenAmt=10;toast(`🌿 +${h} HP + regen!`);}},
   {id:'nature_ring',   cls:'druid', name:'Anel da Floresta',    ico:'💍🌿',rarity:'epic',   uses:null,slot:null,   bonus:{mag:6,hp:20},              desc:'+6 MAG +20 HP'},
-  {id:'druid_tome',    cls:'druid', name:'Tomo da Natureza',    ico:'📗🌿',rarity:'legendary',uses:1,  slot:null,                                   desc:'+15 HP máx e +5 MAG permanente', fn:G=>{G.hpMax+=15;G.hp=Math.min(G.hpMax,G.hp+15);G.mag+=5;upd();toast('📗 Poder da Natureza absorvido!');}},
+  {id:'druid_tome',    cls:'druid', name:'Tomo da Natureza',    ico:'📗🌿',rarity:'legendary',uses:1,  slot:null,   desc:'+15 HP máx e +5 MAG permanente',fn:G=>{G.hpMax+=15;G.hp=Math.min(G.hpMax,G.hp+15);G.mag+=5;upd();toast('📗 Poder da Natureza absorvido!');}},
 
   // ── Caçador ──
   {id:'hunter_bow',    cls:'hunter',name:'Arco do Caçador',     ico:'🏹',  rarity:'common', uses:null,slot:'weapon',bonus:{atk:5,spd:2},             desc:'+5 ATK +2 VEL'},
@@ -344,7 +376,7 @@ const ITEMS_POOL=[
   {id:'hunter_vest',   cls:'hunter',name:'Colete do Caçador',   ico:'🎯🥋',rarity:'rare',   uses:null,slot:'chest', bonus:{def:4,dodge:.05,spd:1},   desc:'+4 DEF +5% ESQUIVA +1 VEL'},
   {id:'tracker_helm',  cls:'hunter',name:'Elmo do Rastreador',  ico:'🎯⛑️',rarity:'rare',   uses:null,slot:'head',  bonus:{crit:.07,spd:2},          desc:'+7% CRIT +2 VEL'},
   {id:'ranger_boots',  cls:'hunter',name:'Botas do Ranger',     ico:'🥾🏹',rarity:'common', uses:null,slot:'feet',  bonus:{spd:4,dodge:.02},          desc:'+4 VEL +2% ESQUIVA'},
-  {id:'beast_trap',    cls:'hunter',name:'Armadilha de Fera',   ico:'🪤',  rarity:'epic',   uses:1,   slot:null,                                     desc:'Imobiliza inimigo por 2 turnos', fn:(G,ctx)=>{if(!ctx?.combat){toast('Só usável em combate!');return;}ctx.E.freezeTurns=(ctx.E.freezeTurns||0)+2;toast('🪤 Inimigo imobilizado por 2 turnos!');}},
+  {id:'beast_trap',    cls:'hunter',name:'Armadilha de Fera',   ico:'🪤',  rarity:'epic',   uses:1,   slot:null,    desc:'Imobiliza inimigo por 2 turnos',fn:(G,ctx)=>{if(!ctx?.combat){toast('Só em combate!');return;}ctx.E.freezeTurns=(ctx.E.freezeTurns||0)+2;toast('🪤 Inimigo imobilizado!');}},
   {id:'hunter_ring',   cls:'hunter',name:'Anel da Presa',       ico:'💍🏹',rarity:'epic',   uses:null,slot:null,   bonus:{atk:5,crit:.07,spd:1},     desc:'+5 ATK +7% CRIT +1 VEL'},
 
   // ── Feiticeiro ──
@@ -353,7 +385,7 @@ const ITEMS_POOL=[
   {id:'arcane_robe',   cls:'sorcerer',name:'Manto Caótico',     ico:'🌀🥻',rarity:'common', uses:null,slot:'chest', bonus:{mag:5,mp:12},             desc:'+5 MAG +12 MP'},
   {id:'chaos_crown',   cls:'sorcerer',name:'Coroa do Caos',     ico:'🌀👑',rarity:'epic',   uses:null,slot:'head',  bonus:{mag:10,mp:18,hp:-10},     desc:'+10 MAG +18 MP -10 HP'},
   {id:'sorc_boots',    cls:'sorcerer',name:'Botas Arcanas',     ico:'👟🌀',rarity:'common', uses:null,slot:'feet',  bonus:{mag:3,spd:1},             desc:'+3 MAG +1 VEL'},
-  {id:'chaos_elixir',  cls:'sorcerer',name:'Elixir do Caos',    ico:'⚗️🌀',rarity:'epic',   uses:1,   slot:null,                                    desc:'+12 MAG temporário por 3 salas', fn:G=>{G.mag+=12;G.tmpBuffs.push({stat:'mag',val:12,rooms:3});toast('🌀 +12 MAG caótico temporário!');}},
+  {id:'chaos_elixir',  cls:'sorcerer',name:'Elixir do Caos',    ico:'⚗️🌀',rarity:'epic',   uses:1,   slot:null,    desc:'+12 MAG temporário por 3 salas',fn:G=>{G.mag+=12;G.tmpBuffs.push({stat:'mag',val:12,rooms:3});toast('🌀 +12 MAG caótico!');}},
   {id:'sorc_ring',     cls:'sorcerer',name:'Anel da Tempestade',ico:'💍⚡',rarity:'epic',   uses:null,slot:null,   bonus:{mag:9,mp:15},              desc:'+9 MAG +15 MP'},
 
   // ── Bárbaro ──
@@ -362,15 +394,15 @@ const ITEMS_POOL=[
   {id:'berserk_armor', cls:'barbarian',name:'Armadura Bárbara', ico:'🔴🛡️',rarity:'rare',   uses:null,slot:'chest', bonus:{def:8,hp:20,atk:3},       desc:'+8 DEF +20 HP +3 ATK'},
   {id:'warrior_helm',  cls:'barbarian',name:'Elmo da Fúria',    ico:'🪖🔴',rarity:'rare',   uses:null,slot:'head',  bonus:{atk:5,hp:12},             desc:'+5 ATK +12 HP'},
   {id:'berserker_boots',cls:'barbarian',name:'Botas do Bárbaro',ico:'👢🔴',rarity:'common', uses:null,slot:'feet',  bonus:{spd:2,atk:2},             desc:'+2 VEL +2 ATK'},
-  {id:'rage_potion',   cls:'barbarian',name:'Poção de Fúria',   ico:'🍺🔴',rarity:'rare',   uses:1,   slot:null,                                     desc:'+10 ATK e fúria: ignora 50% do dano por 2 turnos', fn:G=>{G.atk+=10;G.tmpBuffs.push({stat:'atk',val:10,rooms:2});G.rageTurns=(G.rageTurns||0)+2;toast('🍺 FÚRIA! +10 ATK temporário!');}},
+  {id:'rage_potion',   cls:'barbarian',name:'Poção de Fúria',   ico:'🍺🔴',rarity:'rare',   uses:1,   slot:null,    desc:'+10 ATK temporário por 2 salas',fn:G=>{G.atk+=10;G.tmpBuffs.push({stat:'atk',val:10,rooms:2});toast('🍺 FÚRIA! +10 ATK!');}},
   {id:'barb_ring',     cls:'barbarian',name:'Anel do Guerreiro',ico:'💍🔴',rarity:'epic',   uses:null,slot:null,   bonus:{atk:8,hp:20},              desc:'+8 ATK +20 HP'},
 
   // ── Assassino ──
-  {id:'poison_dagger', cls:'assassin_cls',name:'Adaga Envenenada',ico:'🗡️🐍',rarity:'rare', uses:null,slot:'weapon',bonus:{atk:7,crit:.09},          desc:'+7 ATK +9% CRIT (veneno passivo)'},
+  {id:'poison_dagger', cls:'assassin_cls',name:'Adaga Envenenada',ico:'🗡️🐍',rarity:'rare', uses:null,slot:'weapon',bonus:{atk:7,crit:.09},          desc:'+7 ATK +9% CRIT'},
   {id:'shadow_cloak',  cls:'assassin_cls',name:'Manto das Sombras',ico:'🌑🥷',rarity:'epic', uses:null,slot:'chest', bonus:{dodge:.1,spd:2},           desc:'+10% ESQUIVA +2 VEL'},
   {id:'death_hood',    cls:'assassin_cls',name:'Capuz da Morte',  ico:'💀🎭',rarity:'epic',  uses:null,slot:'head',  bonus:{crit:.13,dodge:.04},       desc:'+13% CRIT +4% ESQUIVA'},
   {id:'shadow_boots',  cls:'assassin_cls',name:'Botas Silenciosas',ico:'👟🌑',rarity:'common',uses:null,slot:'feet', bonus:{spd:4,dodge:.04},           desc:'+4 VEL +4% ESQUIVA'},
-  {id:'smoke_bomb',    cls:'assassin_cls',name:'Bomba de Névoa',  ico:'💨🌑',rarity:'rare',  uses:1,   slot:null,                                     desc:'30% chance inimigo errar por 3 turnos', fn:(G,ctx)=>{if(!ctx?.combat){toast('Só usável em combate!');return;}ctx.E._foggedTurns=3;toast('💨 Névoa das sombras liberada!');}},
+  {id:'smoke_bomb',    cls:'assassin_cls',name:'Bomba de Névoa',  ico:'💨🌑',rarity:'rare',  uses:1,   slot:null,    desc:'30% chance inimigo errar por 3t',fn:(G,ctx)=>{if(!ctx?.combat){toast('Só em combate!');return;}ctx.E._foggedTurns=3;toast('💨 Névoa das sombras!');}},
   {id:'assassin_ring', cls:'assassin_cls',name:'Anel do Assassino',ico:'💍🌑',rarity:'epic', uses:null,slot:null,   bonus:{crit:.1,spd:3,atk:3},       desc:'+10% CRIT +3 VEL +3 ATK'},
 
   // ═══ SETS DE ARMADURA ═══
@@ -479,76 +511,172 @@ const ELEMENTS=[
 ];
 
 /* ═══ FUSÕES ═══ */
-const FUSIONS=[
-  {id:'continuum',       name:'Continuum',            ico:'♾️', tier:0,mult:2.8,e1:'tempo',      e2:'espaco',      desc:'Altera a malha da causalidade; permite onipresença local e manipulação cronológica.'},
-  {id:'vazio_absoluto',  name:'Vazio Absoluto',        ico:'⬛',tier:0,mult:2.8,e1:'vacuo',      e2:'materia_escura',desc:'Aniquilação atômica total. Uma zona onde a existência é simplesmente deletada.'},
-  {id:'essencia_divina', name:'Essência Divina',       ico:'🌟',tier:0,mult:2.8,e1:'eter',       e2:'gravidade',   desc:'Manifestação da vontade pura; cura o incurável ou cria matéria do nada.'},
-  {id:'materia_sombria', name:'Matéria Sombria',       ico:'🌑',tier:0,mult:2.8,e1:'materia_escura',e2:'luz',      desc:'Matéria paradoxal que alterna entre solidez e intangibilidade absoluta.'},
-  {id:'dobra_espacial',  name:'Dobra Espacial',        ico:'🌀',tier:0,mult:2.8,e1:'gravidade',  e2:'espaco',      desc:'Comprime distâncias infinitas; esmaga inimigos em um ponto singular.'},
-  {id:'morte_divina',    name:'Morte Divina',          ico:'💀',tier:0,mult:2.8,e1:'necrose',     e2:'tempo',       desc:'O poder de apagar conceitos, leis da natureza ou matar seres imortais.'},
-  {id:'lente_grav',      name:'Lente Gravitacional',   ico:'🔭',tier:1,mult:2.3,e1:'gravidade',  e2:'luz',         desc:'Invisibilidade perfeita e distorção da realidade visual em escala global.'},
-  {id:'eco_temporal',    name:'Eco Temporal',          ico:'⏪',tier:1,mult:2.3,e1:'tempo',      e2:'som',         desc:'Gritos que ecoam pelo tempo, permitindo prever ataques ou alterar o passado.'},
-  {id:'silencio_abs',    name:'Silêncio Absoluto',     ico:'🔇',tier:1,mult:2.3,e1:'vacuo',      e2:'som',         desc:'Remove o meio de propagação física; explosões e impactos tornam-se nulos.'},
-  {id:'sangue_tempo',    name:'Sangue do Tempo',       ico:'🩸',tier:1,mult:2.3,e1:'tempo',      e2:'sangue',      desc:'Permite visualizar e acessar a memória genética de todas as eras.'},
-  {id:'mutacao',         name:'Mutação',               ico:'🧬',tier:2,mult:2.0,e1:'radiacao',   e2:'flora',       desc:'Crescimento vegetal grotesco e acelerado; plantas tornam-se predadoras.'},
-  {id:'fosforescencia',  name:'Fosforescência',        ico:'💡',tier:2,mult:2.0,e1:'necrose',    e2:'luz',         desc:'Brilho que drena a vitalidade; quanto mais brilha, mais vida consome.'},
-  {id:'silencio_obs',    name:'Silêncio Obscuro',      ico:'🌑',tier:2,mult:2.0,e1:'escuridao',  e2:'som',         desc:'Privação sensorial total; mergulha o alvo em pânico e desorientação.'},
-  {id:'peste',           name:'Peste',                 ico:'☠️',tier:2,mult:2.0,e1:'podridao',   e2:'sangue',      desc:'Corrupção imediata do sistema circulatório; o sangue apodrece nas veias.'},
-  {id:'epidemia',        name:'Epidemia',              ico:'🦠',tier:2,mult:2.0,e1:'virus',      e2:'ar',          desc:'O ar torna-se o vetor de uma doença imparável e onipresente.'},
-  {id:'luz_sonica',      name:'Luz Sônica',            ico:'💥',tier:2,mult:2.0,e1:'som',        e2:'luz',         desc:'Flash cegante acompanhado de uma onda de choque que explode órgãos.'},
-  {id:'chama_negra',     name:'Chama Negra',           ico:'🖤',tier:2,mult:2.0,e1:'fogo',       e2:'escuridao',   desc:'Fogo que não ilumina; consome a alma e deixa o corpo físico intacto.'},
-  {id:'eletrolise',      name:'Eletrólise',            ico:'⚡',tier:3,mult:1.7,e1:'raio',       e2:'agua',        desc:'Condução elétrica total em líquidos; gera explosões gasosas de hidrogênio.'},
-  {id:'liga_plasma',     name:'Liga de Plasma',        ico:'💫',tier:3,mult:1.7,e1:'plasma',     e2:'metal',       desc:'Metal energético que corta a nível molecular e se autorregenera.'},
-  {id:'toxina_liq',      name:'Toxina Líquida',        ico:'🐍',tier:3,mult:1.7,e1:'veneno',     e2:'agua',        desc:'Contaminação em massa de oceanos; toque na pele gera paralisia instantânea.'},
-  {id:'corrosao',        name:'Corrosão',              ico:'⚗️',tier:3,mult:1.7,e1:'acido',      e2:'metal',       desc:'Derrete instantaneamente armaduras e estruturas metálicas nobres.'},
-  {id:'amalgama',        name:'Amálgama Dentária',     ico:'🦷',tier:3,mult:1.7,e1:'carie',      e2:'ouro',        desc:'O paradoxo da corrupção do ouro; destrói relíquias indestrutíveis.'},
-  {id:'neblina_sombria', name:'Neblina Sombria',       ico:'👤',tier:3,mult:1.7,e1:'sombra',     e2:'fumaca',      desc:'Cortina de fumaça viva que permite teletransporte entre sombras.'},
-  {id:'elet_estatica',   name:'Eletricidade Estática', ico:'⚡',tier:3,mult:1.7,e1:'poeira',     e2:'raio',        desc:'Ar carregado que gera descargas de alta voltagem a qualquer movimento.'},
-  {id:'vapor_super',     name:'Vapor Superaquecido',   ico:'♨️',tier:4,mult:1.5,e1:'fogo',       e2:'gelo',        desc:'Névoa invisível que cozinha alvos por dentro, ignorando armaduras.'},
-  {id:'piroclasto',      name:'Piroclasto',            ico:'🌋',tier:4,mult:1.5,e1:'magma',      e2:'ar',          desc:'Chuva de cinzas e rochas incandescentes; soterra exércitos e cidades.'},
-  {id:'mercurio_sol',    name:'Mercúrio Sólido',       ico:'🪞',tier:4,mult:1.5,e1:'mercurio',   e2:'gelo',        desc:'Lâminas de metal tóxico que derretem após atingir a corrente sanguínea.'},
-  {id:'areia_vitr',      name:'Areia Vitrificada',     ico:'🏜️',tier:4,mult:1.5,e1:'areia',      e2:'vidro',       desc:'Chão transformado em espelhos afiados que refletem ataques mágicos.'},
-  {id:'emulsao',         name:'Emulsão',               ico:'🛢️',tier:4,mult:1.5,e1:'oleo',       e2:'agua',        desc:'Superfície ultra-escorregadia e inflamável, mesmo sob chuva forte.'},
-  {id:'bolhas_eternas',  name:'Bolhas Eternas',        ico:'🫧',tier:4,mult:1.5,e1:'espuma',     e2:'ar',          desc:'Prisões esféricas inquebráveis que asfixiam o alvo lentamente.'},
-  {id:'po_diamante',     name:'Pó de Diamante',        ico:'💎',tier:4,mult:1.5,e1:'diamante',   e2:'fogo',        desc:'Nuvem de carbono indestrutível que perfura como agulhas ardentes.'},
-  {id:'liga_nobre',      name:'Liga Nobre',            ico:'🥇',tier:4,mult:1.5,e1:'platina',    e2:'ouro',        desc:'Material supremo contra magia; anula feitiços de tiers inferiores.'},
-  {id:'metal_crist',     name:'Metal Cristalino',      ico:'🔷',tier:4,mult:1.5,e1:'metal',      e2:'cristal',     desc:'Metal translúcido que foca e amplifica raios de energia.'},
-  {id:'superliga',       name:'Superliga',             ico:'🛡️',tier:4,mult:1.5,e1:'titanio',    e2:'aco',         desc:'O metal definitivo: leve como o ar, porém impossível de amassar.'},
-  {id:'rocha_meta',      name:'Rocha Metamórfica',     ico:'🗿',tier:4,mult:1.5,e1:'obsidiana',  e2:'marmore',     desc:'Absorve impactos físicos e os devolve como ondas de choque.'},
-  {id:'ceramica',        name:'Cerâmica',              ico:'🏺',tier:4,mult:1.5,e1:'argila',     e2:'fogo',        desc:'Cascas defensivas que endurecem sob calor extremo.'},
-  {id:'nevoeiro_gelido', name:'Nevoeiro Gélido',       ico:'🌁',tier:4,mult:1.5,e1:'nevoa',      e2:'gelo',        desc:'Congela a umidade interna dos pulmões de quem respira a névoa.'},
-  {id:'barro_vermelho',  name:'Barro Vermelho',        ico:'🟫',tier:5,mult:1.2,e1:'sangue',     e2:'terra',       desc:'Cria golems de carne e terra com memória genética residual.'},
-  {id:'tempestade_areia',name:'Tempestade de Areia',   ico:'🌪️',tier:5,mult:1.2,e1:'terra',      e2:'ar',          desc:'Tornado de partículas que desintegra carne e pedra por atrito.'},
-  {id:'seiva_vital',     name:'Seiva Vital',           ico:'🌿',tier:5,mult:1.2,e1:'agua',       e2:'flora',       desc:'Aura de cura acelerada capaz de regenerar membros perdidos.'},
-  {id:'lodo_cinzento',   name:'Lodo Cinzento',         ico:'🌫️',tier:5,mult:1.2,e1:'lodo',       e2:'cinzas',      desc:'Massa viscosa que endurece como cimento ao tocar o inimigo.'},
-  {id:'espinheiro',      name:'Espinheiro',            ico:'🌵',tier:5,mult:1.2,e1:'espinho',    e2:'raiz',        desc:'Floresta de lanças vegetais que rastreiam o alvo pelo calor.'},
-  // Fusões com Caos, Vida e Morte
-  {id:'linha_tempo_caotica',name:'Linha do Tempo Caótica',ico:'🌀',tier:0,mult:2.8,e1:'caos',e2:'tempo',      desc:'Passado, presente e futuro se misturam; eventos podem se repetir ou nunca acontecer.'},
-  {id:'dobra_dimensional',  name:'Dobra Dimensional',     ico:'🌌',tier:0,mult:2.8,e1:'caos',e2:'espaco',     desc:'Abre portais instáveis para dimensões aleatórias; invoca criaturas ou distorce a realidade.'},
-  {id:'aniquilacao_abs',    name:'Aniquilação Absoluta',  ico:'⬛',tier:0,mult:2.8,e1:'caos',e2:'morte',      desc:'Apaga qualquer alvo da existência, sem chance de ressurreição ou vestígios.'},
-  {id:'fim_dos_tempos',     name:'Fim dos Tempos',        ico:'⏳',tier:0,mult:2.8,e1:'morte',e2:'tempo',     desc:'Acelera o envelhecimento ou encerra ciclos instantaneamente; pode destruir eras inteiras.'},
-  {id:'eter_caotico',       name:'Éter Caótico',          ico:'✨',tier:0,mult:2.8,e1:'caos',e2:'eter',       desc:'Altera as leis da física; cria áreas de gravidade zero ou fluxo de tempo lento.'},
-  {id:'luz_caotica',        name:'Luz Caótica',           ico:'💥',tier:1,mult:2.3,e1:'caos',e2:'luz',        desc:'Flashes imprevisíveis que podem cegar inimigos ou revelar verdades ocultas.'},
-  {id:'trevas_caoticas',    name:'Trevas Caóticas',       ico:'🌒',tier:1,mult:2.3,e1:'caos',e2:'escuridao',  desc:'Escuridão viva que se move e consome tudo, causando confusão e dano contínuo.'},
-  {id:'vida_caotica',       name:'Vida Caótica',          ico:'💚',tier:1,mult:2.3,e1:'caos',e2:'vida',       desc:'Gera mutações aleatórias em seres vivos (cura, fortalece ou deforma o alvo).'},
-  {id:'ciclo_eterno',       name:'Ciclo Eterno',          ico:'♾️',tier:1,mult:2.3,e1:'vida',e2:'morte',      desc:'Equilíbrio supremo; pode ressuscitar aliados ou destruir inimigos conforme o uso.'},
-  {id:'fenix',              name:'Fênix',                 ico:'🔥',tier:2,mult:2.0,e1:'vida',e2:'fogo',       desc:'Chamas douradas que curam, regeneram e queimam; renasce das cinzas se destruída.'},
-  {id:'agua_da_vida',       name:'Água da Vida',          ico:'💧',tier:2,mult:2.0,e1:'vida',e2:'agua',       desc:'Cura ferimentos graves e prolonga a vida; pode reverter o envelhecimento.'},
-  {id:'sopro_vital',        name:'Sopro Vital',           ico:'🌬️',tier:2,mult:2.0,e1:'vida',e2:'ar',        desc:'Vento revigorante que restaura a energia total e remove efeitos de exaustão.'},
-  {id:'choque_revigorante', name:'Choque Revigorante',    ico:'⚡',tier:2,mult:2.0,e1:'vida',e2:'raio',       desc:'Descarga elétrica que reanima seres inconscientes e remove estados de paralisia.'},
-  {id:'sombra_viva',        name:'Sombra Viva',           ico:'👤',tier:2,mult:2.0,e1:'vida',e2:'sombra',     desc:'Sombras com consciência própria que agem como guardiões ou espiões perfeitos.'},
-  {id:'sangue_vivo',        name:'Sangue Vivo',           ico:'🩸',tier:2,mult:2.0,e1:'vida',e2:'sangue',     desc:'Sangue que regenera tecidos e cria laços vitais profundos entre criaturas.'},
-  {id:'frio_da_morte',      name:'Frio da Morte',         ico:'❄️',tier:2,mult:2.0,e1:'morte',e2:'gelo',      desc:'Gelo que congela a alma; causa morte instantânea ao toque espiritual.'},
-  {id:'fogo_fatuo',         name:'Fogo Fátuo',            ico:'🕯️',tier:2,mult:2.0,e1:'morte',e2:'fogo',     desc:'Chamas esverdeadas que ignoram defesas físicas para queimar a alma diretamente.'},
-  {id:'espectro',           name:'Espectro',              ico:'👻',tier:2,mult:2.0,e1:'morte',e2:'sombra',    desc:'Invoca uma entidade sombria persistente que drena a vitalidade dos inimigos.'},
-  {id:'toxina_mortal',      name:'Toxina Mortal',         ico:'☠️',tier:2,mult:2.0,e1:'morte',e2:'veneno',    desc:'Veneno letal fulminante; causa morte em segundos sem antídoto comum.'},
-  {id:'vida_na_morte',      name:'Vida na Morte',         ico:'🦠',tier:2,mult:2.0,e1:'vida',e2:'necrose',    desc:'Fungos e bactérias que prosperam na decomposição para gerar nova vida.'},
-  {id:'fertilidade',        name:'Fertilidade',           ico:'🌱',tier:3,mult:1.7,e1:'vida',e2:'terra',      desc:'Torna o solo fértil instantaneamente; faz plantas crescerem em segundos.'},
-  {id:'preservacao',        name:'Preservação',           ico:'🧊',tier:3,mult:1.7,e1:'vida',e2:'gelo',       desc:'Gelo que mantém organismos em animação suspensa (não envelhecem nem morrem).'},
-  {id:'metal_maleavel',     name:'Metal Maleável',        ico:'⚙️',tier:3,mult:1.7,e1:'caos',e2:'metal',     desc:'Metal que muda de forma aleatoriamente; cria armas ou armaduras instáveis.'},
-  {id:'vidro_fractal',      name:'Vidro Fractal',         ico:'🔮',tier:3,mult:1.7,e1:'caos',e2:'vidro',      desc:'Vidro com padrões infinitos que distorce a visão e causa alucinações severas.'},
-  {id:'flora_morta',        name:'Flora Morta',           ico:'🌵',tier:3,mult:1.7,e1:'morte',e2:'flora',     desc:'Plantas secas e murchas que sugam energia ou lançam galhos mortais.'},
-];
+const ELEM_TYPE = {
+  // Primordiais / espaço-tempo
+  tempo:'temporal',    espaco:'espacial',   gravidade:'gravitacional',
+  vacuo:'vacuo',       materia_escura:'sombrio', caos:'caotico',
+  // Energias puras
+  eter:'arcano',       vida:'vital',        raio:'eletrico',
+  luz:'luminoso',      fogo:'igneo',        magma:'igneo',
+  plasma:'eletrico',   radiacao:'toxico',
+  // Entrópicos
+  necrose:'corruptivo',morte:'mortal',      veneno:'toxico',
+  acido:'corrosivo',   escuridao:'sombrio', podridao:'corruptivo',
+  virus:'toxico',      carie:'corrosivo',
+  // Condutores
+  mercurio:'toxico',   som:'sonico',        gelo:'gelido',
+  sangue:'vital',      sombra:'sombrio',    fumaca:'gasoso',
+  areia:'abrasivo',    vidro:'abrasivo',    oleo:'inflamavel',
+  espuma:'gasoso',
+  // Materiais
+  diamante:'solido',   platina:'solido',    ouro:'solido',
+  metal:'solido',      cristal:'solido',    titanio:'solido',
+  aco:'solido',        obsidiana:'solido',  marmore:'solido',
+  // Elementais básicos
+  terra:'terreo',      ar:'gasoso',         agua:'aquatico',
+  flora:'natural',     lodo:'terreo',       cinzas:'igneo',
+  argila:'terreo',     nevoa:'gasoso',      poeira:'abrasivo',
+  espinho:'natural',   raiz:'natural',
+};
+
+// Regras de fusão: par de tipos → {name, ico, desc, tierOffset, multBonus}
+// tierOffset: reduz o tier médio (resultado mais poderoso que a média)
+// multBonus: somado ao mult calculado
+const FUSION_RULES = {
+  // Par canonizado (a <= b alfabeticamente) → resultado
+  'abrasivo+abrasivo':   {name:'Tempestade de Lâminas',ico:'🌪️', desc:'Fragmentos cortantes em alta velocidade rasgam qualquer defesa.'},
+  'abrasivo+aquatico':   {name:'Areia Abrasiva',       ico:'🏖️', desc:'Pasta corrosiva que penetra armaduras e irrita tecidos.'},
+  'abrasivo+gasoso':     {name:'Nuvem Cortante',       ico:'💨', desc:'Névoa de partículas que lacera pulmões e olhos.'},
+  'abrasivo+igneo':      {name:'Cinzas Candentes',     ico:'🌋', desc:'Partículas incandescentes que queimam ao contato.'},
+  'abrasivo+natural':    {name:'Espinheiro',            ico:'🌵', desc:'Lanchas vegetais que rastreiam o alvo pelo calor.'},
+  'abrasivo+solido':     {name:'Pó de Diamante',       ico:'💎', desc:'Nuvem de carbono indestrutível que perfura como agulhas ardentes.'},
+  'abrasivo+sombrio':    {name:'Poeira das Sombras',   ico:'🌑', desc:'Partículas invisíveis que corroem de dentro.'},
+  'abrasivo+terreo':     {name:'Tempestade de Areia',  ico:'🌪️', desc:'Tornado de partículas que desintegra carne e pedra por atrito.'},
+  'abrasivo+toxico':     {name:'Névoa Ácida',          ico:'☠️', desc:'Micropartículas tóxicas em suspensão que envenenam ao respirar.'},
+  'aquatico+gasoso':     {name:'Vapor Superaquecido',  ico:'♨️', desc:'Névoa invisível que cozinha alvos por dentro, ignorando armaduras.'},
+  'aquatico+gelido':     {name:'Gelo Eterno',          ico:'🧊', desc:'Congela a água nos tecidos; morte lenta e inevitável.'},
+  'aquatico+igneo':      {name:'Vapor Explosivo',      ico:'💥', desc:'Expansão violenta de vapor superaquecido.'},
+  'aquatico+natural':    {name:'Seiva Vital',          ico:'🌿', desc:'Aura de cura acelerada capaz de regenerar membros perdidos.'},
+  'aquatico+terreo':     {name:'Lodo Cinzento',        ico:'🌫️', desc:'Massa viscosa que endurece como cimento ao tocar o inimigo.'},
+  'aquatico+toxico':     {name:'Toxina Líquida',       ico:'🐍', desc:'Contamina correntes d\'água; paralisia instantânea ao contato.'},
+  'aquatico+vital':      {name:'Água da Vida',         ico:'💧', desc:'Cura ferimentos graves e prolonga a vida; pode reverter o envelhecimento.'},
+  'arcano+caotico':      {name:'Éter Caótico',         ico:'✨', desc:'Altera as leis da física; cria áreas de gravidade zero ou fluxo temporal lento.'},
+  'arcano+gravitacional':{name:'Essência Divina',      ico:'🌟', desc:'Manifestação da vontade pura; cura o incurável ou cria matéria do nada.'},
+  'arcano+luminoso':     {name:'Luz Arcana',           ico:'💫', desc:'Energia pura que dissolve escudos mágicos e queima almas.'},
+  'arcano+mortal':       {name:'Morte Arcana',         ico:'🌑', desc:'Feitiço que apaga a faísca vital diretamente, sem dano físico.'},
+  'arcano+sombrio':      {name:'Sombra Arcana',        ico:'🌒', desc:'Magia das trevas que corrói a mente e o corpo simultaneamente.'},
+  'arcano+temporal':     {name:'Eco Temporal',         ico:'⏪', desc:'Gritos que ecoam pelo tempo, permitindo prever ataques ou alterar o passado.'},
+  'caotico+corruptivo':  {name:'Vida Caótica',         ico:'💚', desc:'Gera mutações aleatórias em seres vivos (cura, fortalece ou deforma o alvo).'},
+  'caotico+corrosivo':   {name:'Ácido Instável',       ico:'⚗️', desc:'Corrosão aleatória que pode dissolver armadura completa em instantes.'},
+  'caotico+espacial':    {name:'Dobra Dimensional',    ico:'🌌', desc:'Abre portais instáveis para dimensões aleatórias; invoca criaturas ou distorce a realidade.'},
+  'caotico+igneo':       {name:'Chama do Caos',        ico:'🔥', desc:'Fogo imprevisível que explode em padrões impossíveis de prever.'},
+  'caotico+luminoso':    {name:'Luz Caótica',          ico:'💥', desc:'Flashes imprevisíveis que podem cegar inimigos ou revelar verdades ocultas.'},
+  'caotico+mortal':      {name:'Aniquilação Absoluta', ico:'⬛', desc:'Apaga qualquer alvo da existência, sem chance de ressurreição ou vestígios.'},
+  'caotico+solido':      {name:'Metal Maleável',       ico:'⚙️', desc:'Metal que muda de forma aleatoriamente; cria armas ou armaduras instáveis.'},
+  'caotico+sombrio':     {name:'Trevas Caóticas',      ico:'🌒', desc:'Escuridão viva que se move e consome tudo, causando confusão e dano contínuo.'},
+  'caotico+temporal':    {name:'Linha do Tempo Caótica',ico:'🌀',desc:'Passado, presente e futuro se misturam; eventos podem se repetir ou nunca acontecer.'},
+  'caotico+vacuo':       {name:'Vazio Absoluto',       ico:'⬛', desc:'Aniquilação atômica total. Uma zona onde a existência é simplesmente deletada.'},
+  'caotico+vital':       {name:'Caos Vital',           ico:'🌱', desc:'Cura e corrompe ao acaso; pode salvar ou destruir instantaneamente.'},
+  'corruptivo+igneo':    {name:'Chama Negra',          ico:'🖤', desc:'Fogo que não ilumina; consome a alma e deixa o corpo físico intacto.'},
+  'corruptivo+natural':  {name:'Flora Morta',          ico:'🌵', desc:'Plantas secas e murchas que sugam energia ou lançam galhos mortais.'},
+  'corruptivo+solido':   {name:'Metal Corrompido',     ico:'⚰️', desc:'Metal infestado de necrose que envenena ao toque.'},
+  'corruptivo+vital':    {name:'Vida na Morte',        ico:'🦠', desc:'Fungos e bactérias que prosperam na decomposição para gerar nova vida.'},
+  'corrosivo+igneo':     {name:'Piroclasto',           ico:'🌋', desc:'Chuva de cinzas e rochas incandescentes; soterra exércitos e cidades.'},
+  'corrosivo+solido':    {name:'Corrosão',             ico:'⚗️', desc:'Derrete instantaneamente armaduras e estruturas metálicas nobres.'},
+  'corrosivo+toxico':    {name:'Peste',                ico:'☠️', desc:'Corrupção imediata do sistema circulatório; o sangue apodrece nas veias.'},
+  'eletrico+aquatico':   {name:'Eletrólise',           ico:'⚡', desc:'Condução elétrica total em líquidos; gera explosões gasosas de hidrogênio.'},
+  'eletrico+gasoso':     {name:'Eletricidade Estática',ico:'⚡', desc:'Ar carregado que gera descargas de alta voltagem a qualquer movimento.'},
+  'eletrico+gelido':     {name:'Tempestade Polar',     ico:'❄️', desc:'Relâmpagos congelantes que paralisam e queimam simultaneamente.'},
+  'eletrico+luminoso':   {name:'Luz Sônica',           ico:'💥', desc:'Flash cegante acompanhado de uma onda de choque que explode órgãos.'},
+  'eletrico+solido':     {name:'Liga de Plasma',       ico:'💫', desc:'Metal energético que corta a nível molecular e se autorregenera.'},
+  'eletrico+vital':      {name:'Choque Revigorante',   ico:'⚡', desc:'Descarga elétrica que reanima seres inconscientes e remove estados de paralisia.'},
+  'espacial+gravitacional':{name:'Dobra Espacial',     ico:'🌀', desc:'Comprime distâncias infinitas; esmaga inimigos em um ponto singular.'},
+  'espacial+temporal':   {name:'Continuum',            ico:'♾️', desc:'Altera a malha da causalidade; permite onipresença local e manipulação cronológica.'},
+  'gasoso+igneo':        {name:'Erupção de Cinzas',    ico:'🌋', desc:'Nuvem flamejante de gás incandescente que queima tudo em contato.'},
+  'gasoso+natural':      {name:'Bolhas Eternas',       ico:'🫧', desc:'Prisões esféricas inquebráveis que asfixiam o alvo lentamente.'},
+  'gasoso+toxico':       {name:'Epidemia',             ico:'🦠', desc:'O ar torna-se o vetor de uma doença imparável e onipresente.'},
+  'gelido+igneo':        {name:'Vapor Superaquecido',  ico:'♨️', desc:'Névoa invisível que cozinha alvos por dentro, ignorando armaduras.'},
+  'gelido+mortal':       {name:'Frio da Morte',        ico:'❄️', desc:'Gelo que congela a alma; causa morte instantânea ao toque espiritual.'},
+  'gelido+natural':      {name:'Preservação',          ico:'🧊', desc:'Gelo que mantém organismos em animação suspensa (não envelhecem nem morrem).'},
+  'gelido+solido':       {name:'Mercúrio Sólido',      ico:'🪞', desc:'Lâminas de metal tóxico que derretem após atingir a corrente sanguínea.'},
+  'gelido+toxico':       {name:'Veneno Gélido',        ico:'🐍', desc:'Veneno que cristaliza o sangue lentamente, causando dor extrema.'},
+  'gelido+vital':        {name:'Criogenia Vital',      ico:'💙', desc:'Suspende a vida em estado cristalino; cura ou preserva por tempo indefinido.'},
+  'gravitacional+luminoso':{name:'Lente Gravitacional',ico:'🔭',desc:'Invisibilidade perfeita e distorção da realidade visual em escala global.'},
+  'gravitacional+sombrio':{name:'Matéria Sombria',     ico:'🌑', desc:'Matéria paradoxal que alterna entre solidez e intangibilidade absoluta.'},
+  'gravitacional+vacuo': {name:'Singularidade',        ico:'🕳️', desc:'Um ponto de colapso total — nada escapa, nem luz, nem magia.'},
+  'igneo+luminoso':      {name:'Chama Solar',          ico:'☀️', desc:'Chamas sagradas que cegam e purificam o alvo simultaneamente.'},
+  'igneo+natural':       {name:'Fogo Silvestre',       ico:'🌿', desc:'Chamas que se espalham pela vegetação e envenenam com fumaça.'},
+  'igneo+solido':        {name:'Metal Incandescente',  ico:'🔥', desc:'Metal fundido que adere à pele e não pode ser removido.'},
+  'igneo+toxico':        {name:'Raio Ígneo',           ico:'🔥', desc:'Explosão ardente carregada de toxinas que queimam por dentro e por fora.'},
+  'igneo+vital':         {name:'Fênix',                ico:'🔥', desc:'Chamas douradas que curam, regeneram e queimam; renasce das cinzas se destruída.'},
+  'luminoso+mortal':     {name:'Fosforescência',       ico:'💡', desc:'Brilho que drena a vitalidade; quanto mais brilha, mais vida consome.'},
+  'luminoso+sombrio':    {name:'Eclipse',              ico:'🌑', desc:'Trevas absolutas seguidas de luz devastadora — paralisa e queima.'},
+  'mortal+sombrio':      {name:'Espectro',             ico:'👻', desc:'Invoca uma entidade sombria persistente que drena a vitalidade dos inimigos.'},
+  'mortal+sonico':       {name:'Grito da Morte',       ico:'💀', desc:'Som que ressoa apenas para o alvo — silencioso externamente, letal internamente.'},
+  'mortal+temporal':     {name:'Fim dos Tempos',       ico:'⏳', desc:'Acelera o envelhecimento ou encerra ciclos instantaneamente; pode destruir eras inteiras.'},
+  'mortal+toxico':       {name:'Toxina Mortal',        ico:'☠️', desc:'Veneno letal fulminante; causa morte em segundos sem antídoto comum.'},
+  'mortal+vital':        {name:'Ciclo Eterno',         ico:'♾️', desc:'Equilíbrio supremo; pode ressuscitar aliados ou destruir inimigos conforme o uso.'},
+  'natural+terreo':      {name:'Barro Vermelho',       ico:'🟫', desc:'Cria golems de carne e terra com memória genética residual.'},
+  'natural+vital':       {name:'Sopro Vital',          ico:'🌬️',desc:'Vento revigorante que restaura a energia total e remove efeitos de exaustão.'},
+  'solido+solido':       {name:'Superliga',            ico:'🛡️', desc:'O metal definitivo: leve como o ar, porém impossível de amassar.'},
+  'solido+terreo':       {name:'Rocha Metamórfica',    ico:'🗿', desc:'Absorve impactos físicos e os devolve como ondas de choque.'},
+  'sonico+sombrio':      {name:'Silêncio Obscuro',     ico:'🌑', desc:'Privação sensorial total; mergulha o alvo em pânico e desorientação.'},
+  'sonico+temporal':     {name:'Eco Temporal',         ico:'⏪', desc:'Gritos que ecoam pelo tempo, permitindo prever ataques ou alterar o passado.'},
+  'sonico+vacuo':        {name:'Silêncio Absoluto',    ico:'🔇', desc:'Remove o meio de propagação física; explosões e impactos tornam-se nulos.'},
+  'sombrio+sonico':      {name:'Neblina Sombria',      ico:'👤', desc:'Cortina de fumaça viva que permite teletransporte entre sombras.'},
+  'sombrio+vital':       {name:'Sombra Viva',          ico:'👤', desc:'Sombras com consciência própria que agem como guardiões ou espiões perfeitos.'},
+  'temporal+vacuo':      {name:'Apagamento',           ico:'⬛', desc:'Retira o alvo da linha do tempo, como se nunca tivesse existido.'},
+  'temporal+vital':      {name:'Sangue do Tempo',      ico:'🩸', desc:'Permite visualizar e acessar a memória genética de todas as eras.'},
+  'terreo+gasoso':       {name:'Terremoto',            ico:'🌍', desc:'Ondas sísmicas que se propagam pelo ar e pelo chão simultaneamente.'},
+  'terreo+igneo':        {name:'Cerâmica',             ico:'🏺', desc:'Cascas defensivas que endurecem sob calor extremo.'},
+  'terreo+vital':        {name:'Fertilidade',          ico:'🌱', desc:'Torna o solo fértil instantaneamente; faz plantas crescerem em segundos.'},
+  'toxico+vital':        {name:'Mutação',              ico:'🧬', desc:'Crescimento grotesco e acelerado; organismos tornam-se predadores imprevisíveis.'},
+  'vacuo+vital':         {name:'Vácuo Vital',          ico:'🌑', desc:'Drena a força vital ao criar vácuo interno nos tecidos do alvo.'},
+}
+
+function tryFuse(id1, id2){
+  // Geração procedural: lookup pelo par de tipos canonizado
+  const t1=ELEM_TYPE[id1]||'desconhecido';
+  const t2=ELEM_TYPE[id2]||'desconhecido';
+  const key=[t1,t2].sort().join('+');
+  const rule=FUSION_RULES[key];
+  if(!rule) return null;
+  // Calcula tier e mult a partir da média dos elementos originais
+  const el1=[...ELEMENTS].find(e=>e.id===id1);
+  const el2=[...ELEMENTS].find(e=>e.id===id2);
+  if(!el1||!el2) return null;
+  const avgTier=Math.floor((el1.tier+el2.tier)/2);
+  const avgMult=+((el1.mult+el2.mult)/2).toFixed(2);
+  // Tier menor = mais poderoso; combinar dois baixos tiers produz resultado forte
+  const tier=Math.max(0,avgTier-1);
+  const mult=+(avgMult+0.2).toFixed(2);
+  return {
+    id:'fuse_'+id1+'_'+id2,
+    name:rule.name,
+    ico:rule.ico,
+    desc:rule.desc,
+    tier,mult,
+    e1:id1,e2:id2,
+    _proc:true,
+  };
+}
+
+function getAvailFusions(excludeOwned=true){
+  const owned=G.elements.map(e=>e.id);
+  const results=[];
+  const seen=new Set();
+  for(let i=0;i<owned.length;i++){
+    for(let j=i+1;j<owned.length;j++){
+      const f=tryFuse(owned[i],owned[j]);
+      if(!f) continue;
+      if(excludeOwned&&owned.includes(f.id)) continue;
+      if(seen.has(f.id)) continue;
+      seen.add(f.id);
+      results.push(f);
+    }
+  }
+  return results.sort((a,b)=>a.tier-b.tier);
+};
 
 /* ═══ SISTEMA DE ELEMENTOS ═══ */
 
@@ -669,20 +797,25 @@ function renderElementPicker(sc){
   sc.appendChild(card);scrollBot(sc);
 }
 
-function setActiveElement(id){
-  const el = G.elements.find(e=>e.id===id);
+function setActiveElement(id, origin='picker'){
+  const el=G.elements.find(e=>e.id===id);
   if(!el)return;
-  G.activeElement = G.activeElement?.id===id ? null : el;
-  toast(G.activeElement ? `${el.ico} ${el.name} ativado!` : 'Elemento desativado.');
-  renderElementPicker($('scroll'));
+  G.activeElement=G.activeElement?.id===id?null:el;
+  toast(G.activeElement?`${el.ico} ${el.name} ativado!`:'Elemento desativado.');
+  if(origin==='grimoire') renderGrimoirePanel('elements');
+  else renderElementPicker($('scroll'));
 }
 
-function fuseElements(fusionId){
-  const f = FUSIONS.find(x=>x.id===fusionId);
-  if(!f||!hasElement(f.e1)||!hasElement(f.e2)||hasElement(f.id))return;
-  G.elements.push({...f});
+function fuseElements(fusionId, origin='picker'){
+  // Parse do fusionId procedural: 'fuse_id1_id2'
+  const parts = fusionId.replace('fuse_','').split('_');
+  const id1=parts[0], id2=parts.slice(1).join('_');
+  const f = tryFuse(id1, id2);
+  if(!f||!hasElement(id1)||!hasElement(id2)||hasElement(fusionId))return;
+  G.elements.push({...f, id:fusionId});
   toast(`✨ Fusão: ${f.ico} ${f.name} criada!`,2500);
-  renderElementPicker($('scroll'));
+  if(origin==='grimoire') renderGrimoirePanel('elements');
+  else renderElementPicker($('scroll'));
 }
 
 /* ═══ EVENTS ═══ */
@@ -1894,7 +2027,7 @@ function smithUpgrade(){
     const gain=gains[it.rarity]||2;
     const canBuy=G.gold>=cost;
     const mainStat=Object.keys(it.bonus||{})[0]||'atk';
-    return `<div class="special-merch-item ${canBuy?'':'disabled'}" style="opacity:${canBuy?1:.5}" onclick="${canBuy?`doSmithUpgrade('${slot}',${cost},${gain},'${mainStat}')`:''}">
+    return `<div class="special-merch-item ${canBuy?'':'disabled'}" style="opacity:${canBuy?1:.5}" onclick="${canBuy?`smithUpgrade('${slot}',${cost},${gain},'${mainStat}')`:''}">
       <span style="font-size:22px;">${it.ico}</span>
       <div style="flex:1;">
         <div style="font-family:var(--cinzel);font-size:12px;color:var(--${it.rarity});">${it.name}</div>
@@ -1915,24 +2048,7 @@ function smithUpgrade(){
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
 }
 
-function doSmithUpgrade(slot,cost,gain,stat){
-  if(G.gold<cost){toast('Ouro insuficiente!');return;}
-  const it=G.equipped[slot];if(!it)return;
-  G.gold-=cost;
-  it.bonus=it.bonus||{};
-  it.bonus[stat]=(it.bonus[stat]||0)+gain;
-  // aplica bônus direto no player
-  if(stat==='atk')G.atk+=gain;
-  else if(stat==='def')G.def+=gain;
-  else if(stat==='mag')G.mag+=gain;
-  else if(stat==='spd')G.spd+=gain;
-  else if(stat==='hp'||stat==='hpMax'){G.hpMax+=gain;G.hp=Math.min(G.hp+gain,G.hpMax);}
-  else if(stat==='mp'||stat==='mpMax'){G.mpMax+=gain;G.mp=Math.min(G.mp+gain,G.mpMax);}
-  it.desc=(it.desc||'')+` [+${gain}]`;
-  upd();
-  toast(`⚒️ ${it.name} fortalecido! +${gain} ${stat.toUpperCase()}`,2500);
-  smithUpgrade();
-}
+
 
 // ─── Fundir dois itens ───
 function smithFuse(){
@@ -1960,7 +2076,7 @@ function smithFuse(){
       <div class="ctitle">⚒️ Fusão de Itens</div>
       <div style="font-size:11px;color:var(--txt2);margin-bottom:10px;">Selecione 2 itens para fundir. O resultado combina os stats de ambos com raridade elevada.</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">${rows}</div>
-      <button class="btn-next" style="margin-bottom:8px;${canFuse?'':'opacity:.4;pointer-events:none;'}" onclick="doSmithFuse()">⚒️ Fundir (80💰)</button>
+      <button class="btn-next" style="margin-bottom:8px;${canFuse?'':'opacity:.4;pointer-events:none;'}" onclick="smithFuse(true)">⚒️ Fundir (80💰)</button>
       <button class="btn-next" style="background:transparent;border-color:var(--brd2);color:var(--txt2);" onclick="openSmith($('scroll'))">← Voltar</button>`;
   }
 
@@ -1978,44 +2094,7 @@ function toggleSmithFuse(i){
   if(G._renderFuseCard) G._renderFuseCard();
 }
 
-function doSmithFuse(){
-  if(G._smithFuseSelected.length!==2){toast('Selecione 2 itens!');return;}
-  if(G.gold<80){toast('Ouro insuficiente!');return;}
-  const [i1,i2]=G._smithFuseSelected.sort((a,b)=>b-a);
-  const it1=G.inv[i1],it2=G.inv[Math.min(i2,G.inv.length-1)];
-  if(!it1||!it2){toast('Erro ao selecionar itens.');return;}
 
-  G.gold-=80;
-  // Remove os dois itens (maior índice primeiro)
-  G.inv.splice(i1,1);
-  const newI2=i2<i1?i2:i2-1;
-  if(newI2>=0&&newI2<G.inv.length) G.inv.splice(newI2,1);
-
-  // Combina stats
-  const rarOrder=['common','uncommon','rare','epic','legendary'];
-  const r1=rarOrder.indexOf(it1.rarity)||0,r2=rarOrder.indexOf(it2.rarity)||0;
-  const newRar=rarOrder[Math.min(Math.max(r1,r2)+1,4)];
-  const b1=it1.bonus||{},b2=it2.bonus||{};
-  const newBonus={};
-  [...new Set([...Object.keys(b1),...Object.keys(b2)])].forEach(k=>{
-    newBonus[k]=Math.round(((b1[k]||0)+(b2[k]||0))*0.75);
-  });
-  const fusedItem={
-    id:'fused_'+r(99999),
-    name:`${it1.name.split(' ')[0]}+${it2.name.split(' ')[0]}`,
-    ico:`${it1.ico}${it2.ico}`,
-    rarity:newRar,
-    slot:it1.slot||it2.slot||null,
-    uses:null,
-    bonus:newBonus,
-    desc:'Fusão: '+Object.entries(newBonus).map(([k,v])=>`+${v} ${k.toUpperCase()}`).join(' '),
-  };
-  addItemToInv(fusedItem);
-  upd();
-  toast(`⚒️ Fusão criada: ${fusedItem.name}!`,2500);
-  G._smithFuseSelected=[];
-  smithFuse();
-}
 
 // ─── Reparar item maldito ───
 function smithRepair(){
@@ -2026,7 +2105,7 @@ function smithRepair(){
   const card=document.createElement('div');card.className='card esh';
   const rows=cursed.map((it,i)=>{
     const negStats=Object.entries(it.bonus).filter(([k,v])=>v<0).map(([k,v])=>`${k.toUpperCase()} ${v}`).join(', ');
-    return `<div class="special-merch-item" onclick="doSmithRepair('${it.id}')">
+    return `<div class="special-merch-item" onclick="smithRepair('${it.id}')">
       <span style="font-size:20px;">${it.ico}</span>
       <div style="flex:1;"><div style="font-family:var(--cinzel);font-size:11px;color:var(--${it.rarity});">${it.name}</div>
       <div style="font-size:10px;color:var(--red2);">Penalidades: ${negStats}</div></div>
@@ -2042,36 +2121,60 @@ function smithRepair(){
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
 }
 
-function doSmithRepair(id){
-  if(G.gold<50){toast('Ouro insuficiente!');return;}
-  const it=G.inv.find(i=>i.id===id);if(!it)return;
-  G.gold-=50;
-  let fixed=0;
-  Object.keys(it.bonus).forEach(k=>{if(it.bonus[k]<0){fixed++;it.bonus[k]=0;}});
-  it.desc=(it.desc||'').replace(/-\d+ \w+/g,'').trim()+' [Reparado]';
-  upd();
-  toast(`⚒️ ${it.name} reparado! ${fixed} penalidade(s) removida(s).`,2500);
-  smithRepair();
-}
+
 
 // ─── Craftar item novo ───
-function smithCraft(){
+function smithCraft(execSlot){
+  // Com argumento: executa o craft. Sem argumento: exibe o painel.
+  if(execSlot!==undefined){
+    if(G.gold<70){toast('Ouro insuficiente!');return;}
+    G.gold-=70;
+    const rarRoll=Math.random();
+    const rarity= G.floor>=6 ? (rarRoll<.15?'legendary':rarRoll<.5?'epic':'rare')
+                : G.floor>=4 ? (rarRoll<.08?'legendary':rarRoll<.35?'epic':'rare')
+                : G.floor>=2 ? (rarRoll<.04?'legendary':rarRoll<.2?'epic':rarRoll<.55?'rare':'common')
+                :               (rarRoll<.1?'rare':rarRoll<.4?'common':'common');
+    const statMult={common:1,rare:1.6,epic:2.4,legendary:3.5}[rarity]||1;
+    const base=Math.round((3+G.floor)*statMult);
+    const bonusMap={
+      weapon:{atk:base,crit:Math.round(base*.01*100)/100},
+      chest: {def:base,hp:base*2},
+      head:  {def:Math.round(base*.7),hp:base},
+      feet:  {spd:Math.round(base*.5),dodge:Math.round(base*.005*100)/100},
+    };
+    const names={
+      weapon:{common:'Espada Forjada',rare:'Lâmina Temperada',epic:'Lâmina do Ferreiro',legendary:'Obra-Prima do Ferreiro'},
+      chest: {common:'Armadura Forjada',rare:'Cota Temperada',epic:'Armadura do Artesão',legendary:'Armadura Mestra'},
+      head:  {common:'Elmo Forjado',rare:'Elmo Temperado',epic:'Elmo do Artesão',legendary:'Coroa do Mestre'},
+      feet:  {common:'Botas Forjadas',rare:'Botas Temperadas',epic:'Botas do Artesão',legendary:'Botas Mestras'},
+    };
+    const icos={weapon:'⚔️',chest:'🛡️',head:'⛑️',feet:'👟'};
+    const crafted={
+      id:'crafted_'+r(99999),
+      name:names[execSlot][rarity],
+      ico:icos[execSlot],
+      rarity,slot:execSlot,uses:null,
+      bonus:bonusMap[execSlot],
+      desc:Object.entries(bonusMap[execSlot]).map(([k,v])=>`+${v} ${k.toUpperCase()}`).join(' ')+' [Forjado]',
+    };
+    addItemToInv(crafted);upd();
+    toast(`⚒️ ${crafted.name} (${rarity}) forjado!`,2500);
+    smithCraft(); return; // recarrega o painel
+  }
   const sc=$('scroll');
   if(G.gold<70){toast('Ouro insuficiente! (70💰)');return;}
-
   const slots=['weapon','chest','head','feet'];
   const card=document.createElement('div');card.className='card esh';
   const rows=slots.map(slot=>{
     const ico={weapon:'⚔️',chest:'🛡️',head:'⛑️',feet:'👟'}[slot];
     const lbl={weapon:'Arma',chest:'Armadura',head:'Elmo',feet:'Botas'}[slot];
-    return `<div class="special-merch-item" onclick="doSmithCraft('${slot}')">
+    return `<div class="special-merch-item" onclick="smithCraft('${slot}')">
       <span style="font-size:22px;">${ico}</span>
       <div style="flex:1;"><div style="font-family:var(--cinzel);font-size:12px;color:var(--acc);">${lbl}</div>
       <div style="font-size:11px;color:var(--txt2);">Raridade baseada no Andar ${G.floor}</div></div>
       <div style="font-family:var(--cinzel);font-size:13px;color:var(--gold);">💰70</div>
     </div>`;
   }).join('');
-
   card.innerHTML=`
     <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">CRAFTAR ITEM</span></div>
     <div class="ctitle">⚒️ Forjar Novo Item</div>
@@ -2081,45 +2184,7 @@ function smithCraft(){
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
 }
 
-function doSmithCraft(slot){
-  if(G.gold<70){toast('Ouro insuficiente!');return;}
-  G.gold-=70;
 
-  // Raridade baseada no andar
-  const rarRoll=Math.random();
-  const rarity= G.floor>=6 ? (rarRoll<.15?'legendary':rarRoll<.5?'epic':'rare')
-              : G.floor>=4 ? (rarRoll<.08?'legendary':rarRoll<.35?'epic':'rare')
-              : G.floor>=2 ? (rarRoll<.04?'legendary':rarRoll<.2?'epic':rarRoll<.55?'rare':'common')
-              :               (rarRoll<.1?'rare':rarRoll<.4?'common':'common');
-
-  // Gera stats baseados no slot e raridade
-  const statMult={common:1,rare:1.6,epic:2.4,legendary:3.5}[rarity]||1;
-  const base=Math.round((3+G.floor)*statMult);
-  const bonusMap={
-    weapon:{atk:base,crit:Math.round(base*.01*100)/100},
-    chest: {def:base,hp:base*2},
-    head:  {def:Math.round(base*.7),hp:base},
-    feet:  {spd:Math.round(base*.5),dodge:Math.round(base*.005*100)/100},
-  };
-  const names={
-    weapon:{common:'Espada Forjada',rare:'Lâmina Temperada',epic:'Lâmina do Ferreiro',legendary:'Obra-Prima do Ferreiro'},
-    chest: {common:'Armadura Forjada',rare:'Cota Temperada',epic:'Armadura do Artesão',legendary:'Armadura Mestra'},
-    head:  {common:'Elmo Forjado',rare:'Elmo Temperado',epic:'Elmo do Artesão',legendary:'Coroa do Mestre'},
-    feet:  {common:'Botas Forjadas',rare:'Botas Temperadas',epic:'Botas do Artesão',legendary:'Botas Mestras'},
-  };
-  const icos={weapon:'⚔️',chest:'🛡️',head:'⛑️',feet:'👟'};
-  const crafted={
-    id:'crafted_'+r(99999),
-    name:names[slot][rarity],
-    ico:icos[slot],
-    rarity,slot,uses:null,
-    bonus:bonusMap[slot],
-    desc:Object.entries(bonusMap[slot]).map(([k,v])=>`+${v} ${k.toUpperCase()}`).join(' ')+' [Forjado]',
-  };
-  addItemToInv(crafted);upd();
-  toast(`⚒️ ${crafted.name} (${rarity}) forjado!`,2500);
-  smithCraft();
-}
 
 // ─── Comprar/Vender ───
 function smithTrade(){
@@ -2323,49 +2388,41 @@ function applyStatus(target, type, turns, dmg){
   }
 }
 
-function tickStatusOnEnemy(){
-  if(!CE)return;
+function tickStatus(target, isPlayer=false){
+  // target: CE (inimigo) ou G (jogador)
+  // Retorna true se o alvo morreu (só relevante para inimigo)
+  const hpKey  = isPlayer?'hp':'hpCur';
+  const hpMax  = isPlayer?target.hpMax:target.hp;
+  const label  = isPlayer?'você':target.name;
+  const logLvl = isPlayer?'le':'li';
   let died=false;
+
   // Veneno
-  if(CE.poisonTurns>0){
-    CE.hpCur=Math.max(0,CE.hpCur-CE.poisonDmg);
-    CE.poisonTurns--;
-    clog(`🐍 Veneno: -${CE.poisonDmg} HP em ${CE.name}. (${CE.poisonTurns} rest.)`,CE.hpCur<=0?'ls':'li');
-    if(CE.hpCur<=0){died=true;}
+  if(target.poisonTurns>0){
+    const d=target.poisonDmg||(isPlayer?3:0);
+    target[hpKey]=Math.max(0,target[hpKey]-d);
+    target.poisonTurns--;
+    clog(`🐍 Veneno: -${d} HP em ${label}. (${target.poisonTurns} rest.)`,
+      target[hpKey]<=0?'ls':logLvl);
+    if(target[hpKey]<=0) died=true;
   }
-  // Queimadura
-  if(!died&&CE.burnTurns>0){
-    CE.hpCur=Math.max(0,CE.hpCur-CE.burnDmg);
-    // queimadura não expira por turno — só ao fim do combate
-    clog(`🔥 Queimadura: -${CE.burnDmg} HP em ${CE.name}.`,CE.hpCur<=0?'ls':'li');
-    if(CE.hpCur<=0){died=true;}
+  // Queimadura (não expira por turno — só ao fim do combate)
+  if(!died&&target.burnTurns>0){
+    const d=target.burnDmg||(isPlayer?4:0);
+    target[hpKey]=Math.max(0,target[hpKey]-d);
+    clog(`🔥 Queimadura: -${d} HP em ${label}.`,
+      target[hpKey]<=0?'ls':logLvl);
+    if(target[hpKey]<=0) died=true;
   }
+  // Congelamento (só no jogador — decai aqui, efeito tratado em enemyTurn)
+  if(isPlayer&&target.freezeTurns>0) target.freezeTurns--;
+
+  if(isPlayer&&target.passives?.includes('godmode')) target.hp=target.hpMax;
   return died;
 }
+function tickStatusOnEnemy(){ return tickStatus(CE,false); }
 
-function tickStatusOnPlayer(){
-  let msgs=[];
-  // Veneno no jogador
-  if(G.poisonTurns>0){
-    const d=G.poisonDmg||3;
-    G.hp=Math.max(0,G.hp-d);
-    G.poisonTurns--;
-    msgs.push(`🐍 Veneno: -${d} HP. (${G.poisonTurns} rest.)`);
-  }
-  // Queimadura no jogador (permanente até fim do combate)
-  if(G.burnTurns>0){
-    const d=G.burnDmg||4;
-    G.hp=Math.max(0,G.hp-d);
-    msgs.push(`🔥 Queimadura: -${d} HP.`);
-  }
-  // Congelamento no jogador
-  if(G.freezeTurns>0){
-    G.freezeTurns--;
-    // efeito de congelamento tratado em enemyTurn
-  }
-  msgs.forEach(m=>clog(m,'le'));
-  if(G.passives.includes('godmode'))G.hp=G.hpMax;
-}
+function tickStatusOnPlayer(){ tickStatus(G,true); }
 
 function clearCombatStatus(target){
   // Limpa ao fim do combate
@@ -2470,7 +2527,9 @@ function dentReadyBar(dmg){
 /* ═══ COMBAT ═══ */
 function startCombat(enemy,sc,disadv=false){
   G.inCombat=true;
-  CE={...enemy,hpCur:enemy.hp,stunned:false,poisonTurns:0,burnTurns:0,freezeTurns:0};
+  G._shadowUsed=false; // Assassino: reseta primeiro golpe a cada combate
+  G.divineShield=false; // Paladino: reseta escudo
+  CE={...enemy,hpCur:enemy.hp,stunned:false,poisonTurns:0,burnTurns:0,freezeTurns:0,_marked:false,_markedTurns:0,_foggedTurns:0,_roaredTurns:0,_roaredAtk:0};
   combatLog=[];
   initReadyBar(CE);
   if(CE.elite)clog(`⚠ ${CE.name} é um inimigo elite! Cuidado.`,'li');
@@ -2835,6 +2894,106 @@ function doSkill(type){
     G.arcanaReady=false;G.arcanaCombatsSince=0;
     clog(`💜 Explosão Arcana: ${dmg} dano massivo!`,'lc');floatDmg('💜'+dmg,'#9b59b6',55,33);
     screenShake();
+  // ═══ PALADINO ═══
+  } else if(type==='holy_strike'){
+    const dmg=Math.round(Math.max(1,G.atk*1.5+r(10)-Math.floor(CE.def*.3)));
+    const heal=8+(G.passives.includes('holy_dmg')?4:0);
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    G.hp=Math.min(G.hpMax,G.hp+heal);
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    clog(`✨ Golpe Sagrado: ${dmg} dano + curou ${heal} HP!`,'lc');floatDmg('✨'+dmg,'#f1c40f',55,35);floatDmg('+'+heal+'❤️','#2ecc71',35,55);
+    upd();
+  } else if(type==='divine_shield'){
+    G.divineShield=true;G.def+=4;G._divineShieldTurns=2;
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    clog('🛡️ Escudo Divino ativado! Próximo ataque bloqueado. +4 DEF por 2 turnos!','lc');floatDmg('🛡️ Bloqueio','#f1c40f',40,30);
+    updateCombatUI();return;
+  // ═══ DRUIDA ═══
+  } else if(type==='thorns'){
+    const dmg=Math.round(Math.max(3,G.mag*1.3+r(8)));
+    const turns=G.passives.includes('long_poison')?6:3;
+    const pdmg=Math.max(3,Math.round(G.mag*.28));
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    applyStatus(CE,'poison',turns,pdmg);
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    clog(`🌿 Espinhos da Floresta: ${dmg} dano + veneno ${pdmg}/turno por ${turns} turnos!`,'lc');floatDmg('🌿'+dmg,'#27ae60',55,35);
+    spawnParticles(8,'#27ae60');
+  } else if(type==='vital_pulse'){
+    const heal=Math.round(G.hpMax*.25);
+    G.hp=Math.min(G.hpMax,G.hp+heal);
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    clog(`💚 Pulso Vital: curou ${heal} HP!`,'lc');floatDmg('+'+heal+'💚','#2ecc71',45,35);
+    upd();updateCombatUI();return;
+  // ═══ CAÇADOR ═══
+  } else if(type==='precise_arrow'){
+    const marked=CE._marked||false;
+    const mult=marked?1.8:1.3;
+    const dmg=Math.round(Math.max(1,G.atk*mult+r(12)-Math.floor(CE.def*.2)));
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    if(marked){clog(`🏹 Flecha Certeira na PRESA MARCADA: ${dmg} dano!`,'lc');floatDmg('🎯'+dmg,'#e67e22',55,35);}
+    else{clog(`🏹 Flecha Certeira: ${dmg} dano!`,'lc');floatDmg('🏹'+dmg,'#e67e22',55,35);}
+    G._mSkillUses=(G._mSkillUses||0)+1;
+  } else if(type==='mark_prey'){
+    CE._marked=true;CE._markedTurns=3;
+    if(G.passives.includes('trap_master'))CE.stunned=true;
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    clog(`🎯 Presa Marcada! +25% dano recebido por 3 turnos${G.passives.includes('trap_master')?' + Paralisia':''}!`,'lc');floatDmg('🎯 MARCADO','#e67e22',40,30);
+    updateCombatUI();return;
+  // ═══ FEITICEIRO ═══
+  } else if(type==='chaos_bolt'){
+    const hasChaos=G.passives.includes('chaos_master');
+    let mult;
+    const roll=Math.random();
+    if(hasChaos){mult=roll<.10?0:roll<.40?3.0:1.8;}
+    else{mult=roll<.20?0.4:roll<.55?1.2:2.4;}
+    const dmg=Math.round(Math.max(0,G.mag*mult+r(18)));
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    if(mult===0||mult===0.4){clog(`⚡ Descarga Caótica... falhooou! Apenas ${dmg} dano!`,'li');floatDmg('⚡FALHA','#95a5a6',50,35);}
+    else if(mult>=2.4||mult>=3.0){clog(`⚡ DESCARGA CAÓTICA MASSIVA: ${dmg} dano!!!`,'lc');floatDmg('⚡'+dmg,'#f1c40f',55,33);screenShake();spawnParticles(15,'#f39c12');}
+    else{clog(`⚡ Descarga Caótica: ${dmg} dano mágico!`,'lc');floatDmg('⚡'+dmg,'#9b59b6',55,35);}
+  } else if(type==='arcane_surge'){
+    const selfDmg=15;
+    G.hp=Math.max(1,G.hp-selfDmg);
+    const dmg=Math.round(Math.max(6,G.mag*2.0+r(16)));
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    clog(`🌀 Surto Arcano: ${dmg} dano massivo! (Custou ${selfDmg} HP)!`,'lc');floatDmg('🌀'+dmg,'#8e44ad',55,33);floatDmg('-'+selfDmg+'❤️','#e74c3c',35,55);
+    screenShake();spawnParticles(12,'#8e44ad');upd();
+  // ═══ BÁRBARO ═══
+  } else if(type==='frenzy'){
+    const lowHp=G.hp/G.hpMax<.35;
+    const hits=lowHp?3:2;
+    let total=0;
+    for(let i=0;i<hits;i++){
+      const dmg=Math.round(Math.max(1,G.atk*(lowHp?1.4:1.1)+r(8)-Math.floor(CE.def*.2)));
+      CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;total+=dmg;
+    }
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    clog(`🪓 Frenesi: ${hits} golpes! ${total} dano total${lowHp?' (FÚRIA MÁXIMA!)':''}!`,'lc');floatDmg('🪓×'+hits+' '+total,'#e74c3c',55,35);
+    if(lowHp){screenShake();spawnParticles(10,'#e74c3c');}
+  } else if(type==='wild_roar'){
+    CE._roaredTurns=3;CE._roaredAtk=(CE._roaredAtk||0)+4;CE.atk=Math.max(1,CE.atk-4);
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    clog(`😤 Rugido Selvagem! Inimigo perdeu 4 ATK por 3 turnos!`,'lc');floatDmg('😤-4ATK','#e74c3c',45,30);
+    updateCombatUI();return;
+  // ═══ ASSASSINO (classe) ═══
+  } else if(type==='shadow_strike'){
+    const isFirst=!(G._shadowUsed||false);
+    const mult=isFirst?3.0:2.0;
+    G._shadowUsed=true;
+    const dmg=Math.round(Math.max(1,G.atk*mult+r(10)-Math.floor(CE.def*.15)));
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    if(isFirst){clog(`🌑 GOLPE DAS SOMBRAS — PRIMEIRO ATAQUE: ${dmg} dano devastador!`,'lc');floatDmg('🌑×3 '+dmg,'#9b59b6',55,33);screenShake();}
+    else{clog(`🌑 Golpe das Sombras: ${dmg} dano (x2)!`,'lc');floatDmg('🌑×2 '+dmg,'#9b59b6',55,35);}
+  } else if(type==='toxic_mist'){
+    const pdmg=Math.max(4,Math.round(G.atk*.35+G.mag*.2));
+    applyStatus(CE,'poison',3,pdmg);
+    CE._foggedTurns=3;
+    G._mSkillUses=(G._mSkillUses||0)+1;
+    clog(`☠️ Névoa Tóxica! Veneno ${pdmg}/turno + precisão reduzida por 3 turnos!`,'lc');floatDmg('☠️','#8e44ad',50,35);
+    spawnParticles(10,'#8e44ad');
   }
   updateCombatUI();
 }
@@ -2842,8 +3001,11 @@ function doSkill(type){
 function enemyTurn(){
   if(!CE)return;
 
-  // ── 1. Warcry decay ──
+  // ── 1. Warcry / buffs decay ──
   if(G.warcryTurns>0){G.warcryTurns--;if(G.warcryTurns===0){G.atk-=6;clog('📯 Grito de Guerra expirou.','li');}}
+  if(G._divineShieldTurns>0&&!G.divineShield){G._divineShieldTurns--;if(G._divineShieldTurns===0){G.def-=4;clog('🛡️ Bônus de DEF do Escudo Divino expirou.','li');}}
+  if(CE._markedTurns>0){CE._markedTurns--;if(CE._markedTurns===0){CE._marked=false;clog('🎯 Marca da Presa expirou.','li');}}
+  if(CE._roaredTurns>0){CE._roaredTurns--;if(CE._roaredTurns===0){CE.atk+=CE._roaredAtk||4;CE._roaredAtk=0;clog('😤 Rugido Selvagem expirou. Inimigo recuperou ATK.','li');}}
 
   // ── 2. Tick status no inimigo (veneno + queimadura) ──
   const enemyDiedToStatus=tickStatusOnEnemy();
@@ -2900,6 +3062,22 @@ function enemyTurn(){
   if(CE.badges&&CE.badges.includes('Drena MP')){G.mp=Math.max(0,G.mp-6);clog(CE.name+' drena 6 de Mana!','li');}
   if(CE.badges&&CE.badges.includes('Maldição')&&Math.random()<.3){G.def=Math.max(0,G.def-1);clog('A maldição do '+CE.name+' reduz sua DEF em 1.','le');}
 
+  // ── 9. Escudo Divino — bloqueia ataque ──
+  if(G.divineShield){
+    G.divineShield=false;
+    clog('🛡️ Escudo Divino bloqueou o ataque de '+CE.name+'!','ls');
+    floatDmg('🛡️ BLOQUEADO','#f1c40f',40,40);
+    sfx('block');
+    updateCombatUI();
+    // Ainda decai o turno do escudo
+    if(G._divineShieldTurns!==undefined){G._divineShieldTurns--;if(G._divineShieldTurns<=0){G.def-=4;clog('🛡️ Bônus de DEF do Escudo Divino expirou.','li');}}
+    return;
+  }
+  // Névoa tóxica — reduz precisão do inimigo
+  if(CE._foggedTurns&&CE._foggedTurns>0){
+    CE._foggedTurns--;
+    if(Math.random()<.30){clog(CE.name+' errou o ataque por causa da névoa!','ls');updateCombatUI();return;}
+  }
   // ── 9. Ataque normal ──
   let dmg=Math.max(1,CE.atk-Math.floor(G.def*.6)+r(6));
   if(CE.badges&&CE.badges.includes('Fúria')&&CE.hpCur<CE.hp*.4)dmg=Math.round(dmg*1.35);
@@ -2917,7 +3095,7 @@ function enemyTurn(){
   sfx('hit');flashPlayerHit();
 
   // ── Regeneração de MP por turno ──
-  const turnRegen = G.cls.id==='mage' ? 6 : G.cls.id==='rogue' ? 3 : 2;
+  const turnRegen = G.cls.id==='mage'?6 : G.cls.id==='sorcerer'?7 : G.cls.id==='druid'?5 : G.cls.id==='rogue'||G.cls.id==='assassin_cls'?3 : G.cls.id==='barbarian'?1 : 2;
   const actualRegen = Math.min(turnRegen, G.mpMax - G.mp);
   if(actualRegen > 0){
     G.mp += actualRegen;
@@ -3286,7 +3464,7 @@ function renderGrimoirePanel(tab){
         html+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:4px;">`;
         byTier[tier].forEach(el=>{
           const active=G.activeElement&&G.activeElement.id===el.id;
-          html+=`<div onclick="setActiveElementPanel('${el.id}')" style="border:1px solid ${active?tierColors[tier]:'var(--brd2)'};border-radius:8px;padding:10px 6px;background:${active?'rgba(255,255,255,.06)':'rgba(255,255,255,.02)'};text-align:center;cursor:pointer;transition:.2s;">
+          html+=`<div onclick="setActiveElement('${el.id}')" style="border:1px solid ${active?tierColors[tier]:'var(--brd2)'};border-radius:8px;padding:10px 6px;background:${active?'rgba(255,255,255,.06)':'rgba(255,255,255,.02)'};text-align:center;cursor:pointer;transition:.2s;">
             <div style="font-size:22px;">${el.ico}</div>
             <div style="font-family:var(--cinzel);font-size:9px;color:${active?tierColors[tier]:'var(--txt2)'};margin-top:4px;">${el.name}</div>
           </div>`;
@@ -3299,7 +3477,7 @@ function renderGrimoirePanel(tab){
         html+=`<div style="font-family:var(--cinzel);font-size:9px;color:var(--gold);letter-spacing:2px;margin:14px 0 8px;padding-top:10px;border-top:1px solid var(--brd);">⚗️ FUSÕES PRONTAS</div>`;
         availFusions.forEach(f=>{
           const el1=ELEMENTS.find(e=>e.id===f.e1);const el2=ELEMENTS.find(e=>e.id===f.e2);
-          html+=`<div onclick="fuseElementsPanel('${f.id}')" style="border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:11px;background:rgba(200,168,75,.04);cursor:pointer;margin-bottom:6px;transition:.2s;">
+          html+=`<div onclick="fuseElements('${f.id}')" style="border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:11px;background:rgba(200,168,75,.04);cursor:pointer;margin-bottom:6px;transition:.2s;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
               <span style="font-size:18px;">${el1?el1.ico:'?'}</span><span style="font-family:var(--cinzel);font-size:10px;color:var(--txt2);">+</span>
               <span style="font-size:18px;">${el2?el2.ico:'?'}</span><span style="font-family:var(--cinzel);font-size:10px;color:var(--txt2);">→</span>
@@ -3319,21 +3497,9 @@ function renderGrimoirePanel(tab){
   }
 }
 
-function setActiveElementPanel(id){
-  const el=G.elements.find(e=>e.id===id);
-  if(!el)return;
-  G.activeElement=G.activeElement?.id===id?null:el;
-  toast(G.activeElement?`${el.ico} ${el.name} ativado!`:'Elemento desativado.');
-  renderGrimoirePanel('elements');
-}
 
-function fuseElementsPanel(fusionId){
-  const f=FUSIONS.find(x=>x.id===fusionId);
-  if(!f||!hasElement(f.e1)||!hasElement(f.e2)||hasElement(f.id))return;
-  G.elements.push({...f});
-  toast(`✨ Fusão: ${f.ico} ${f.name} criada!`,2500);
-  renderGrimoirePanel('elements');
-}
+
+
 
 function renderGrimoirePage(panel){
   // Insere searchbar + container de resultados
@@ -3633,11 +3799,8 @@ function doFusionSkill(f){
 
 /* ═══ ITEM HELPERS ═══ */
 function randItemByRarity(mode){
-  // Filtra itens pela classe do jogador:
-  // itens sem cls (genéricos) + itens da classe atual
   const clsId=G?.cls?.id||null;
   const classPool=ITEMS_POOL.filter(i=>!i.cls||i.cls===clsId);
-
   let pool;
   if(mode==='common')pool=classPool.filter(i=>i.rarity==='common');
   else if(mode==='rare+')pool=classPool.filter(i=>['rare','epic','legendary'].includes(i.rarity));
@@ -3647,7 +3810,6 @@ function randItemByRarity(mode){
     for(const[k,v] of Object.entries(w)){cum+=v;if(rn<cum){chosen=k;break;}}
     pool=classPool.filter(i=>i.rarity===chosen);
   }
-  // Fallback: se pool vazio, usa classPool completo
   if(!pool||!pool.length)pool=classPool.length?classPool:ITEMS_POOL;
   return{...pick(pool),id:'item_'+r(99999)};
 }
