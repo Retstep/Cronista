@@ -149,65 +149,55 @@ function floorScale(floor){
   return 1+(3*0.25)+(3*0.30)+(floor-7)*0.18;
 }
 
-function genEnemy(floor){
-  const arch=pick(PROC_ARCHETYPES);
-  const mod=pick(PROC_MODIFIERS);
-  const scale=floorScale(floor);
-  const ngMult=G?.ngMult||1;
-  const total=scale*ngMult;
-
-  const hp=Math.round(arch.hp*mod.hpM*total);
-  const atk=Math.round(arch.atk*mod.atkM*total);
-  const def=Math.round(arch.def*mod.defM*(1+(floor-1)*0.12));
-  const xp=Math.round((10+floor*4)*mod.xpM);
-  const gold=[Math.round((2+floor)*total),Math.round((5+floor*2)*total)];
-
-  // Badges base do arquétipo + modificador, sem duplicatas
-  const badges=[...new Set([...arch.badges,...mod.badges])];
-
-  // Andares altos ganham badge extra
-  if(floor>=5&&Math.random()<0.4) badges.push(pick(['Fúria','Resistência','Certeiro','Drena MP']));
-
-  return {
-    id:'proc_'+r(99999),
-    name:`${mod.prefix} ${arch.name}`,
-    ico:`${mod.ico}${arch.ico}`,
-    sub:`${arch.type} · Andar ${floor}`,
-    hp,atk,def,xp,gold,badges,
-    boss:false,elite:false,
-    type:arch.type,
-    proc:true,
-  };
-}
-
-function genElite(floor){
+function genProcEnemy(floor, isElite=false){
   const arch=pick(PROC_ARCHETYPES);
   const mod1=pick(PROC_MODIFIERS);
-  let mod2=pick(PROC_MODIFIERS);
-  while(mod2.prefix===mod1.prefix) mod2=pick(PROC_MODIFIERS);
-  const prefix=pick(ELITE_PREFIXES);
-  const scale=floorScale(floor)*1.5;
   const ngMult=G?.ngMult||1;
+
+  // Elite usa dois modificadores e escala maior
+  let mod2=null;
+  if(isElite){
+    mod2=pick(PROC_MODIFIERS);
+    while(mod2.prefix===mod1.prefix) mod2=pick(PROC_MODIFIERS);
+  }
+  const scale=floorScale(floor)*(isElite?1.5:1);
   const total=scale*ngMult;
+  const hpM =isElite?mod1.hpM*mod2.hpM*1.4:mod1.hpM;
+  const atkM=isElite?mod1.atkM*mod2.atkM:mod1.atkM;
+  const defM=isElite?mod1.defM*mod2.defM*1.2:mod1.defM;
+  const xpM =isElite?mod1.xpM*mod2.xpM:mod1.xpM;
 
-  const hp=Math.round(arch.hp*mod1.hpM*mod2.hpM*total*1.4);
-  const atk=Math.round(arch.atk*mod1.atkM*mod2.atkM*total);
-  const def=Math.round(arch.def*mod1.defM*mod2.defM*(1+(floor-1)*0.12)*1.2);
-  const xp=Math.round((20+floor*6)*mod1.xpM*mod2.xpM);
-  const gold=[Math.round((5+floor*2)*total),Math.round((10+floor*3)*total)];
-  const badges=[...new Set(['Elite',...arch.badges,...mod1.badges,...mod2.badges])];
+  const hp =Math.round(arch.hp *hpM *total);
+  const atk=Math.round(arch.atk*atkM*total);
+  const def=Math.round(arch.def*defM*(1+(floor-1)*0.12));
+  const xp =Math.round((isElite?20+floor*6:10+floor*4)*xpM);
+  const gold=isElite
+    ?[Math.round((5+floor*2)*total), Math.round((10+floor*3)*total)]
+    :[Math.round((2+floor)*total),   Math.round((5+floor*2)*total)];
 
+  const badges=isElite
+    ?[...new Set(['Elite',...arch.badges,...mod1.badges,...mod2.badges])]
+    :[...new Set([...arch.badges,...mod1.badges])];
+  if(!isElite&&floor>=5&&Math.random()<0.4)
+    badges.push(pick(['Fúria','Resistência','Certeiro','Drena MP']));
+
+  const prefix=isElite?pick(ELITE_PREFIXES):null;
   return {
-    id:'elite_'+r(99999),
-    name:`★ ${prefix} ${arch.name}`,
-    ico:`⭐${arch.ico}`,
-    sub:`Elite · ${mod1.prefix} & ${mod2.prefix}`,
+    id:(isElite?'elite_':'proc_')+r(99999),
+    name:isElite?`★ ${prefix} ${arch.name}`:`${mod1.prefix} ${arch.name}`,
+    ico:isElite?`⭐${arch.ico}`:`${mod1.ico}${arch.ico}`,
+    sub:isElite?`Elite · ${mod1.prefix} & ${mod2.prefix}`:`${arch.type} · Andar ${floor}`,
     hp,atk,def,xp,gold,badges,
-    boss:false,elite:true,
+    boss:false,elite:isElite,
     type:arch.type,
     proc:true,
   };
 }
+// Atalhos mantidos para compatibilidade com o restante do código
+function genEnemy(floor){ return genProcEnemy(floor,false); }
+function genElite(floor){ return genProcEnemy(floor,true); }
+
+
 
 function genBoss(floor){
   const [title,epithet]=pick(BOSS_NAMES);
@@ -576,7 +566,7 @@ function renderElementPicker(sc){
       availFusions.forEach(f=>{
         const el1=ELEMENTS.find(e=>e.id===f.e1);
         const el2=ELEMENTS.find(e=>e.id===f.e2);
-        html+=`<div onclick="fuseElements('${f.id}')" style="border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:11px;background:rgba(200,168,75,.04);cursor:pointer;margin-bottom:6px;transition:.2s;">
+        html+=`<div onclick="fuseElements('${f.id}','grimoire')" style="border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:11px;background:rgba(200,168,75,.04);cursor:pointer;margin-bottom:6px;transition:.2s;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
             <span style="font-size:18px;">${el1?el1.ico:'?'}</span>
             <span style="font-family:var(--cinzel);font-size:10px;color:var(--txt2);">+</span>
@@ -596,20 +586,22 @@ function renderElementPicker(sc){
   sc.appendChild(card);scrollBot(sc);
 }
 
-function setActiveElement(id){
-  const el = G.elements.find(e=>e.id===id);
+function setActiveElement(id, origin='picker'){
+  const el=G.elements.find(e=>e.id===id);
   if(!el)return;
-  G.activeElement = G.activeElement?.id===id ? null : el;
-  toast(G.activeElement ? `${el.ico} ${el.name} ativado!` : 'Elemento desativado.');
-  renderElementPicker($('scroll'));
+  G.activeElement=G.activeElement?.id===id?null:el;
+  toast(G.activeElement?`${el.ico} ${el.name} ativado!`:'Elemento desativado.');
+  if(origin==='grimoire') renderGrimoirePanel('elements');
+  else renderElementPicker($('scroll'));
 }
 
-function fuseElements(fusionId){
+function fuseElements(fusionId, origin='picker'){
   const f = FUSIONS.find(x=>x.id===fusionId);
   if(!f||!hasElement(f.e1)||!hasElement(f.e2)||hasElement(f.id))return;
   G.elements.push({...f});
   toast(`✨ Fusão: ${f.ico} ${f.name} criada!`,2500);
-  renderElementPicker($('scroll'));
+  if(origin==='grimoire') renderGrimoirePanel('elements');
+  else renderElementPicker($('scroll'));
 }
 
 /* ═══ EVENTS ═══ */
@@ -1821,7 +1813,7 @@ function smithUpgrade(){
     const gain=gains[it.rarity]||2;
     const canBuy=G.gold>=cost;
     const mainStat=Object.keys(it.bonus||{})[0]||'atk';
-    return `<div class="special-merch-item ${canBuy?'':'disabled'}" style="opacity:${canBuy?1:.5}" onclick="${canBuy?`doSmithUpgrade('${slot}',${cost},${gain},'${mainStat}')`:''}">
+    return `<div class="special-merch-item ${canBuy?'':'disabled'}" style="opacity:${canBuy?1:.5}" onclick="${canBuy?`smithUpgrade('${slot}',${cost},${gain},'${mainStat}')`:''}">
       <span style="font-size:22px;">${it.ico}</span>
       <div style="flex:1;">
         <div style="font-family:var(--cinzel);font-size:12px;color:var(--${it.rarity});">${it.name}</div>
@@ -1842,7 +1834,7 @@ function smithUpgrade(){
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
 }
 
-function doSmithUpgrade(slot,cost,gain,stat){
+function smithUpgrade(slot,cost,gain,stat){
   if(G.gold<cost){toast('Ouro insuficiente!');return;}
   const it=G.equipped[slot];if(!it)return;
   G.gold-=cost;
@@ -1887,7 +1879,7 @@ function smithFuse(){
       <div class="ctitle">⚒️ Fusão de Itens</div>
       <div style="font-size:11px;color:var(--txt2);margin-bottom:10px;">Selecione 2 itens para fundir. O resultado combina os stats de ambos com raridade elevada.</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">${rows}</div>
-      <button class="btn-next" style="margin-bottom:8px;${canFuse?'':'opacity:.4;pointer-events:none;'}" onclick="doSmithFuse()">⚒️ Fundir (80💰)</button>
+      <button class="btn-next" style="margin-bottom:8px;${canFuse?'':'opacity:.4;pointer-events:none;'}" onclick="smithFuse(true)">⚒️ Fundir (80💰)</button>
       <button class="btn-next" style="background:transparent;border-color:var(--brd2);color:var(--txt2);" onclick="openSmith($('scroll'))">← Voltar</button>`;
   }
 
@@ -1905,7 +1897,7 @@ function toggleSmithFuse(i){
   if(G._renderFuseCard) G._renderFuseCard();
 }
 
-function doSmithFuse(){
+function smithFuse(execFuse=false){
   if(G._smithFuseSelected.length!==2){toast('Selecione 2 itens!');return;}
   if(G.gold<80){toast('Ouro insuficiente!');return;}
   const [i1,i2]=G._smithFuseSelected.sort((a,b)=>b-a);
@@ -1953,7 +1945,7 @@ function smithRepair(){
   const card=document.createElement('div');card.className='card esh';
   const rows=cursed.map((it,i)=>{
     const negStats=Object.entries(it.bonus).filter(([k,v])=>v<0).map(([k,v])=>`${k.toUpperCase()} ${v}`).join(', ');
-    return `<div class="special-merch-item" onclick="doSmithRepair('${it.id}')">
+    return `<div class="special-merch-item" onclick="smithRepair('${it.id}')">
       <span style="font-size:20px;">${it.ico}</span>
       <div style="flex:1;"><div style="font-family:var(--cinzel);font-size:11px;color:var(--${it.rarity});">${it.name}</div>
       <div style="font-size:10px;color:var(--red2);">Penalidades: ${negStats}</div></div>
@@ -1969,7 +1961,7 @@ function smithRepair(){
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
 }
 
-function doSmithRepair(id){
+function smithRepair(id){
   if(G.gold<50){toast('Ouro insuficiente!');return;}
   const it=G.inv.find(i=>i.id===id);if(!it)return;
   G.gold-=50;
@@ -1982,23 +1974,57 @@ function doSmithRepair(id){
 }
 
 // ─── Craftar item novo ───
-function smithCraft(){
+function smithCraft(execSlot){
+  // Com argumento: executa o craft. Sem argumento: exibe o painel.
+  if(execSlot!==undefined){
+    if(G.gold<70){toast('Ouro insuficiente!');return;}
+    G.gold-=70;
+    const rarRoll=Math.random();
+    const rarity= G.floor>=6 ? (rarRoll<.15?'legendary':rarRoll<.5?'epic':'rare')
+                : G.floor>=4 ? (rarRoll<.08?'legendary':rarRoll<.35?'epic':'rare')
+                : G.floor>=2 ? (rarRoll<.04?'legendary':rarRoll<.2?'epic':rarRoll<.55?'rare':'common')
+                :               (rarRoll<.1?'rare':rarRoll<.4?'common':'common');
+    const statMult={common:1,rare:1.6,epic:2.4,legendary:3.5}[rarity]||1;
+    const base=Math.round((3+G.floor)*statMult);
+    const bonusMap={
+      weapon:{atk:base,crit:Math.round(base*.01*100)/100},
+      chest: {def:base,hp:base*2},
+      head:  {def:Math.round(base*.7),hp:base},
+      feet:  {spd:Math.round(base*.5),dodge:Math.round(base*.005*100)/100},
+    };
+    const names={
+      weapon:{common:'Espada Forjada',rare:'Lâmina Temperada',epic:'Lâmina do Ferreiro',legendary:'Obra-Prima do Ferreiro'},
+      chest: {common:'Armadura Forjada',rare:'Cota Temperada',epic:'Armadura do Artesão',legendary:'Armadura Mestra'},
+      head:  {common:'Elmo Forjado',rare:'Elmo Temperado',epic:'Elmo do Artesão',legendary:'Coroa do Mestre'},
+      feet:  {common:'Botas Forjadas',rare:'Botas Temperadas',epic:'Botas do Artesão',legendary:'Botas Mestras'},
+    };
+    const icos={weapon:'⚔️',chest:'🛡️',head:'⛑️',feet:'👟'};
+    const crafted={
+      id:'crafted_'+r(99999),
+      name:names[execSlot][rarity],
+      ico:icos[execSlot],
+      rarity,slot:execSlot,uses:null,
+      bonus:bonusMap[execSlot],
+      desc:Object.entries(bonusMap[execSlot]).map(([k,v])=>`+${v} ${k.toUpperCase()}`).join(' ')+' [Forjado]',
+    };
+    addItemToInv(crafted);upd();
+    toast(`⚒️ ${crafted.name} (${rarity}) forjado!`,2500);
+    smithCraft(); return; // recarrega o painel
+  }
   const sc=$('scroll');
   if(G.gold<70){toast('Ouro insuficiente! (70💰)');return;}
-
   const slots=['weapon','chest','head','feet'];
   const card=document.createElement('div');card.className='card esh';
   const rows=slots.map(slot=>{
     const ico={weapon:'⚔️',chest:'🛡️',head:'⛑️',feet:'👟'}[slot];
     const lbl={weapon:'Arma',chest:'Armadura',head:'Elmo',feet:'Botas'}[slot];
-    return `<div class="special-merch-item" onclick="doSmithCraft('${slot}')">
+    return `<div class="special-merch-item" onclick="smithCraft('${slot}')">
       <span style="font-size:22px;">${ico}</span>
       <div style="flex:1;"><div style="font-family:var(--cinzel);font-size:12px;color:var(--acc);">${lbl}</div>
       <div style="font-size:11px;color:var(--txt2);">Raridade baseada no Andar ${G.floor}</div></div>
       <div style="font-family:var(--cinzel);font-size:13px;color:var(--gold);">💰70</div>
     </div>`;
   }).join('');
-
   card.innerHTML=`
     <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">CRAFTAR ITEM</span></div>
     <div class="ctitle">⚒️ Forjar Novo Item</div>
@@ -2006,46 +2032,6 @@ function smithCraft(){
     <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">${rows}</div>
     <button class="btn-next" style="background:transparent;border-color:var(--brd2);color:var(--txt2);" onclick="openSmith($('scroll'))">← Voltar</button>`;
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
-}
-
-function doSmithCraft(slot){
-  if(G.gold<70){toast('Ouro insuficiente!');return;}
-  G.gold-=70;
-
-  // Raridade baseada no andar
-  const rarRoll=Math.random();
-  const rarity= G.floor>=6 ? (rarRoll<.15?'legendary':rarRoll<.5?'epic':'rare')
-              : G.floor>=4 ? (rarRoll<.08?'legendary':rarRoll<.35?'epic':'rare')
-              : G.floor>=2 ? (rarRoll<.04?'legendary':rarRoll<.2?'epic':rarRoll<.55?'rare':'common')
-              :               (rarRoll<.1?'rare':rarRoll<.4?'common':'common');
-
-  // Gera stats baseados no slot e raridade
-  const statMult={common:1,rare:1.6,epic:2.4,legendary:3.5}[rarity]||1;
-  const base=Math.round((3+G.floor)*statMult);
-  const bonusMap={
-    weapon:{atk:base,crit:Math.round(base*.01*100)/100},
-    chest: {def:base,hp:base*2},
-    head:  {def:Math.round(base*.7),hp:base},
-    feet:  {spd:Math.round(base*.5),dodge:Math.round(base*.005*100)/100},
-  };
-  const names={
-    weapon:{common:'Espada Forjada',rare:'Lâmina Temperada',epic:'Lâmina do Ferreiro',legendary:'Obra-Prima do Ferreiro'},
-    chest: {common:'Armadura Forjada',rare:'Cota Temperada',epic:'Armadura do Artesão',legendary:'Armadura Mestra'},
-    head:  {common:'Elmo Forjado',rare:'Elmo Temperado',epic:'Elmo do Artesão',legendary:'Coroa do Mestre'},
-    feet:  {common:'Botas Forjadas',rare:'Botas Temperadas',epic:'Botas do Artesão',legendary:'Botas Mestras'},
-  };
-  const icos={weapon:'⚔️',chest:'🛡️',head:'⛑️',feet:'👟'};
-  const crafted={
-    id:'crafted_'+r(99999),
-    name:names[slot][rarity],
-    ico:icos[slot],
-    rarity,slot,uses:null,
-    bonus:bonusMap[slot],
-    desc:Object.entries(bonusMap[slot]).map(([k,v])=>`+${v} ${k.toUpperCase()}`).join(' ')+' [Forjado]',
-  };
-  addItemToInv(crafted);upd();
-  toast(`⚒️ ${crafted.name} (${rarity}) forjado!`,2500);
-  smithCraft();
 }
 
 // ─── Comprar/Vender ───
@@ -2250,49 +2236,43 @@ function applyStatus(target, type, turns, dmg){
   }
 }
 
-function tickStatusOnEnemy(){
-  if(!CE)return;
+function tickStatus(target, isPlayer=false){
+  // target: CE (inimigo) ou G (jogador)
+  // Retorna true se o alvo morreu (só relevante para inimigo)
+  const hpKey  = isPlayer?'hp':'hpCur';
+  const hpMax  = isPlayer?target.hpMax:target.hp;
+  const label  = isPlayer?'você':target.name;
+  const logLvl = isPlayer?'le':'li';
   let died=false;
+
   // Veneno
-  if(CE.poisonTurns>0){
-    CE.hpCur=Math.max(0,CE.hpCur-CE.poisonDmg);
-    CE.poisonTurns--;
-    clog(`🐍 Veneno: -${CE.poisonDmg} HP em ${CE.name}. (${CE.poisonTurns} rest.)`,CE.hpCur<=0?'ls':'li');
-    if(CE.hpCur<=0){died=true;}
+  if(target.poisonTurns>0){
+    const d=target.poisonDmg||(isPlayer?3:0);
+    target[hpKey]=Math.max(0,target[hpKey]-d);
+    target.poisonTurns--;
+    clog(`🐍 Veneno: -${d} HP em ${label}. (${target.poisonTurns} rest.)`,
+      target[hpKey]<=0?'ls':logLvl);
+    if(target[hpKey]<=0) died=true;
   }
-  // Queimadura
-  if(!died&&CE.burnTurns>0){
-    CE.hpCur=Math.max(0,CE.hpCur-CE.burnDmg);
-    // queimadura não expira por turno — só ao fim do combate
-    clog(`🔥 Queimadura: -${CE.burnDmg} HP em ${CE.name}.`,CE.hpCur<=0?'ls':'li');
-    if(CE.hpCur<=0){died=true;}
+  // Queimadura (não expira por turno — só ao fim do combate)
+  if(!died&&target.burnTurns>0){
+    const d=target.burnDmg||(isPlayer?4:0);
+    target[hpKey]=Math.max(0,target[hpKey]-d);
+    clog(`🔥 Queimadura: -${d} HP em ${label}.`,
+      target[hpKey]<=0?'ls':logLvl);
+    if(target[hpKey]<=0) died=true;
   }
+  // Congelamento (só no jogador — decai aqui, efeito tratado em enemyTurn)
+  if(isPlayer&&target.freezeTurns>0) target.freezeTurns--;
+
+  if(isPlayer&&target.passives?.includes('godmode')) target.hp=target.hpMax;
   return died;
 }
+// Atalhos mantidos para compatibilidade com o restante do código
+function tickStatusOnEnemy(){ return tickStatus(CE,false); }
+function tickStatusOnPlayer(){ tickStatus(G,true); }
 
-function tickStatusOnPlayer(){
-  let msgs=[];
-  // Veneno no jogador
-  if(G.poisonTurns>0){
-    const d=G.poisonDmg||3;
-    G.hp=Math.max(0,G.hp-d);
-    G.poisonTurns--;
-    msgs.push(`🐍 Veneno: -${d} HP. (${G.poisonTurns} rest.)`);
-  }
-  // Queimadura no jogador (permanente até fim do combate)
-  if(G.burnTurns>0){
-    const d=G.burnDmg||4;
-    G.hp=Math.max(0,G.hp-d);
-    msgs.push(`🔥 Queimadura: -${d} HP.`);
-  }
-  // Congelamento no jogador
-  if(G.freezeTurns>0){
-    G.freezeTurns--;
-    // efeito de congelamento tratado em enemyTurn
-  }
-  msgs.forEach(m=>clog(m,'le'));
-  if(G.passives.includes('godmode'))G.hp=G.hpMax;
-}
+
 
 function clearCombatStatus(target){
   // Limpa ao fim do combate
@@ -3213,7 +3193,7 @@ function renderGrimoirePanel(tab){
         html+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:4px;">`;
         byTier[tier].forEach(el=>{
           const active=G.activeElement&&G.activeElement.id===el.id;
-          html+=`<div onclick="setActiveElementPanel('${el.id}')" style="border:1px solid ${active?tierColors[tier]:'var(--brd2)'};border-radius:8px;padding:10px 6px;background:${active?'rgba(255,255,255,.06)':'rgba(255,255,255,.02)'};text-align:center;cursor:pointer;transition:.2s;">
+          html+=`<div onclick="setActiveElement('${el.id}')" style="border:1px solid ${active?tierColors[tier]:'var(--brd2)'};border-radius:8px;padding:10px 6px;background:${active?'rgba(255,255,255,.06)':'rgba(255,255,255,.02)'};text-align:center;cursor:pointer;transition:.2s;">
             <div style="font-size:22px;">${el.ico}</div>
             <div style="font-family:var(--cinzel);font-size:9px;color:${active?tierColors[tier]:'var(--txt2)'};margin-top:4px;">${el.name}</div>
           </div>`;
@@ -3226,7 +3206,7 @@ function renderGrimoirePanel(tab){
         html+=`<div style="font-family:var(--cinzel);font-size:9px;color:var(--gold);letter-spacing:2px;margin:14px 0 8px;padding-top:10px;border-top:1px solid var(--brd);">⚗️ FUSÕES PRONTAS</div>`;
         availFusions.forEach(f=>{
           const el1=ELEMENTS.find(e=>e.id===f.e1);const el2=ELEMENTS.find(e=>e.id===f.e2);
-          html+=`<div onclick="fuseElementsPanel('${f.id}')" style="border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:11px;background:rgba(200,168,75,.04);cursor:pointer;margin-bottom:6px;transition:.2s;">
+          html+=`<div onclick="fuseElements('${f.id}','grimoire')" style="border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:11px;background:rgba(200,168,75,.04);cursor:pointer;margin-bottom:6px;transition:.2s;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
               <span style="font-size:18px;">${el1?el1.ico:'?'}</span><span style="font-family:var(--cinzel);font-size:10px;color:var(--txt2);">+</span>
               <span style="font-size:18px;">${el2?el2.ico:'?'}</span><span style="font-family:var(--cinzel);font-size:10px;color:var(--txt2);">→</span>
@@ -3246,21 +3226,9 @@ function renderGrimoirePanel(tab){
   }
 }
 
-function setActiveElementPanel(id){
-  const el=G.elements.find(e=>e.id===id);
-  if(!el)return;
-  G.activeElement=G.activeElement?.id===id?null:el;
-  toast(G.activeElement?`${el.ico} ${el.name} ativado!`:'Elemento desativado.');
-  renderGrimoirePanel('elements');
-}
 
-function fuseElementsPanel(fusionId){
-  const f=FUSIONS.find(x=>x.id===fusionId);
-  if(!f||!hasElement(f.e1)||!hasElement(f.e2)||hasElement(f.id))return;
-  G.elements.push({...f});
-  toast(`✨ Fusão: ${f.ico} ${f.name} criada!`,2500);
-  renderGrimoirePanel('elements');
-}
+
+
 
 function renderGrimoirePage(panel){
   // Insere searchbar + container de resultados
