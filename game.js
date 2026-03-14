@@ -824,7 +824,7 @@ function renderElementPicker(sc){
     });
 
     // Seção de fusões disponíveis
-    const availFusions=FUSIONS.filter(f=>hasElement(f.e1)&&hasElement(f.e2)&&!hasElement(f.id));
+    const availFusions=getAvailFusions(true);
     if(availFusions.length){
       html+=`<div style="font-family:var(--cinzel);font-size:9px;color:var(--gold);letter-spacing:2px;margin:14px 0 8px;padding-top:10px;border-top:1px solid var(--brd);">⚗️ FUSÕES DISPONÍVEIS</div>`;
       availFusions.forEach(f=>{
@@ -860,12 +860,11 @@ function setActiveElement(id, origin='picker'){
 }
 
 function fuseElements(fusionId, origin='picker'){
-  // Parse do fusionId procedural: 'fuse_id1_id2'
-  const parts = fusionId.replace('fuse_','').split('_');
-  const id1=parts[0], id2=parts.slice(1).join('_');
-  const f = tryFuse(id1, id2);
-  if(!f||!hasElement(id1)||!hasElement(id2)||hasElement(fusionId))return;
-  G.elements.push({...f, id:fusionId});
+  if(hasElement(fusionId))return;
+  // Buscar pelo id exato na lista de fusões disponíveis
+  const f=getAvailFusions(false).find(x=>x.id===fusionId);
+  if(!f||!hasElement(f.e1)||!hasElement(f.e2))return;
+  G.elements.push({...f});
   toast(`✨ Fusão: ${f.ico} ${f.name} criada!`,2500);
   if(origin==='grimoire') renderGrimoirePanel('elements');
   else renderElementPicker($('scroll'));
@@ -3525,7 +3524,7 @@ function renderGrimoirePanel(tab){
         html+=`</div>`;
       });
       // Fusões disponíveis para aprender (não em combate)
-      const availFusions=FUSIONS.filter(f=>hasElement(f.e1)&&hasElement(f.e2)&&!hasElement(f.id));
+      const availFusions=getAvailFusions(true);
       if(availFusions.length){
         html+=`<div style="font-family:var(--cinzel);font-size:9px;color:var(--gold);letter-spacing:2px;margin:14px 0 8px;padding-top:10px;border-top:1px solid var(--brd);">⚗️ FUSÕES PRONTAS</div>`;
         availFusions.forEach(f=>{
