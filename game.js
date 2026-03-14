@@ -701,6 +701,23 @@ function tryFuse(id1, id2){
   };
 }
 
+// Gera TODAS as fusões possíveis entre todos os elementos do jogo (para debug)
+function getAllFusions(){
+  const allIds=ELEMENTS.map(e=>e.id);
+  const results=[];
+  const seen=new Set();
+  for(let i=0;i<allIds.length;i++){
+    for(let j=i+1;j<allIds.length;j++){
+      const f=tryFuse(allIds[i],allIds[j]);
+      if(!f) continue;
+      if(seen.has(f.id)) continue;
+      seen.add(f.id);
+      results.push(f);
+    }
+  }
+  return results.sort((a,b)=>a.tier-b.tier);
+}
+
 function getAvailFusions(excludeOwned=true){
   const owned=G.elements.map(e=>e.id);
   const results=[];
@@ -3667,7 +3684,7 @@ function openCheatMenu(){
   const ov=document.createElement('div');ov.id='cheat-overlay';
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9500;display:flex;align-items:flex-end;padding:12px;';
   const allItems=[...ITEMS_POOL];
-  const allElements=[...ELEMENTS,...getAvailFusions(false)];
+  const allElements=[...ELEMENTS,...getAllFusions()];
   ov.innerHTML=`
     <div class="cheat-sheet">
       <div class="cheat-header">
@@ -3711,7 +3728,7 @@ function renderCheatItems(){
 function renderCheatElements(){
   const q=($('cheat-el-search')?.value||'').toLowerCase();
   const list=$('cheat-el-list');if(!list)return;
-  const all=[...ELEMENTS,...getAvailFusions(false)];
+  const all=[...ELEMENTS,...getAllFusions()];
   const filtered=all.filter(e=>e.name.toLowerCase().includes(q)||e.desc.toLowerCase().includes(q));
   list.innerHTML=filtered.slice(0,20).map(e=>`
     <button class="cheat-btn" style="justify-content:flex-start;gap:8px;text-align:left;" onclick="cheatAddElement('${e.id}')">
