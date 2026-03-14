@@ -514,29 +514,29 @@ const ELEMENTS=[
 const ELEM_TYPE = {
   // Primordiais / espaço-tempo
   tempo:'temporal',    espaco:'espacial',   gravidade:'gravitacional',
-  vacuo:'vacuo',       materia_escura:'sombrio', caos:'caotico',
+  vacuo:'vacuo',       materia_escura:'escuro_cosmico', caos:'caotico',
   // Energias puras
-  eter:'arcano',       vida:'vital',        raio:'eletrico',
-  luz:'luminoso',      fogo:'igneo',        magma:'igneo',
-  plasma:'eletrico',   radiacao:'toxico',
+  eter:'arcano',       vida:'vital',        raio:'voltaico',
+  luz:'luminoso',      fogo:'igneo',        magma:'magmatico',
+  plasma:'eletrico',   radiacao:'radioativo',
   // Entrópicos
-  necrose:'corruptivo',morte:'mortal',      veneno:'toxico',
+  necrose:'necrotico',morte:'mortal',      veneno:'toxico',
   acido:'corrosivo',   escuridao:'sombrio', podridao:'corruptivo',
   virus:'toxico',      carie:'corrosivo',
   // Condutores
-  mercurio:'toxico',   som:'sonico',        gelo:'gelido',
+  mercurio:'mercurial',   som:'sonico',        gelo:'gelido',
   sangue:'vital',      sombra:'sombrio',    fumaca:'gasoso',
-  areia:'abrasivo',    vidro:'abrasivo',    oleo:'inflamavel',
-  espuma:'gasoso',
+  areia:'arenoso',    vidro:'abrasivo',    oleo:'inflamavel',
+  espuma:'espumoso',     osso:'osseo',
   // Materiais
   diamante:'solido',   platina:'solido',    ouro:'solido',
   metal:'solido',      cristal:'solido',    titanio:'solido',
-  aco:'solido',        obsidiana:'solido',  marmore:'solido',
+  aco:'metalico',      obsidiana:'vulcanico', marmore:'pedroso',
   // Elementais básicos
   terra:'terreo',      ar:'gasoso',         agua:'aquatico',
-  flora:'natural',     lodo:'terreo',       cinzas:'igneo',
-  argila:'terreo',     nevoa:'gasoso',      poeira:'abrasivo',
-  espinho:'natural',   raiz:'natural',
+  flora:'natural',     lodo:'terreo',       cinzas:'cinzas',
+  argila:'terreo',     nevoa:'nebuloso',      poeira:'abrasivo',
+  espinho:'natural',   raiz:'radicular',
 };
 
 // Regras de fusão: par de tipos → {name, ico, desc, tierOffset, multBonus}
@@ -620,17 +620,57 @@ const FUSION_RULES = {
   'natural+vital':       {name:'Sopro Vital',          ico:'🌬️',desc:'Vento revigorante que restaura a energia total e remove efeitos de exaustão.'},
   'solido+solido':       {name:'Superliga',            ico:'🛡️', desc:'O metal definitivo: leve como o ar, porém impossível de amassar.'},
   'solido+terreo':       {name:'Rocha Metamórfica',    ico:'🗿', desc:'Absorve impactos físicos e os devolve como ondas de choque.'},
-  'sonico+sombrio':      {name:'Silêncio Obscuro',     ico:'🌑', desc:'Privação sensorial total; mergulha o alvo em pânico e desorientação.'},
+  'sonico+sombrio':      {name:'Neblina Sombria',      ico:'👤', desc:'Cortina de fumaça viva que permite teletransporte entre sombras.'},
   'sonico+temporal':     {name:'Eco Temporal',         ico:'⏪', desc:'Gritos que ecoam pelo tempo, permitindo prever ataques ou alterar o passado.'},
   'sonico+vacuo':        {name:'Silêncio Absoluto',    ico:'🔇', desc:'Remove o meio de propagação física; explosões e impactos tornam-se nulos.'},
-  'sombrio+sonico':      {name:'Neblina Sombria',      ico:'👤', desc:'Cortina de fumaça viva que permite teletransporte entre sombras.'},
-  'sombrio+vital':       {name:'Sombra Viva',          ico:'👤', desc:'Sombras com consciência própria que agem como guardiões ou espiões perfeitos.'},
+  'sombrio+vital':       {name:'Espelho de Sangue',  ico:'🩸', desc:'Poça de sangue que reflete sombras do passado, revelando segredos ou invocando formas do inconsciente.'},
   'temporal+vacuo':      {name:'Apagamento',           ico:'⬛', desc:'Retira o alvo da linha do tempo, como se nunca tivesse existido.'},
   'temporal+vital':      {name:'Sangue do Tempo',      ico:'🩸', desc:'Permite visualizar e acessar a memória genética de todas as eras.'},
   'terreo+gasoso':       {name:'Terremoto',            ico:'🌍', desc:'Ondas sísmicas que se propagam pelo ar e pelo chão simultaneamente.'},
   'terreo+igneo':        {name:'Cerâmica',             ico:'🏺', desc:'Cascas defensivas que endurecem sob calor extremo.'},
   'terreo+vital':        {name:'Fertilidade',          ico:'🌱', desc:'Torna o solo fértil instantaneamente; faz plantas crescerem em segundos.'},
   'toxico+vital':        {name:'Mutação',              ico:'🧬', desc:'Crescimento grotesco e acelerado; organismos tornam-se predadores imprevisíveis.'},
+
+  // ═══ NOVAS FUSÕES ═══
+  // Tier 0 — Cósmicas
+  'escuro_cosmico+gravitacional': {name:'Singularidade',          ico:'🕳️', desc:'Colapso gravitacional infinito que apaga dimensões inteiras; nada — nem luz, nem conceito — escapa.'},
+  'espacial+vacuo':          {name:'Horizonte de Eventos',   ico:'🌌', desc:'Fronteira além da qual as leis da física deixam de existir; criaturas aprisionadas perdem toda forma e memória.'},
+  'caotico+gravitacional':   {name:'Vetor do Caos',          ico:'🌀', desc:'Distorce a força gravitacional de forma imprevisível, podendo inverter a atração de planetas ou fragmentar estrelas.'},
+  // Tier 1 — Energéticas
+  'eletrico+radioativo':     {name:'Pulsar',                 ico:'💫', desc:'Emissão rítmica de energia em ondas que destroem circuitos biológicos e tecnológicos em raio continental.'},
+  'gasoso+magmatico':        {name:'Névoa Ardente',          ico:'🌋', desc:'Cortina de gases superaquecidos que carbonizam pulmões; avança lentamente mas é impossível de conter.'},
+  'eletrico+igneo':          {name:'Coroa Solar',            ico:'☀️', desc:'Anel de plasma solar que incendeia a atmosfera local; tudo no raio se torna combustível.'},
+  'arcano+gasoso':           {name:'Vórtice Etéreo',         ico:'🌀', desc:'Redemoinho de energia pura que suga a vontade dos oponentes, dissolvendo magias e intenções antes de agir.'},
+  'radioativo+voltaico':     {name:'Tempestade Gamma',       ico:'⚡', desc:'Descarga ionizante que queima por dentro e por fora simultaneamente; tecidos e armaduras viram pó em segundos.'},
+  'eletrico+natural':        {name:'Espinho Solar',          ico:'🌵', desc:'Lanças de plasma vegetais que penetram qualquer escudo mágico; combinam o orgânico com o cósmico.'},
+  // Tier 2 — Corrupção e matéria
+  'corruptivo+gasoso':       {name:'Hálito Pútrido',         ico:'🌬️', desc:'Vento que carrega a decomposição — cada respiração avança a necrose nos tecidos vivos.'},
+  'gelido+sombrio':          {name:'Lâmina de Sombra',       ico:'🌑', desc:'Fragmentos de escuridão solidificada que cortam tanto a carne quanto o espírito projetado do alvo.'},
+  'necrotico+vital':         {name:'Coágulo Sombrio',        ico:'🩸', desc:'O sangue para de fluir e se solidifica em grumos que pressionam os órgãos por dentro.'},
+  'corruptivo+sonico':       {name:'Ecos da Podridão',       ico:'🔊', desc:'Frequência sônica que ressoa com tecidos em decomposição, acelerando a putrefação apenas ao ouvir.'},
+  'solido+sombrio':          {name:'Espelho Negro',          ico:'🪞', desc:'Superfície que absorve a identidade do alvo refletido; quem olha perde o senso de si mesmo progressivamente.'},
+  'corrosivo+gasoso':        {name:'Bruma Ácida',            ico:'☠️', desc:'Névoa invisível de partículas corrosivas que dissolve armaduras de dentro para fora sem contato direto.'},
+  'abrasivo+mortal':         {name:'Crisálide Mortal',       ico:'⏳', desc:'Areia que enterra o alvo vivo e drena sua força vital durante a asfixia, convertendo-a em energia.'},
+  'corrosivo+terreo':        {name:'Lodo Corrosivo',         ico:'🟫', desc:'Pasta viscosa ácida que gruda e corrói simultaneamente; impossível de remover sem piorar o dano.'},
+  'natural+sonico':          {name:'Grito da Floresta',      ico:'🌿', desc:'Resonância vegetal que libera esporos explosivos ao atingir frequência crítica — detonação orgânica em cadeia.'},
+  'nebuloso+toxico':         {name:'Nevoeiro Venenoso',      ico:'🐍', desc:'Névoa que entrega veneno diretamente pelo trato respiratório; difícil de detectar e impossível de evitar.'},
+  // Tier 3 — Híbridas
+  'osseo+sonico':            {name:'Ressonância Óssea',      ico:'💀', desc:'Vibração calibrada para a frequência dos ossos do alvo; fraturas internas sem nenhum contato físico visível.'},
+  'abrasivo+luminoso':       {name:'Vitral',                 ico:'🔮', desc:'Refração controlada que cria ilusões perfeitas e lasers de precisão cirúrgica a partir de qualquer fonte luminosa.'},
+  'igneo+mercurial':         {name:'Mercúrio Ardente',       ico:'🔥', desc:'Metal líquido em chamas que adere à pele e não pode ser apagado com água — expande ao tentar remover.'},
+  'eletrico+espumoso':       {name:'Espuma Elétrica',        ico:'⚡', desc:'Bolhas condutoras que explodem em descargas ao mínimo toque; cria campo minado eletrostático.'},
+  'arenoso+nebuloso':        {name:'Névoa de Areia',         ico:'🌫️', desc:'Partículas de areia suspensas em névoa que laceram internamente ao serem inaladas.'},
+  'gasoso+gelido':           {name:'Seda de Gelo',           ico:'❄️', desc:'Fumaça que congela instantaneamente em contato com o alvo, criando uma armadura de prisão de gelo.'},
+  'cinzas+gasoso':           {name:'Véu de Cinzas',          ico:'🌫️', desc:'Nuvem de cinzas suspensas que abafa fogo, bloqueia visão e sufoca — perfeita para emboscadas lentas.'},
+  'radicular+terreo':        {name:'Raiz de Pedra',          ico:'🌱', desc:'Raízes que perfuram e fragmentam rochas; podem minar fundações de castelos ou prender gigantes.'},
+  // Tier 4 — Materiais raros
+  'gasoso+solido':           {name:'Platina Espelhada',      ico:'✨', desc:'Névoa metálica que endurece ao contato com energia mágica, formando armaduras espontâneas.'},
+  'vulcanico+gasoso':        {name:'Obsidiana Fumacenta',    ico:'🌑', desc:'Fragmentos de vidro vulcânico suspensos em fumaça — uma nuvem de navalhas invisíveis.'},
+  'metalico+sombrio':        {name:'Aço Sombrio',            ico:'⚔️', desc:'Metal que absorve luz e ataques mágicos; torna armas feitas com ele imperceptíveis no escuro.'},
+  'radioativo+solido':       {name:'Âmbar Radioativo',       ico:'💎', desc:'Cristais translúcidos que emitem radiação focada; belas e mortais, usadas como prisões ou armadilhas.'},
+  'metalico+terreo':         {name:'Coluna de Titânio',      ico:'🏛️', desc:'Pilares de metal emergem do chão de forma instantânea; podem murar cidades ou esmagar alvos verticalmente.'},
+  'gelido+pedroso':          {name:'Mármore Gelado',         ico:'🪨', desc:'Superfície perfeitamente polida e congelante; propaga o frio por contato e reflete impactos com dureza máxima.'},
+
   'vacuo+vital':         {name:'Vácuo Vital',          ico:'🌑', desc:'Drena a força vital ao criar vácuo interno nos tecidos do alvo.'},
 }
 
