@@ -561,11 +561,10 @@ const FUSION_RULES = {
   'aquatico+toxico':     {name:'Toxina Líquida',       ico:'🐍', desc:'Contamina correntes d\'água; paralisia instantânea ao contato.'},
   'aquatico+vital':      {name:'Água da Vida',         ico:'💧', desc:'Cura ferimentos graves e prolonga a vida; pode reverter o envelhecimento.'},
   'arcano+caotico':      {name:'Éter Caótico',         ico:'✨', desc:'Altera as leis da física; cria áreas de gravidade zero ou fluxo temporal lento.'},
-  'arcano+gravitacional':{name:'Essência Divina',      ico:'🌟', desc:'Manifestação da vontade pura; cura o incurável ou cria matéria do nada.'},
   'arcano+luminoso':     {name:'Luz Arcana',           ico:'💫', desc:'Energia pura que dissolve escudos mágicos e queima almas.'},
   'arcano+mortal':       {name:'Morte Arcana',         ico:'🌑', desc:'Feitiço que apaga a faísca vital diretamente, sem dano físico.'},
   'arcano+sombrio':      {name:'Sombra Arcana',        ico:'🌒', desc:'Magia das trevas que corrói a mente e o corpo simultaneamente.'},
-  'arcano+temporal':     {name:'Eco Temporal',         ico:'⏪', desc:'Gritos que ecoam pelo tempo, permitindo prever ataques ou alterar o passado.'},
+  'arcano+temporal':     {name:'Crônica Etérea',       ico:'✨', desc:'A energia primordial do éter flui através de todas as eras simultaneamente.'},
   'caotico+corruptivo':  {name:'Vida Caótica',         ico:'💚', desc:'Gera mutações aleatórias em seres vivos (cura, fortalece ou deforma o alvo).'},
   'caotico+corrosivo':   {name:'Ácido Instável',       ico:'⚗️', desc:'Corrosão aleatória que pode dissolver armadura completa em instantes.'},
   'caotico+espacial':    {name:'Dobra Dimensional',    ico:'🌌', desc:'Abre portais instáveis para dimensões aleatórias; invoca criaturas ou distorce a realidade.'},
@@ -611,6 +610,7 @@ const FUSION_RULES = {
   'igneo+vital':         {name:'Fênix',                ico:'🔥', desc:'Chamas douradas que curam, regeneram e queimam; renasce das cinzas se destruída.'},
   'luminoso+mortal':     {name:'Fosforescência',       ico:'💡', desc:'Brilho que drena a vitalidade; quanto mais brilha, mais vida consome.'},
   'luminoso+sombrio':    {name:'Eclipse',              ico:'🌑', desc:'Trevas absolutas seguidas de luz devastadora — paralisa e queima.'},
+  'mortal+voltaico':     {name:'Pulso Fúnebre',        ico:'💀', desc:'Descarga elétrica que faz o coração parar, os neurônios se apagam, mas o corpo permanece intacto.'},
   'mortal+sombrio':      {name:'Espectro',             ico:'👻', desc:'Invoca uma entidade sombria persistente que drena a vitalidade dos inimigos.'},
   'mortal+sonico':       {name:'Grito da Morte',       ico:'💀', desc:'Som que ressoa apenas para o alvo — silencioso externamente, letal internamente.'},
   'mortal+temporal':     {name:'Fim dos Tempos',       ico:'⏳', desc:'Acelera o envelhecimento ou encerra ciclos instantaneamente; pode destruir eras inteiras.'},
@@ -1392,7 +1392,7 @@ function buildTitle(){
     grid.appendChild(d);
   });
 }
-function startGame(){if(!selectedCls)return;newG(selectedCls);hide('s-title');show('s-game');upd();navTo('explore');}
+function startGame(){if(!selectedCls)return;pendingLevelUp=false;pendingSubclass=false;newG(selectedCls);hide('s-title');show('s-game');upd();navTo('explore');}
 function goTitle(){
   ['s-death','s-win'].forEach(hide);
   G=null;CE=null;combatLog=[];pendingLevelUp=false;pendingSubclass=false;selectedCls=null;
@@ -3656,7 +3656,7 @@ function renderStats(sc){
     <div class="stat-table">${rows.map(([l,v])=>`<div class="srow"><div class="slbl">${l}</div><div class="sval" style="font-size:${String(v).length>6?'12':'17'}px;">${v}</div></div>`).join('')}</div>${passHtml}
     ${renderMissions()}
     <div style="margin-top:18px;text-align:center;">
-      <button onclick="openCheatMenu()" style="background:transparent;border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:5px 14px;font-family:var(--cinzel);font-size:9px;color:rgba(255,255,255,.15);letter-spacing:2px;cursor:pointer;">⚙ debug</button>
+      <button onclick="openCheatMenu()" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 14px;font-family:var(--cinzel);font-size:9px;color:rgba(255,255,255,.4);letter-spacing:2px;cursor:pointer;transition:.2s;" onmouseover="this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.color='rgba(255,255,255,.4)'">⚙ debug</button>
     </div>`;
   sc.appendChild(card);scrollBot(sc);
 }
@@ -3667,7 +3667,7 @@ function openCheatMenu(){
   const ov=document.createElement('div');ov.id='cheat-overlay';
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9500;display:flex;align-items:flex-end;padding:12px;';
   const allItems=[...ITEMS_POOL];
-  const allElements=[...ELEMENTS,...FUSIONS];
+  const allElements=[...ELEMENTS,...getAvailFusions(false)];
   ov.innerHTML=`
     <div class="cheat-sheet">
       <div class="cheat-header">
@@ -3711,7 +3711,7 @@ function renderCheatItems(){
 function renderCheatElements(){
   const q=($('cheat-el-search')?.value||'').toLowerCase();
   const list=$('cheat-el-list');if(!list)return;
-  const all=[...ELEMENTS,...FUSIONS];
+  const all=[...ELEMENTS,...getAvailFusions(false)];
   const filtered=all.filter(e=>e.name.toLowerCase().includes(q)||e.desc.toLowerCase().includes(q));
   list.innerHTML=filtered.slice(0,20).map(e=>`
     <button class="cheat-btn" style="justify-content:flex-start;gap:8px;text-align:left;" onclick="cheatAddElement('${e.id}')">
