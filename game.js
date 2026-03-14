@@ -442,10 +442,10 @@ const UPGRADES=[
   {id:'crit_dmg', name:'Golpe Fatal',    ico:'💥', desc:'Críticos causam 2.5x',     tag:'off',  fn:G=>{G.critMult=2.5;}},
   {id:'mana_burn',name:'Queima de Mana', ico:'🔵🔥',desc:'Ataques drenam 3 MP do inimigo',tag:'magic',fn:G=>{G.passives.push('manaburn');}},
   {id:'fortress', name:'Fortaleza',      ico:'🏰', desc:'+6 DEF, -1 VEL',          tag:'def',  fn:G=>{G.def+=6;G.spd=Math.max(1,G.spd-1);}},
-  {id:'mpregen1', name:'Fluxo de Mana',  ico:'🔵', desc:'+2 MP/sala (acumulativo)', tag:'magic',fn:G=>{G.mpRegen+=2;toast('MP/sala: '+G.mpRegen+'🔵');}},
-  {id:'mpregen2', name:'Canalização',    ico:'💠', desc:'+2 MP/sala (acumulativo)', tag:'magic',fn:G=>{G.mpRegen+=2;toast('MP/sala: '+G.mpRegen+'🔵');}},
-  {id:'mpregen3', name:'Reservatório',   ico:'🌀', desc:'+2 MP/sala (acumulativo)', tag:'magic',fn:G=>{G.mpRegen+=2;toast('MP/sala: '+G.mpRegen+'🔵');}},
-  {id:'mpregen4', name:'Fonte Arcana',   ico:'⚡', desc:'+4 MP/sala (acumulativo)', tag:'magic',fn:G=>{G.mpRegen+=4;toast('MP/sala: '+G.mpRegen+'🔵');}},
+  {id:'mpregen1', name:'Fluxo de Mana',  ico:'🔵', desc:'+2 MP/sala', tag:'magic',fn:G=>{G.mpRegen+=2;toast('MP/sala: '+G.mpRegen+'🔵');}},
+  {id:'mpregen2', name:'Canalização',    ico:'💠', desc:'+3 MP/sala (requer Fluxo de Mana)', tag:'magic',req:'mpregen1',fn:G=>{G.mpRegen+=3;toast('MP/sala: '+G.mpRegen+'🔵');}},
+  {id:'mpregen3', name:'Reservatório',   ico:'🌀', desc:'+4 MP/sala (requer Canalização)', tag:'magic',req:'mpregen2',fn:G=>{G.mpRegen+=4;toast('MP/sala: '+G.mpRegen+'🔵');}},
+  {id:'mpregen4', name:'Fonte Arcana',   ico:'⚡', desc:'+6 MP/sala (requer Reservatório)', tag:'magic',req:'mpregen3',fn:G=>{G.mpRegen+=6;toast('MP/sala: '+G.mpRegen+'🔵');}},
 ];
 
 /* ═══ ELEMENTOS ═══ */
@@ -1603,8 +1603,11 @@ function showEvent(ev,sc){
       <div class="chinner"><span class="chtxt">${ch.txt}</span>
       ${ch.hint?`<span class="chhint ${ch.hintcls||''}">${ch.hint}</span>`:''}</div>`;
     btn.onclick=()=>{
-      card.querySelectorAll('.chbtn').forEach(b=>{b.disabled=true;b.style.opacity=b===btn?'1':'0.25';b.style.transform='none';});
-      btn.style.borderColor='rgba(200,168,75,.6)';btn.style.background='rgba(200,168,75,.08)';
+      // Ferreiro: não trava os outros botões — permite navegar livremente entre serviços
+      if(ev.id!=='blacksmith'){
+        card.querySelectorAll('.chbtn').forEach(b=>{b.disabled=true;b.style.opacity=b===btn?'1':'0.25';b.style.transform='none';});
+        btn.style.borderColor='rgba(200,168,75,.6)';btn.style.background='rgba(200,168,75,.08)';
+      }
       doChoice(ev,ch,sc);
     };
     cw.appendChild(btn);
@@ -2408,7 +2411,18 @@ function renderLevelUp(sc){
   const bonus=G.bonusUpgrades||0;
   const count=3+bonus;
   if(bonus>0){G.bonusUpgrades=0;toast('⭐ Fragmento de Estrela: +1 opção de talento!',2000);}
-  const pool=[...UPGRADES].sort(()=>Math.random()-.5).slice(0,count);
+  // Filtra upgrades: remove já adquiridos e os que têm req não cumprido
+  const acquired=new Set(G.upgrades.map(u=>typeof u==='string'?u:u));
+  const acquiredIds=new Set(
+    UPGRADES.filter(u=>G.upgrades.includes(u.name)).map(u=>u.id)
+  );
+  const eligible=UPGRADES.filter(u=>{
+    if(acquiredIds.has(u.id)) return false; // já tem
+    if(u.req&&!acquiredIds.has(u.req)) return false; // pré-requisito não cumprido
+    return true;
+  });
+  const pool=(eligible.length>=count?eligible:[...eligible,...UPGRADES.filter(u=>!acquiredIds.has(u.id))])
+    .sort(()=>Math.random()-.5).slice(0,count);
   const tlbls={off:'Ofensivo',def:'Defensivo',magic:'Mágico',util:'Utilitário'};
   card.innerHTML=`
     <div class="ctag"><div class="ctag-dot" style="background:var(--gold2)"></div><span class="ctag-txt" style="color:var(--gold2)">SUBIU DE NÍVEL</span></div>
@@ -2616,16 +2630,17 @@ function renderCombat(sc){
   const card=mkCard(CE.elite?'elite':'combat');
   const el=CE.elite;
   const activeEl=G.activeElement;
-  // Determina a skill exibida no botão: elemental se mago com elemento ativo, senão skill1
+  // Skill primária: sempre mostra a skill da classe (Bola de Fogo, etc.)
+  // A Magia Elemental foi movida para o botão sk2 (Fusão Elemental)
   const sk=G.skills[0];
   const isMageEl=activeEl&&G.cls.id==='mage';
-  const skIco=isMageEl?activeEl.ico:sk.ico;
-  const skName=isMageEl?activeEl.name:sk.name;
-  const skDesc=isMageEl?activeEl.desc:sk.desc;
-  const rawMp=isMageEl?22:sk.mp;
+  const skIco=sk.ico;
+  const skName=sk.name;
+  const skDesc=sk.desc;
+  const rawMp=sk.mp;
   const skMp=Math.max(0,rawMp-(G.mpDiscount||0));
-  const skType=isMageEl?'elemental':sk.type;
-  // Carga elemental — indicador de progresso
+  const skType=sk.type;
+  // Carga elemental — indicador de progresso (mantido para referência visual)
   const chargeCount=G._elChargeCount||0;
   const isCharging=isMageEl&&G._elChargeEl===activeEl?.id&&chargeCount>0;
   const chargePips=isMageEl?`<span class="charge-pips">${[1,2,3].map(i=>`<span class="cpip${chargeCount>=i?' active':''}${chargeCount>=3?' full':''}"></span>`).join('')}</span>`:'';
