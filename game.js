@@ -672,6 +672,7 @@ const FUSION_RULES = {
   'gelido+pedroso':          {name:'Mármore Gelado',         ico:'🪨', desc:'Superfície perfeitamente polida e congelante; propaga o frio por contato e reflete impactos com dureza máxima.'},
 
   'vacuo+vital':         {name:'Vácuo Vital',          ico:'🌑', desc:'Drena a força vital ao criar vácuo interno nos tecidos do alvo.'},
+  'sombrio+sombrio':      {name:'Abismo Sombrio',        ico:'🌑', desc:'Cria uma região de escuridão absoluta onde as sombras se tornam entidades hostis, drenando vida e causando medo.'},
 }
 
 function tryFuse(id1, id2){
