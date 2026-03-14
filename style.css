@@ -4,68 +4,126 @@
 
 /* ── TEMAS ── */
 :root {
-  --bg:#0a0709;--bg2:#110d0f;--surf:#180f12;--surf2:#1e1318;--surf3:#241820;
-  --brd:#3a2530;--brd2:#4f3340;--brd3:#6b4455;
-  --acc:#c8824b;--acc2:#e8aa70;--acc3:#f0c898;--acc-glow:rgba(200,130,75,.35);
-  --red:#b03030;--red2:#e05040;--grn:#4a9660;--grn2:#70c080;
-  --blu:#3870a8;--blu2:#60a0d8;--pur:#8040a0;
-  --txt:#e0c8b8;--txt2:#8a6a5a;--txt3:#5a3a30;
-  --common:#a09080;--rare:#4888cc;--epic:#9050b0;--legendary:#d06020;
+  /* GRIMÓRIO — Manuscrito arcano, pergaminho e âmbar */
+  --bg:#12090a;--bg2:#1a0e10;--surf:#221318;--surf2:#2a1820;--surf3:#321d28;
+  --brd:#50302a;--brd2:#704030;--brd3:#906050;
+  --acc:#d4884a;--acc2:#f0a860;--acc3:#ffd090;--acc-glow:rgba(212,136,74,.4);
+  --red:#c03828;--red2:#f05838;--grn:#4a9858;--grn2:#72c878;
+  --blu:#3878b8;--blu2:#60a8e8;--pur:#9048b8;
+  --txt:#f2dcc0;--txt2:#b07858;--txt3:#785040;
+  --common:#c8a880;--rare:#5898e0;--epic:#a858c8;--legendary:#e87820;
   --cinzel:'Cinzel',serif;
 }
 [data-theme="ice"] {
-  --bg:#060c12;--bg2:#0b1520;--surf:#0e1e2e;--surf2:#132438;--surf3:#182c44;
-  --brd:#1e3a52;--brd2:#2a5070;--brd3:#3a6888;
-  --acc:#40b8e8;--acc2:#70d0f8;--acc3:#a8e8ff;--acc-glow:rgba(64,184,232,.35);
-  --red:#b04060;--red2:#e06080;--grn:#40a080;--grn2:#60c8a8;
-  --blu:#2888c8;--blu2:#50b0f0;--pur:#6050c0;
-  --txt:#c0ddf0;--txt2:#5888a8;--txt3:#305870;
-  --common:#8899aa;--rare:#40a0e0;--epic:#8060d8;--legendary:#e0a020;
+  /* CRIPTA DE GELO — Cristal ártico, azul cobalto vivo */
+  --bg:#030a14;--bg2:#071220;--surf:#0c1c30;--surf2:#102540;--surf3:#162e50;
+  --brd:#204870;--brd2:#3068a0;--brd3:#4888c8;
+  --acc:#48c8f8;--acc2:#80e0ff;--acc3:#b8f0ff;--acc-glow:rgba(72,200,248,.42);
+  --red:#d04870;--red2:#f06898;--grn:#38b898;--grn2:#60e0c0;
+  --blu:#2890e0;--blu2:#58b8ff;--pur:#7060e0;
+  --txt:#d8eeff;--txt2:#78a8d0;--txt3:#406888;
+  --common:#90a8c0;--rare:#40b0f8;--epic:#8870f0;--legendary:#f0b820;
 }
 [data-theme="inferno"] {
-  --bg:#0c0500;--bg2:#180900;--surf:#200c00;--surf2:#2a1000;--surf3:#341400;
-  --brd:#4a1c00;--brd2:#6a2800;--brd3:#8a3800;
-  --acc:#ff5510;--acc2:#ff8040;--acc3:#ffaa70;--acc-glow:rgba(255,85,16,.4);
-  --red:#c02000;--red2:#ff4020;--grn:#608020;--grn2:#90b830;
-  --blu:#304080;--blu2:#5070c0;--pur:#882090;
-  --txt:#f0c898;--txt2:#906040;--txt3:#604020;
-  --common:#b09070;--rare:#4080d0;--epic:#c040c0;--legendary:#ff8800;
+  /* FORJA INFERNAL — Lava vulcânica, brasa e cinza quente */
+  --bg:#100500;--bg2:#1c0800;--surf:#280d00;--surf2:#341200;--surf3:#401800;
+  --brd:#602010;--brd2:#882818;--brd3:#b03820;
+  --acc:#ff6820;--acc2:#ff9448;--acc3:#ffbe80;--acc-glow:rgba(255,104,32,.45);
+  --red:#e82000;--red2:#ff4810;--grn:#809020;--grn2:#b8d030;
+  --blu:#384898;--blu2:#5870d8;--pur:#a030a8;
+  --txt:#ffd8a0;--txt2:#c07848;--txt3:#885030;
+  --common:#c89060;--rare:#4888e0;--epic:#d040c8;--legendary:#ff9800;
 }
 [data-theme="void"] {
-  --bg:#070510;--bg2:#0d0a1a;--surf:#110e22;--surf2:#16132c;--surf3:#1c1836;
-  --brd:#2a2450;--brd2:#3d3570;--brd3:#554e90;
-  --acc:#a060f0;--acc2:#c090ff;--acc3:#dab8ff;--acc-glow:rgba(160,96,240,.38);
-  --red:#b03060;--red2:#e04080;--grn:#4080a0;--grn2:#60b0d0;
-  --blu:#3050c0;--blu2:#5080f0;--pur:#8040c0;
-  --txt:#d0c8f0;--txt2:#7060a0;--txt3:#483870;
-  --common:#9088b0;--rare:#40a0d0;--epic:#c060e0;--legendary:#f0a020;
+  /* VAZIO ARCANO — Nebulosa cósmica, violeta e índigo */
+  --bg:#080512;--bg2:#0f0920;--surf:#15102e;--surf2:#1c163c;--surf3:#231d4a;
+  --brd:#382860;--brd2:#503880;--brd3:#6848a8;
+  --acc:#b068ff;--acc2:#d090ff;--acc3:#ecc8ff;--acc-glow:rgba(176,104,255,.42);
+  --red:#c03878;--red2:#f05898;--grn:#3898b8;--grn2:#58c8e0;
+  --blu:#3860d8;--blu2:#6090ff;--pur:#9040d0;
+  --txt:#e8d8ff;--txt2:#9878c8;--txt3:#604888;
+  --common:#a890c8;--rare:#48b8e8;--epic:#d068f8;--legendary:#f8b020;
 }
 [data-theme="nature"] {
-  --bg:#060a06;--bg2:#0a100a;--surf:#0e1810;--surf2:#121e14;--surf3:#162418;
-  --brd:#1e3820;--brd2:#2a5030;--brd3:#3a6840;
-  --acc:#58c060;--acc2:#88e090;--acc3:#b8f0b8;--acc-glow:rgba(88,192,96,.32);
-  --red:#a04030;--red2:#d06040;--grn:#308040;--grn2:#50c060;
-  --blu:#306080;--blu2:#50a0c0;--pur:#607040;
-  --txt:#c8e0c0;--txt2:#608060;--txt3:#385840;
-  --common:#809880;--rare:#40a0a0;--epic:#80b040;--legendary:#d09020;
+  /* FLORESTA ANTIGA — Esmeralda e jade bioluminescente */
+  --bg:#040c06;--bg2:#081408;--surf:#0d1e10;--surf2:#122818;--surf3:#183220;
+  --brd:#205030;--brd2:#307848;--brd3:#409860;
+  --acc:#40d870;--acc2:#70f098;--acc3:#a8ffc0;--acc-glow:rgba(64,216,112,.38);
+  --red:#c04828;--red2:#f07038;--grn:#28a850;--grn2:#48e878;
+  --blu:#2878a0;--blu2:#48b0d8;--pur:#608848;
+  --txt:#c8f0d0;--txt2:#609870;--txt3:#387850;
+  --common:#78b888;--rare:#38b8c0;--epic:#88d040;--legendary:#e8a818;
 }
 [data-theme="blood"] {
-  --bg:#080408;--bg2:#100810;--surf:#180c18;--surf2:#200e20;--surf3:#281228;
-  --brd:#3a1838;--brd2:#502050;--brd3:#702870;
-  --acc:#e02060;--acc2:#ff5090;--acc3:#ff90b8;--acc-glow:rgba(224,32,96,.38);
-  --red:#c01030;--red2:#f03060;--grn:#804080;--grn2:#b060b0;
-  --blu:#402080;--blu2:#6040c0;--pur:#c020c0;
-  --txt:#f0c8d8;--txt2:#906080;--txt3:#603858;
-  --common:#a08090;--rare:#6040d0;--epic:#d030d0;--legendary:#ff6000;
+  /* PACTO DE SANGUE — Rubi ardente, carmim e ouro antigo */
+  --bg:#0e0408;--bg2:#180610;--surf:#240818;--surf2:#2e0a20;--surf3:#380d28;
+  --brd:#601830;--brd2:#902040;--brd3:#c02850;
+  --acc:#f02858;--acc2:#ff5878;--acc3:#ff90a8;--acc-glow:rgba(240,40,88,.45);
+  --red:#d81020;--red2:#ff3040;--grn:#986828;--grn2:#d89838;
+  --blu:#582898;--blu2:#8848d8;--pur:#d030b8;
+  --txt:#ffd8e0;--txt2:#c06070;--txt3:#884050;
+  --common:#c07880;--rare:#7848e0;--epic:#e030c0;--legendary:#ff6818;
 }
 
+
+[data-theme="relic"] {
+  /* RELÍQUIA DOURADA — Ouro antigo, bronze e sépia envelhecida */
+  --bg:#0e0a02;--bg2:#181202;--surf:#221a04;--surf2:#2c2206;--surf3:#382c08;
+  --brd:#584010;--brd2:#785818;--brd3:#a07828;
+  --acc:#d4a020;--acc2:#f0c030;--acc3:#ffe870;--acc-glow:rgba(212,160,32,.42);
+  --red:#c03818;--red2:#e85828;--grn:#507818;--grn2:#78b020;
+  --blu:#384880;--blu2:#5878c0;--pur:#784090;
+  --txt:#ffe8b0;--txt2:#c09840;--txt3:#887020;
+  --common:#c09848;--rare:#4878d8;--epic:#a048b8;--legendary:#ff9808;
+  --cinzel:'Cinzel',serif;
+}
+[data-theme="temple"] {
+  /* TEMPLO SOMBRIO — Pedra negra com ouro e runas luminosas */
+  --bg:#080808;--bg2:#101010;--surf:#181818;--surf2:#202020;--surf3:#2a2a2a;
+  --brd:#383020;--brd2:#504828;--brd3:#706030;
+  --acc:#c8a028;--acc2:#e8c038;--acc3:#fff080;--acc-glow:rgba(200,160,40,.4);
+  --red:#b82018;--red2:#e84020;--grn:#408028;--grn2:#68b840;
+  --blu:#304888;--blu2:#5070c8;--pur:#7838a8;
+  --txt:#f0e8c0;--txt2:#a09040;--txt3:#706028;
+  --common:#a09050;--rare:#4878e8;--epic:#9840c0;--legendary:#ff8808;
+  --cinzel:'Cinzel',serif;
+}
+[data-theme="nebula"] {
+  /* NEBULOSA CARMIM — Rosa cósmico, magenta e pérola */
+  --bg:#0e0610;--bg2:#180a18;--surf:#220e22;--surf2:#2c1230;--surf3:#38183e;
+  --brd:#602060;--brd2:#903080;--brd3:#c04098;
+  --acc:#e840a8;--acc2:#ff68c0;--acc3:#ffa0d8;--acc-glow:rgba(232,64,168,.42);
+  --red:#e02030;--red2:#ff4040;--grn:#8848c8;--grn2:#b070e8;
+  --blu:#4030c0;--blu2:#6858f0;--pur:#c828c0;
+  --txt:#ffe0f0;--txt2:#d068a8;--txt3:#904870;
+  --common:#c07898;--rare:#6858f0;--epic:#e030c8;--legendary:#ff8820;
+  --cinzel:'Cinzel',serif;
+}
+[data-theme="tundra"] {
+  /* TUNDRA ÁRTICA — Branco neve, azul gelo e prata */
+  --bg:#f0f4f8;--bg2:#e4eaf4;--surf:#fafcff;--surf2:#eef2fc;--surf3:#e0e8f8;
+  --brd:#a8c0d8;--brd2:#7898c0;--brd3:#5078a8;
+  --acc:#2860c0;--acc2:#3880e8;--acc3:#60a8ff;--acc-glow:rgba(40,96,192,.28);
+  --red:#c82018;--red2:#e83020;--grn:#187848;--grn2:#289860;
+  --blu:#1858b8;--blu2:#2878e0;--pur:#5030b0;
+  --txt:#080e20;--txt2:#204880;--txt3:#5878a8;
+  --common:#407898;--rare:#1860c8;--epic:#5028b8;--legendary:#a85800;
+  --gold:#8a5000;
+  --cinzel:'Cinzel',serif;
+}
 /* ── RESET ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html{height:100%;overflow:hidden;}
+html{
+  height:100%;height:100dvh;
+  overflow:hidden;
+}
 body{
   font-family:'Crimson Pro',serif;font-size:16px;color:var(--txt);
-  height:100%;overflow:hidden;background:var(--bg);
+  height:100%;height:100dvh;
+  overflow:hidden;background:var(--bg);
   max-width:100vw;
+  /* Trava total — sem resize por conteúdo */
+  position:fixed;inset:0;
 }
 
 /* Atmosfera de fundo */
@@ -90,7 +148,7 @@ body::before{
 /* ══════════════════════════════════════
    TÍTULO
 ══════════════════════════════════════ */
-#s-title{background:none;text-align:center;gap:0;}
+#s-title{background:none;text-align:center;gap:0;overflow-y:auto;padding:16px 16px 24px;}
 
 .t-rune{
   font-size:62px;margin-bottom:12px;display:inline-block;
@@ -224,30 +282,30 @@ body::before{
 .theme-card:hover{transform:translateY(-2px);}
 
 /* Pré-visualizações */
-.theme-card[data-t="grimorio"]{background:#180f12;}
-.theme-card[data-t="grimorio"] .tc-accent{background:#c8824b;}
-.theme-card[data-t="grimorio"] .tc-b{background:#e05040;}
-.theme-card[data-t="grimorio"] .tc-c{background:#4a9660;}
-.theme-card[data-t="ice"]{background:#0e1e2e;}
-.theme-card[data-t="ice"] .tc-accent{background:#40b8e8;}
-.theme-card[data-t="ice"] .tc-b{background:#e06080;}
-.theme-card[data-t="ice"] .tc-c{background:#40a080;}
-.theme-card[data-t="inferno"]{background:#200c00;}
-.theme-card[data-t="inferno"] .tc-accent{background:#ff5510;}
-.theme-card[data-t="inferno"] .tc-b{background:#ff4020;}
-.theme-card[data-t="inferno"] .tc-c{background:#90b830;}
-.theme-card[data-t="void"]{background:#110e22;}
-.theme-card[data-t="void"] .tc-accent{background:#a060f0;}
-.theme-card[data-t="void"] .tc-b{background:#e04080;}
-.theme-card[data-t="void"] .tc-c{background:#5080f0;}
-.theme-card[data-t="nature"]{background:#0e1810;}
-.theme-card[data-t="nature"] .tc-accent{background:#58c060;}
-.theme-card[data-t="nature"] .tc-b{background:#d06040;}
-.theme-card[data-t="nature"] .tc-c{background:#50a0c0;}
-.theme-card[data-t="blood"]{background:#180c18;}
-.theme-card[data-t="blood"] .tc-accent{background:#e02060;}
-.theme-card[data-t="blood"] .tc-b{background:#f03060;}
-.theme-card[data-t="blood"] .tc-c{background:#c020c0;}
+.theme-card[data-t="grimorio"]{background:#221318;}
+.theme-card[data-t="grimorio"] .tc-accent{background:#d4884a;}
+.theme-card[data-t="grimorio"] .tc-b{background:#f05838;}
+.theme-card[data-t="grimorio"] .tc-c{background:#72c878;}
+.theme-card[data-t="ice"]{background:#0c1c30;}
+.theme-card[data-t="ice"] .tc-accent{background:#48c8f8;}
+.theme-card[data-t="ice"] .tc-b{background:#f06898;}
+.theme-card[data-t="ice"] .tc-c{background:#60e0c0;}
+.theme-card[data-t="inferno"]{background:#280d00;}
+.theme-card[data-t="inferno"] .tc-accent{background:#ff6820;}
+.theme-card[data-t="inferno"] .tc-b{background:#ff4810;}
+.theme-card[data-t="inferno"] .tc-c{background:#b8d030;}
+.theme-card[data-t="void"]{background:#15102e;}
+.theme-card[data-t="void"] .tc-accent{background:#b068ff;}
+.theme-card[data-t="void"] .tc-b{background:#f05898;}
+.theme-card[data-t="void"] .tc-c{background:#6090ff;}
+.theme-card[data-t="nature"]{background:#0d1e10;}
+.theme-card[data-t="nature"] .tc-accent{background:#40d870;}
+.theme-card[data-t="nature"] .tc-b{background:#f07038;}
+.theme-card[data-t="nature"] .tc-c{background:#48b0d8;}
+.theme-card[data-t="blood"]{background:#240818;}
+.theme-card[data-t="blood"] .tc-accent{background:#f02858;}
+.theme-card[data-t="blood"] .tc-b{background:#ff3040;}
+.theme-card[data-t="blood"] .tc-c{background:#d89838;}
 
 /* Descrição do card de tema */
 .tc-desc{font-size:10px;color:var(--txt3);margin-top:4px;font-style:italic;}
@@ -271,6 +329,9 @@ body::before{
   grid-template-rows:auto 1fr auto;
   overflow:hidden;padding:0;
   width:100%;max-width:100vw;
+  height:100%;height:100dvh;
+  /* Grade travada: HUD | conteúdo scroll | bbar */
+  contain:strict;
 }
 
 /* ── HUD ── */
@@ -370,13 +431,19 @@ body::before{
 #scroll{
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
+  /* Altura determinada pelo grid — nunca cresce além */
   min-height:0;
+  height:100%;
   display:flex;flex-direction:column;gap:10px;
-  justify-content:center;
+  /* SEMPRE alinhado ao topo — sem resize por conteúdo */
+  justify-content:flex-start;
   padding:10px 12px 12px;
   background-image:radial-gradient(ellipse 100% 40% at 50% 100%,rgba(200,130,75,.03) 0%,transparent 70%);
   width:100%;
+  /* Scroll suave sem bounce */
+  overscroll-behavior:contain;
 }
+/* Classe mantida para compatibilidade, sem efeito visual */
 #scroll.has-combat{justify-content:flex-start;}
 #scroll::-webkit-scrollbar{width:3px;}
 #scroll::-webkit-scrollbar-thumb{background:var(--brd2);}
@@ -385,7 +452,7 @@ body::before{
 .card{
   background:var(--surf2);border:1px solid var(--brd);
   clip-path:polygon(10px 0%,100% 0%,100% calc(100% - 10px),calc(100% - 10px) 100%,0% 100%,0% 10px);
-  padding:16px;position:relative;overflow:hidden;
+  padding:13px;position:relative;overflow:hidden;
   animation:cardIn .35s cubic-bezier(.34,1.4,.64,1) both;
 }
 @keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.98);}to{opacity:1;transform:none;}}
@@ -571,7 +638,7 @@ body::before{
 .clog{
   background:rgba(0,0,0,.4);border:1px solid var(--brd);
   clip-path:polygon(6px 0%,100% 0%,100% calc(100% - 6px),calc(100% - 6px) 100%,0% 100%,0% 6px);
-  padding:9px;max-height:88px;overflow-y:auto;
+  padding:8px;max-height:72px;overflow-y:auto;
   font-size:13px;line-height:1.7;font-style:italic;margin-bottom:10px;
 }
 .clog::-webkit-scrollbar{width:2px;}
@@ -583,7 +650,7 @@ body::before{
 .cbtns{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%;}
 .cbtn{
   clip-path:polygon(8px 0%,100% 0%,100% calc(100% - 8px),calc(100% - 8px) 100%,0% 100%,0% 8px);
-  padding:13px 8px;cursor:pointer;transition:all .2s;
+  padding:10px 6px;cursor:pointer;transition:all .2s;
   font-family:var(--cinzel);font-size:10px;letter-spacing:.5px;
   display:flex;flex-direction:column;align-items:center;gap:4px;
   border:1px solid var(--brd2);background:var(--surf);color:var(--txt);
@@ -620,13 +687,16 @@ body::before{
 .upcard{
   border:1px solid var(--brd2);
   clip-path:polygon(8px 0%,100% 0%,100% calc(100% - 8px),calc(100% - 8px) 100%,0% 100%,0% 8px);
-  padding:13px 10px;background:var(--surf);cursor:pointer;
+  /* Padding reduzido para caber sem expandir o scroll */
+  padding:10px 8px;background:var(--surf);cursor:pointer;
   transition:all .25s;text-align:center;position:relative;overflow:hidden;
+  /* Tamanho mínimo garantido, sem crescer além */
+  min-height:0;
 }
 .upcard::before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(200,130,75,.07),transparent);opacity:0;transition:.2s;}
 .upcard:hover::before{opacity:1;}
 .upcard:hover{border-color:var(--brd3);transform:translateY(-3px);box-shadow:0 6px 20px var(--acc-glow);}
-.up-ico{font-size:28px;margin-bottom:7px;}
+.up-ico{font-size:24px;margin-bottom:5px;}
 .up-name{font-family:var(--cinzel);font-size:10px;color:var(--acc);letter-spacing:1px;margin-bottom:4px;}
 .up-desc{font-size:12px;color:var(--txt2);line-height:1.4;}
 .uptag{margin-top:7px;display:inline-block;font-family:var(--cinzel);font-size:9px;padding:2px 7px;letter-spacing:.5px;}
@@ -640,14 +710,14 @@ body::before{
 .subcls-card{
   border:2px solid var(--brd2);
   clip-path:polygon(10px 0%,100% 0%,100% calc(100% - 10px),calc(100% - 10px) 100%,0% 100%,0% 10px);
-  padding:14px;background:var(--surf);cursor:pointer;transition:all .25s;text-align:center;
+  padding:11px 10px;background:var(--surf);cursor:pointer;transition:all .25s;text-align:center;
 }
 .subcls-card:hover{transform:translateY(-3px);}
 .subcls-card.pld{border-color:rgba(255,215,0,.4);}.subcls-card.pld:hover{box-shadow:0 6px 22px rgba(255,215,0,.2);}
 .subcls-card.bsk{border-color:rgba(200,57,43,.5);}.subcls-card.bsk:hover{box-shadow:0 6px 22px rgba(200,57,43,.2);}
 .subcls-card.arc{border-color:rgba(140,68,173,.5);}.subcls-card.arc:hover{box-shadow:0 6px 22px rgba(140,68,173,.2);}
 .subcls-card.shd{border-color:rgba(52,73,94,.6);}.subcls-card.shd:hover{box-shadow:0 6px 22px rgba(52,73,94,.3);}
-.subcls-ico{font-size:34px;margin-bottom:8px;}
+.subcls-ico{font-size:28px;margin-bottom:5px;}
 .subcls-name{font-family:var(--cinzel);font-size:12px;margin-bottom:6px;}
 .subcls-card.pld .subcls-name,.subcls-card.pld .subcls-bonus{color:#ffd700;}
 .subcls-card.bsk .subcls-name,.subcls-card.bsk .subcls-bonus{color:var(--red2);}
@@ -1300,77 +1370,102 @@ body::before{
 
 /* ABISMO PROFUNDO — preto absoluto, ciano abissal, azul marinho */
 [data-theme="abyss"] {
-  --bg:#000000;--bg2:#00060e;--surf:#000e1c;--surf2:#001428;--surf3:#001a32;
-  --brd:#002244;--brd2:#003366;--brd3:#005599;
-  --acc:#00c8c8;--acc2:#00e8e0;--acc3:#80fffa;--acc-glow:rgba(0,200,200,.38);
-  --red:#cc2030;--red2:#ff3848;--grn:#006040;--grn2:#00a860;
-  --blu:#004488;--blu2:#0066cc;--pur:#220066;
-  --txt:#a0e8f0;--txt2:#006688;--txt3:#003850;
-  --common:#205060;--rare:#0066bb;--epic:#006699;--legendary:#cc7000;
+  /* ABISMO PROFUNDO — Oceano abissal, ciano e azul-petróleo */
+  --bg:#010810;--bg2:#021218;--surf:#041e28;--surf2:#062838;--surf3:#083248;
+  --brd:#0a4060;--brd2:#106080;--brd3:#1888a8;
+  --acc:#00d8d0;--acc2:#30f0e8;--acc3:#88fff8;--acc-glow:rgba(0,216,208,.42);
+  --red:#e02848;--red2:#ff4860;--grn:#009870;--grn2:#18d898;
+  --blu:#0860b8;--blu2:#20a0f0;--pur:#3028a8;
+  --txt:#c0f0f8;--txt2:#408898;--txt3:#206070;
+  --common:#307888;--rare:#1090e0;--epic:#2868d8;--legendary:#e89810;
 }
 
 /* ALVORADA CELESTE — pérola, dourado suave, azul bebê — sem branco puro */
 [data-theme="dawn"] {
-  --bg:#e8edf8;--bg2:#dde4f4;--surf:#f0f4ff;--surf2:#e4ecfa;--surf3:#d8e4f4;
-  --brd:#b8ccec;--brd2:#90aad8;--brd3:#6888c0;
-  --acc:#b07808;--acc2:#c88c10;--acc3:#e0a820;--acc-glow:rgba(176,120,8,.28);
-  --red:#b02818;--red2:#d83820;--grn:#207040;--grn2:#308850;
-  --blu:#2860a8;--blu2:#3878c8;--pur:#5030a0;
-  --txt:#0e1a38;--txt2:#2850a0;--txt3:#6880b8;
-  --common:#5068a0;--rare:#2060b8;--epic:#4830b0;--legendary:#a86808;
-  --gold:#a07000;
+  /* ALVORADA CELESTE — Aurora boreal, turquesa e dourado suave */
+  --bg:#e0eef8;--bg2:#d4e8f4;--surf:#eaf4ff;--surf2:#ddeef8;--surf3:#cce6f0;
+  --brd:#90c0d8;--brd2:#60a0c0;--brd3:#3880a8;
+  --acc:#0878a8;--acc2:#109cc8;--acc3:#28c0f0;--acc-glow:rgba(8,120,168,.3);
+  --red:#c02818;--red2:#e84020;--grn:#187848;--grn2:#289860;
+  --blu:#0858a8;--blu2:#1880d8;--pur:#4828a8;
+  --txt:#081828;--txt2:#184870;--txt3:#487898;
+  --common:#407090;--rare:#0868c0;--epic:#3828b8;--legendary:#9c6000;
+  --gold:#8a5800;
 }
 
 /* Pré-visualização dos cards novos */
-.theme-card[data-t="abyss"]{background:#000e1c;}
-.theme-card[data-t="abyss"] .tc-accent{background:#00c8c8;}
-.theme-card[data-t="abyss"] .tc-b{background:#0066cc;}
-.theme-card[data-t="abyss"] .tc-c{background:#000000;}
-.theme-card[data-t="dawn"]{background:#e8edf8;}
-.theme-card[data-t="dawn"] .tc-accent{background:#b07808;}
-.theme-card[data-t="dawn"] .tc-b{background:#3878c8;}
-.theme-card[data-t="dawn"] .tc-c{background:#f0f4ff;}
-.theme-card[data-t="dawn"] .tc-name{color:#1a3060;}
-.theme-card[data-t="dawn"] .tc-desc{color:#4868a0;}
+.theme-card[data-t="abyss"]{background:#041e28;}
+.theme-card[data-t="abyss"] .tc-accent{background:#00d8d0;}
+.theme-card[data-t="abyss"] .tc-b{background:#ff4860;}
+.theme-card[data-t="abyss"] .tc-c{background:#20a0f0;}
+.theme-card[data-t="dawn"]{background:#eaf4ff;}
+.theme-card[data-t="dawn"] .tc-accent{background:#0878a8;}
+.theme-card[data-t="dawn"] .tc-b{background:#e84020;}
+.theme-card[data-t="dawn"] .tc-c{background:#28c0f0;}
+.theme-card[data-t="dawn"] .tc-name{color:#081828;}
+.theme-card[data-t="dawn"] .tc-desc{color:#184870;}
+/* Previews — novos temas */
+.theme-card[data-t="relic"]{background:#221a04;}
+.theme-card[data-t="relic"] .tc-accent{background:#d4a020;}
+.theme-card[data-t="relic"] .tc-b{background:#e85828;}
+.theme-card[data-t="relic"] .tc-c{background:#78b020;}
+.theme-card[data-t="temple"]{background:#181818;}
+.theme-card[data-t="temple"] .tc-accent{background:#c8a028;}
+.theme-card[data-t="temple"] .tc-b{background:#e84020;}
+.theme-card[data-t="temple"] .tc-c{background:#68b840;}
+.theme-card[data-t="nebula"]{background:#220e22;}
+.theme-card[data-t="nebula"] .tc-accent{background:#e840a8;}
+.theme-card[data-t="nebula"] .tc-b{background:#ff4040;}
+.theme-card[data-t="nebula"] .tc-c{background:#6858f0;}
+.theme-card[data-t="tundra"]{background:#fafcff;}
+.theme-card[data-t="tundra"] .tc-accent{background:#2860c0;}
+.theme-card[data-t="tundra"] .tc-b{background:#e83020;}
+.theme-card[data-t="tundra"] .tc-c{background:#2878e0;}
+.theme-card[data-t="tundra"] .tc-name{color:#080e20;}
+.theme-card[data-t="tundra"] .tc-desc{color:#204880;}
 
 /* ── Abismo — atmosfera ciano abissal única ── */
 [data-theme="abyss"] body::before{
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(0,200,200,.22) 0%,transparent 55%),
-    radial-gradient(ellipse 40% 30% at 10% 80%,rgba(0,0,80,.7) 0%,transparent 60%),
-    radial-gradient(ellipse 40% 30% at 90% 80%,rgba(0,0,80,.7) 0%,transparent 60%);
+    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(0,216,208,.2) 0%,transparent 55%),
+    radial-gradient(ellipse 40% 30% at 10% 80%,rgba(0,20,60,.7) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 30% at 90% 80%,rgba(0,20,60,.7) 0%,transparent 60%);
 }
-[data-theme="abyss"] .vfill.hp{background:linear-gradient(90deg,#400010,#cc2030);}
-[data-theme="abyss"] .vfill.mp{background:linear-gradient(90deg,#001428,#0066cc);}
-[data-theme="abyss"] .xpfill{background:linear-gradient(90deg,#002244,#00c8c8);}
+[data-theme="abyss"] .vfill.hp{background:linear-gradient(90deg,#500010,#e02848);}
+[data-theme="abyss"] .vfill.mp{background:linear-gradient(90deg,#041e28,#20a0f0);}
+[data-theme="abyss"] .xpfill{background:linear-gradient(90deg,#0a4060,#00d8d0);}
 
 /* ── Alvorada — tema claro completo ── */
-[data-theme="dawn"] body{color:var(--txt);}
-[data-theme="dawn"] .card{border-color:var(--brd2);background:var(--surf);}
-[data-theme="dawn"] .card::before{background:linear-gradient(90deg,transparent,rgba(176,120,8,.25),transparent);}
-[data-theme="dawn"] .hud-name{color:var(--acc2);}
-[data-theme="dawn"] #hud{background:linear-gradient(180deg,var(--bg2),var(--bg));border-bottom:1px solid var(--brd2);}
-[data-theme="dawn"] .schip{background:var(--surf2);border-color:var(--brd2);}
-[data-theme="dawn"] .schip .l{color:var(--txt2);}
-[data-theme="dawn"] .schip .v{color:var(--txt);}
-[data-theme="dawn"] .clog{background:rgba(0,0,0,.03);}
-[data-theme="dawn"] .lp{color:#1a2858;}
-[data-theme="dawn"] .li{color:#405888;}
-[data-theme="dawn"] .lc{color:#a06800;}
-[data-theme="dawn"] .le{color:#b02818;}
-[data-theme="dawn"] .ls{color:#207040;}
-[data-theme="dawn"] .ln{color:#2060a8;}
-[data-theme="dawn"] .nbtn{background:var(--surf2);border-color:var(--brd2);color:var(--txt2);}
-[data-theme="dawn"] .nbtn.active{border-color:var(--acc);color:var(--acc);}
-[data-theme="dawn"] .vfill.hp{background:linear-gradient(90deg,#8b1a0c,var(--red2));}
-[data-theme="dawn"] .vfill.mp{background:linear-gradient(90deg,#1a3870,var(--blu2));}
-[data-theme="dawn"] .xpfill{background:linear-gradient(90deg,#6a4800,var(--acc));}
-[data-theme="dawn"] .hud-lv{color:var(--acc);}
-[data-theme="dawn"] .hud-gold{color:var(--gold);}
-[data-theme="dawn"] .panel-title{color:var(--acc);}
-[data-theme="dawn"] .tag{color:var(--txt2);}
-[data-theme="dawn"] .enemy-block{background:rgba(0,0,0,.04);}
-[data-theme="dawn"] .mute-chip{background:var(--surf2);border-color:var(--brd2);color:var(--txt2);}
+/* ── OVERRIDES PARA TEMAS CLAROS (dawn, tundra) ── */
+[data-theme="dawn"] body,[data-theme="tundra"] body{color:var(--txt);}
+[data-theme="dawn"] .card,[data-theme="tundra"] .card{border-color:var(--brd2);background:var(--surf);}
+[data-theme="dawn"] .card::before{background:linear-gradient(90deg,transparent,rgba(8,120,168,.2),transparent);}
+[data-theme="tundra"] .card::before{background:linear-gradient(90deg,transparent,rgba(40,96,192,.2),transparent);}
+[data-theme="dawn"] .hud-name,[data-theme="tundra"] .hud-name{color:var(--acc2);}
+[data-theme="dawn"] #hud,[data-theme="tundra"] #hud{background:linear-gradient(180deg,var(--bg2),var(--bg));border-bottom:1px solid var(--brd2);}
+[data-theme="dawn"] .schip,[data-theme="tundra"] .schip{background:var(--surf2);border-color:var(--brd2);}
+[data-theme="dawn"] .schip .l,[data-theme="tundra"] .schip .l{color:var(--txt2);}
+[data-theme="dawn"] .schip .v,[data-theme="tundra"] .schip .v{color:var(--txt);}
+[data-theme="dawn"] .clog,[data-theme="tundra"] .clog{background:rgba(0,0,0,.04);border-color:var(--brd2);}
+[data-theme="dawn"] .lp,[data-theme="tundra"] .lp{color:#081828;}
+[data-theme="dawn"] .li,[data-theme="tundra"] .li{color:#204878;}
+[data-theme="dawn"] .lc,[data-theme="tundra"] .lc{color:#8a5000;}
+[data-theme="dawn"] .le,[data-theme="tundra"] .le{color:#c82018;}
+[data-theme="dawn"] .ls,[data-theme="tundra"] .ls{color:#187848;}
+[data-theme="dawn"] .ln,[data-theme="tundra"] .ln{color:#0858a8;}
+[data-theme="dawn"] .nbtn,[data-theme="tundra"] .nbtn{background:var(--surf2);border-color:var(--brd2);color:var(--txt2);}
+[data-theme="dawn"] .nbtn.active,[data-theme="tundra"] .nbtn.active{border-color:var(--acc);color:var(--acc);}
+[data-theme="dawn"] .vfill.hp{background:linear-gradient(90deg,#901808,var(--red2));}
+[data-theme="tundra"] .vfill.hp{background:linear-gradient(90deg,#901808,var(--red2));}
+[data-theme="dawn"] .vfill.mp,[data-theme="tundra"] .vfill.mp{background:linear-gradient(90deg,#1040a0,var(--blu2));}
+[data-theme="dawn"] .xpfill{background:linear-gradient(90deg,#055070,var(--acc));}
+[data-theme="tundra"] .xpfill{background:linear-gradient(90deg,#103888,var(--acc));}
+[data-theme="dawn"] .hud-lv,[data-theme="tundra"] .hud-lv{color:var(--acc);}
+[data-theme="dawn"] .hud-gold,[data-theme="tundra"] .hud-gold{color:var(--gold);}
+[data-theme="dawn"] .panel-title,[data-theme="tundra"] .panel-title{color:var(--acc);}
+[data-theme="dawn"] .enemy-block,[data-theme="tundra"] .enemy-block{background:rgba(0,0,0,.04);}
+[data-theme="dawn"] .mute-chip,[data-theme="tundra"] .mute-chip{background:var(--surf2);border-color:var(--brd2);color:var(--txt2);}
+[data-theme="dawn"] #scroll,[data-theme="tundra"] #scroll{background-image:radial-gradient(ellipse 100% 40% at 50% 100%,rgba(8,120,168,.04) 0%,transparent 70%);}
 
 /* ══════════════════════════════════════
    MENU DE DEBUG — SEGUE O TEMA
