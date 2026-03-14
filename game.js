@@ -738,11 +738,7 @@ function getAvailFusions(excludeOwned=true){
 /* ═══ SISTEMA DE ELEMENTOS ═══ */
 
 // Retorna a fusão disponível entre dois elementos, se existir
-function tryFuse(id1, id2){
-  return FUSIONS.find(f=>
-    (f.e1===id1 && f.e2===id2)||(f.e1===id2 && f.e2===id1)
-  )||null;
-}
+// tryFuse definida acima (sistema procedural)
 
 // Verifica se o jogador já possui o elemento ou fusão
 function hasElement(id){
