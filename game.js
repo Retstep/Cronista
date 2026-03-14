@@ -718,6 +718,9 @@ function getAllFusions(){
   return results.sort((a,b)=>a.tier-b.tier);
 }
 
+// Array global de todas as fusões possíveis — gerado a partir de FUSION_RULES + ELEMENTS
+const FUSIONS = getAllFusions();
+
 function getAvailFusions(excludeOwned=true){
   const owned=G.elements.map(e=>e.id);
   const results=[];

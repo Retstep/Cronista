@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cronista-1773452594'
+const CACHE_NAME = 'cronista-1773465084
 const ASSETS = [
   './',
   './index.html',
