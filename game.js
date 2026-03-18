@@ -1,5 +1,214 @@
 'use strict';
 
+/* ═══ TOMO DO CRONISTA — Persistência entre runs ═══ */
+// Estrutura: {
+//   fusions: { [fusionId]: { name, ico, count, discovered } }
+//   enemies: { [enemyId]: { name, ico, kills } }
+//   events:  { [eventId]: { title, ico, count } }
+//   deaths:  { [causeType]: { label, count } }  causeType: combat/poison/boss/event/etc
+// }
+
+function tomoLoad(){
+  try {
+    return JSON.parse(localStorage.getItem('cronista_tomo')||'{}');
+  } catch(e){ return {}; }
+}
+function tomoSave(t){ localStorage.setItem('cronista_tomo', JSON.stringify(t)); }
+
+function tomoGet(){
+  const t = tomoLoad();
+  if(!t.fusions) t.fusions = {};
+  if(!t.enemies) t.enemies = {};
+  if(!t.events)  t.events  = {};
+  if(!t.deaths)  t.deaths  = {};
+  return t;
+}
+
+// Registra fusão usada em combate
+function tomoRecordFusion(f){
+  const t = tomoGet();
+  if(!t.fusions[f.id]) t.fusions[f.id] = { name:f.name, ico:f.ico, tier:f.tier, count:0 };
+  t.fusions[f.id].count++;
+  tomoSave(t);
+}
+
+// Registra inimigo morto
+function tomoRecordKill(enemy){
+  const t = tomoGet();
+  const key = enemy.id || enemy.name;
+  if(!t.enemies[key]) t.enemies[key] = { name:enemy.name, ico:enemy.ico, sub:enemy.sub||'', kills:0 };
+  t.enemies[key].kills++;
+  tomoSave(t);
+}
+
+// Registra evento vivido
+function tomoRecordEvent(evId, evTitle, evIco){
+  const t = tomoGet();
+  if(!t.events[evId]) t.events[evId] = { title:evTitle, ico:evIco, count:0 };
+  t.events[evId].count++;
+  tomoSave(t);
+}
+
+// Registra morte e causa
+function tomoRecordDeath(causeType, label){
+  const t = tomoGet();
+  if(!t.deaths[causeType]) t.deaths[causeType] = { label, count:0 };
+  t.deaths[causeType].count++;
+  tomoSave(t);
+}
+
+// Bônus do Tomo aplicados ao iniciar run
+function tomoApplyBonuses(){
+  if(!G) return;
+  const t = tomoGet();
+  // Fusões dominadas (5+ usos): -5 MP por fusão dominada, máx -30
+  const dominatedFusions = Object.values(t.fusions).filter(f=>f.count>=5).length;
+  G.mpDiscount = (G.mpDiscount||0) + Math.min(30, dominatedFusions * 5);
+  // Mortes por tipo: resistência acumulada
+  Object.entries(t.deaths).forEach(([type, d])=>{
+    if(d.count >= 2){
+      if(type==='poison' && !G.passives.includes('tomo_res_poison')){ G.passives.push('tomo_res_poison'); }
+      if(type==='burn'   && !G.passives.includes('tomo_res_burn'))  { G.passives.push('tomo_res_burn'); }
+      if(type==='boss'   && !G.passives.includes('tomo_res_boss'))  { G.passives.push('tomo_res_boss'); G.def+=2; }
+      if(type==='combat' && !G.passives.includes('tomo_res_combat')){ G.passives.push('tomo_res_combat'); G.hpMax+=10; G.hp+=10; }
+    }
+  });
+}
+
+// Verifica se inimigo está "estudado" (3+ kills)
+function tomoIsEnemyStudied(enemyId){
+  const t = tomoGet();
+  return (t.enemies[enemyId]?.kills||0) >= 3;
+}
+
+// Verifica se evento tem opção extra desbloqueada (2+ visitas)
+function tomoEventUnlocked(evId){
+  const t = tomoGet();
+  return (t.events[evId]?.count||0) >= 2;
+}
+
+// Raridade da entrada no Tomo
+function tomoRarity(count, type){
+  if(type==='fusion'){
+    if(count>=20) return 'legendary';
+    if(count>=10) return 'epic';
+    if(count>=5)  return 'rare';
+    return 'common';
+  }
+  if(type==='enemy'){
+    if(count>=20) return 'legendary';
+    if(count>=10) return 'epic';
+    if(count>=3)  return 'rare';
+    return 'common';
+  }
+  if(type==='event'){
+    if(count>=10) return 'epic';
+    if(count>=5)  return 'rare';
+    return 'common';
+  }
+  if(count>=5) return 'rare';
+  return 'common';
+}
+
+/* ─── Tela do Tomo ─── */
+function showTomoScreen(){
+  const t = tomoGet();
+  const rarityColor = { common:'var(--txt2)', rare:'var(--blu)', epic:'var(--purple,#9b59b6)', legendary:'var(--gold)' };
+  const rarityLabel = { common:'Comum', rare:'Raro', epic:'Épico', legendary:'Lendário' };
+
+  const fusionEntries = Object.values(t.fusions).sort((a,b)=>b.count-a.count);
+  const enemyEntries  = Object.values(t.enemies).sort((a,b)=>b.kills-a.kills);
+  const eventEntries  = Object.values(t.events).sort((a,b)=>b.count-a.count);
+  const deathEntries  = Object.entries(t.deaths).map(([k,v])=>({...v,key:k})).sort((a,b)=>b.count-a.count);
+
+  const totalEntries = fusionEntries.length + enemyEntries.length + eventEntries.length + deathEntries.length;
+
+  const dominated = fusionEntries.filter(f=>f.count>=5).length;
+  const mpDisc = Math.min(30, dominated*5);
+
+  const section = (title, ico, items, emptyTxt) => `
+    <div class="tomo-section">
+      <div class="tomo-section-title">${ico} ${title}</div>
+      ${items.length ? items.map(i=>i).join('') : `<div class="tomo-empty">${emptyTxt}</div>`}
+    </div>`;
+
+  const fusionRows = fusionEntries.map(f=>{
+    const rar = tomoRarity(f.count,'fusion');
+    const dominated = f.count>=5;
+    return `<div class="tomo-entry">
+      <span class="tomo-ico">${f.ico}</span>
+      <div class="tomo-info">
+        <span class="tomo-name" style="color:${rarityColor[rar]}">${f.name}</span>
+        <span class="tomo-sub">${dominated?'✦ Dominada — −5 MP':'Usada '+f.count+'× '+(dominated?'':'— '+Math.max(0,5-f.count)+' para dominar')}</span>
+      </div>
+      <span class="tomo-badge" style="color:${rarityColor[rar]}">${rarityLabel[rar]}</span>
+    </div>`;
+  });
+
+  const enemyRows = enemyEntries.map(e=>{
+    const rar = tomoRarity(e.kills,'enemy');
+    const studied = e.kills>=3;
+    return `<div class="tomo-entry">
+      <span class="tomo-ico">${e.ico}</span>
+      <div class="tomo-info">
+        <span class="tomo-name" style="color:${rarityColor[rar]}">${e.name}</span>
+        <span class="tomo-sub">${studied?'✦ Estudado — fraqueza revelada':e.kills+'× morto — '+Math.max(0,3-e.kills)+' para estudar'}</span>
+      </div>
+      <span class="tomo-badge" style="color:${rarityColor[rar]}">${rarityLabel[rar]}</span>
+    </div>`;
+  });
+
+  const eventRows = eventEntries.map(e=>{
+    const rar = tomoRarity(e.count,'event');
+    const unlocked = e.count>=2;
+    return `<div class="tomo-entry">
+      <span class="tomo-ico">${e.ico}</span>
+      <div class="tomo-info">
+        <span class="tomo-name" style="color:${rarityColor[rar]}">${e.title}</span>
+        <span class="tomo-sub">${unlocked?'✦ Opção secreta desbloqueada':'Visitado '+e.count+'×'+(e.count<2?' — mais 1 para desbloquear':'')}</span>
+      </div>
+      <span class="tomo-badge" style="color:${rarityColor[rar]}">${rarityLabel[rar]}</span>
+    </div>`;
+  });
+
+  const deathRows = deathEntries.map(d=>{
+    const rar = tomoRarity(d.count,'death');
+    const resisted = d.count>=2;
+    return `<div class="tomo-entry">
+      <span class="tomo-ico">💀</span>
+      <div class="tomo-info">
+        <span class="tomo-name" style="color:${rarityColor[rar]}">${d.label}</span>
+        <span class="tomo-sub">${resisted?'✦ Resistência adquirida (+15%)':'Morreu '+d.count+'×'+(d.count<2?' — mais 1 para resistência':'')}</span>
+      </div>
+      <span class="tomo-badge" style="color:${rarityColor[rar]}">${rarityLabel[rar]}</span>
+    </div>`;
+  });
+
+  const tomoEl = document.getElementById('tomo-screen');
+  tomoEl.innerHTML = `
+    <div class="tomo-wrap">
+      <div class="tomo-header">
+        <div class="tomo-title">📖 TOMO DO CRONISTA</div>
+        <div class="tomo-subtitle">${totalEntries} entrada${totalEntries!==1?'s':''} registrada${totalEntries!==1?'s':''}</div>
+        ${mpDisc>0?`<div class="tomo-bonus-row">✦ Bônus ativo: fusões dominadas reduzem −${mpDisc} MP nesta run</div>`:''}
+      </div>
+      ${section('Fusões Elementais','⚗️', fusionRows, 'Nenhuma fusão usada ainda.')}
+      ${section('Inimigos Estudados','⚔️', enemyRows, 'Nenhum inimigo registrado ainda.')}
+      ${section('Eventos Vividos','🗺️', eventRows, 'Nenhum evento registrado ainda.')}
+      ${section('Causas de Morte','💀', deathRows, 'Nenhuma morte registrada ainda.')}
+      <button class="tomo-close-btn" onclick="hideTomoScreen()">← Voltar</button>
+    </div>`;
+
+  document.getElementById('tomo-screen').classList.remove('off');
+  document.getElementById('s-title').classList.add('off');
+}
+
+function hideTomoScreen(){
+  document.getElementById('tomo-screen').classList.add('off');
+  document.getElementById('s-title').classList.remove('off');
+}
+
+
 /* ═══ NARRADOR ═══ */
 const NARR={
   buy:["O ouro muda de mãos. O destino, quem sabe.","Transações honestas são raras nessas terras."],
@@ -1408,7 +1617,7 @@ function buildTitle(){
     grid.appendChild(d);
   });
 }
-function startGame(){if(!selectedCls)return;pendingLevelUp=false;pendingSubclass=false;newG(selectedCls);hide('s-title');show('s-game');upd();navTo('explore');}
+function startGame(){if(!selectedCls)return;pendingLevelUp=false;pendingSubclass=false;newG(selectedCls);tomoApplyBonuses();hide('s-title');show('s-game');upd();navTo('explore');}
 function goTitle(){
   ['s-death','s-win'].forEach(hide);
   G=null;CE=null;combatLog=[];pendingLevelUp=false;pendingSubclass=false;selectedCls=null;
@@ -1587,6 +1796,7 @@ function grantChallengeReward(){
 /* ═══ EVENT ═══ */
 function showEvent(ev,sc){
   G.currentEvent=ev;
+  if(ev && ev.id && ev.title) tomoRecordEvent(ev.id, ev.title, ev.ico||'🗺️'); // Tomo: registra evento
   sc.innerHTML='';
   const card=mkCard(ev.type);
   card.innerHTML=`
@@ -1597,8 +1807,22 @@ function showEvent(ev,sc){
     <div class="choices" id="ev-choices"></div>`;
   sc.appendChild(card);
   const cw=card.querySelector('#ev-choices');
-  ev.choices.forEach((ch,i)=>{
-    const canDo=!ch.cost||canAfford(ch.cost);
+  // Tomo: adicionar opção secreta se evento visitado 2+ vezes
+  const tomoSecrets={
+    camp:     {txt:'Vasculhar com experiência',hint:'✦ Cronista — +25 HP e item garantido',fn:'tomo_camp_expert'},
+    shrine:   {txt:'Invocar pela memória',hint:'✦ Cronista — bênção poderosa garantida',fn:'tomo_shrine_memory'},
+    merchant: {txt:'Negociar como conhecedor',hint:'✦ Cronista — item raro grátis',fn:'tomo_merchant_expert'},
+    dungeon:  {txt:'Explorar com mapa mental',hint:'✦ Cronista — tesouro sem risco',fn:'tomo_dungeon_map'},
+    library:  {txt:'Ler na língua original',hint:'✦ Cronista — aprende elemento raro',fn:'tomo_library_read'},
+    fountain: {txt:'Potencializar a fonte',hint:'✦ Cronista — cura total HP e MP',fn:'tomo_fountain_full'},
+  };
+  const evChoices = [...ev.choices];
+  if(tomoEventUnlocked(ev.id) && tomoSecrets[ev.id]){
+    evChoices.splice(evChoices.length-1, 0, tomoSecrets[ev.id]);
+  }
+  evChoices.forEach((ch,i)=>{
+    const isTomo=ch.fn&&ch.fn.startsWith('tomo_');
+    const canDo=isTomo||!ch.cost||canAfford(ch.cost);
     const btn=document.createElement('button');btn.className='chbtn';btn.disabled=!canDo;
     btn.innerHTML=`<span class="chkey">${i+1}</span>
       <div class="chinner"><span class="chtxt">${ch.txt}</span>
@@ -1649,6 +1873,13 @@ function doChoice(ev,ch,sc){
   const oc=(type,ico,lbl,txt,tags,nk='')=>outcome(sc,type,ico,lbl,txt,tags,nk);
   const F={
     pass:()=>oc('neutral','🚶','Passou','Você segue em frente sem se envolver.',[],ev.narr_key),
+    // ── Opções secretas do Tomo ──
+    tomo_camp_expert:()=>{const h=25;G.hp=Math.min(G.hpMax,G.hp+h);const it=randItemByRarity('rare+');addItemToInv(it);oc('crit','📖','Memória do Cronista','Seu conhecimento guia cada movimento neste lugar familiar.',[{c:'heal',t:'+'+h+' HP'},{c:'item '+it.rarity,t:it.ico+' '+it.name}]);},
+    tomo_shrine_memory:()=>{const h=r(40)+30;G.hp=Math.min(G.hpMax,G.hp+h);G.mp=Math.min(G.mpMax,G.mp+30);G.atk+=2;oc('crit','📖','Memória do Cronista','Os espíritos reconhecem o Cronista. A bênção é total.',[{c:'heal',t:'+'+h+' HP'},{c:'mp',t:'+30 MP'},{c:'xp',t:'+2 ATK'}]);},
+    tomo_merchant_expert:()=>{const it=randItemByRarity('rare+');addItemToInv(it);oc('crit','📖','Memória do Cronista','O mercador respeita quem conhece o valor das coisas.',[{c:'item '+it.rarity,t:it.ico+' '+it.name}],'buy');},
+    tomo_dungeon_map:()=>{const it=randItemByRarity('rare+');addItemToInv(it);const g=r(25)+20;addGold(g);oc('crit','📖','Memória do Cronista','Você navega pelos corredores como se tivesse nascido neles.',[{c:'item '+it.rarity,t:it.ico+' '+it.name},{c:'gold',t:'+'+g+'💰'}]);},
+    tomo_library_read:()=>{const eligibleEls=ELEMENTS.filter(e=>e.tier<=2&&!G.elements.some(x=>x.id===e.id));if(eligibleEls.length){const el=pick(eligibleEls);G.elements.push({...el});toast(`${el.ico} ${el.name} aprendido!`);oc('crit','📖','Memória do Cronista','As palavras antigas revelam seus segredos ao Cronista.',[{c:'xp',t:el.ico+' '+el.name+' aprendido'}]);}else{const xp=r(40)+30;G.xp+=xp;oc('win','📖','Memória do Cronista','Todo conhecimento tem valor.',[{c:'xp',t:'+'+xp+' XP'}]);}},
+    tomo_fountain_full:()=>{G.hp=G.hpMax;G.mp=G.mpMax;oc('crit','📖','Memória do Cronista','Você canaliza toda a energia da fonte. Cura completa.',[{c:'heal',t:'HP Cheio'},{c:'mp',t:'MP Cheio'}]);},
     smith_upgrade:()=>{smithUpgrade();},
     smith_fuse:()=>{smithFuse();},
     smith_repair:()=>{smithRepair();},
@@ -2684,8 +2915,9 @@ function renderCombat(sc){
   </button>`:'';
 
   // Exibir atributos do inimigo se tiver Olho do Guardião
-  const eyeInfo=G.passives.includes('guardian_eye')?
-    `<div style="font-size:10px;color:var(--txt2);font-family:var(--cinzel);margin-top:4px;opacity:.8;">ATK ${CE.atk} | DEF ${CE.def} | XP ${CE.xp}</div>`:'';
+  const _enemyStudied = tomoIsEnemyStudied(CE.id||CE.name);
+  const eyeInfo=(G.passives.includes('guardian_eye')||_enemyStudied)?
+    `<div style="font-size:10px;color:var(--txt2);font-family:var(--cinzel);margin-top:4px;opacity:.8;">${_enemyStudied?'📖 ':''}ATK ${CE.atk} | DEF ${CE.def} | XP ${CE.xp}</div>`:'';
 
   // Status do inimigo (badges dinâmicos)
   const badges=(CE.badges||[]).map(b=>`<span class="ebadge${el?' elite-badge':''}">${b}</span>`).join('');
@@ -3200,6 +3432,7 @@ function checkEnd(){
       }
     }
     G.kills++;
+  if(CE) tomoRecordKill(CE); // Tomo: registra inimigo morto
     if(CE.elite)G._mElites=(G._mElites||0)+1;
     // limpa status do jogador ao vencer
     clearCombatStatus(G);
@@ -3841,6 +4074,10 @@ function closeFusionOverlay(){hide('fusion-overlay');lockBtns(0);}
 
 function doFusionSkill(f){
   if(!CE)return;
+  tomoRecordFusion(f); // Tomo: registra fusão usada
+  // Fusão destrutiva: consome os dois elementos originais
+  G.elements = G.elements.filter(e=>e.id!==f.e1 && e.id!==f.e2);
+  if(G.activeElement && (G.activeElement.id===f.e1 || G.activeElement.id===f.e2)) G.activeElement=G.elements[0]||null;
   const baseDmg=Math.round(Math.max(6, G.mag*f.mult+r(14)));
   CE.hpCur=Math.max(0,CE.hpCur-baseDmg);
   G.totalDmg+=baseDmg;
@@ -3902,6 +4139,15 @@ function fmtTime(){const el=Math.round((Date.now()-G.t0)/1000);return Math.floor
 function dstatRows(rows){return rows.map(([l,v])=>`<div class="dstat"><div class="dl">${l}</div><div class="dv" style="font-size:${String(v).length>6?'12':'17'}px;">${v}</div></div>`).join('');}
 function showDeath(msg){
   G.inCombat=false;
+  // Tomo: registra causa da morte
+  {
+    let causeType='combat', causeLabel='Morte em Combate';
+    if(msg.toLowerCase().includes('veneno')||msg.toLowerCase().includes('poison')){ causeType='poison'; causeLabel='Morte por Veneno'; }
+    else if(msg.toLowerCase().includes('boss')||msg.toLowerCase().includes('chefe')){ causeType='boss'; causeLabel='Morte por Chefe'; }
+    else if(msg.toLowerCase().includes('evento')||msg.toLowerCase().includes('maldição')||msg.toLowerCase().includes('baú')){ causeType='event'; causeLabel='Morte em Evento'; }
+    else if(msg.toLowerCase().includes('explosão')||msg.toLowerCase().includes('goblin')){ causeType='explosion'; causeLabel='Morte por Explosão'; }
+    tomoRecordDeath(causeType, causeLabel);
+  }
   const sd=$('s-death');
   const typeColor={win:'var(--grn2)',crit:'var(--gold)',neutral:'var(--txt2)'};
   // Build run log HTML

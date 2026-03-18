@@ -991,3 +991,113 @@ body::after{
 [data-theme="dawn"] .enemy-block,[data-theme="tundra"] .enemy-block{background:rgba(0,0,0,.03);}
 [data-theme="dawn"] .mute-chip,[data-theme="tundra"] .mute-chip{background:var(--surf2);border-color:var(--brd2);color:var(--txt2);}
 [data-theme="dawn"] #scroll,[data-theme="tundra"] #scroll{background-image:none;}
+/* ═══ TOMO DO CRONISTA ═══ */
+.tomo-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  box-sizing: border-box;
+}
+.tomo-header {
+  text-align: center;
+  padding: 24px 0 16px;
+  border-bottom: 1px solid var(--brd2);
+  margin-bottom: 20px;
+}
+.tomo-title {
+  font-family: var(--cinzel);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+}
+.tomo-subtitle {
+  font-size: 12px;
+  color: var(--txt3);
+  letter-spacing: 1px;
+}
+.tomo-bonus-row {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--grn2);
+  font-family: var(--cinzel);
+  background: rgba(39,174,96,.1);
+  border: 1px solid rgba(39,174,96,.3);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+.tomo-section {
+  margin-bottom: 22px;
+}
+.tomo-section-title {
+  font-family: var(--cinzel);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--txt3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--brd);
+}
+.tomo-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--card2, rgba(255,255,255,.03));
+  border: 1px solid var(--brd);
+  margin-bottom: 6px;
+}
+.tomo-ico {
+  font-size: 22px;
+  flex-shrink: 0;
+  width: 30px;
+  text-align: center;
+}
+.tomo-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tomo-name {
+  font-family: var(--cinzel);
+  font-size: 12px;
+  font-weight: 600;
+}
+.tomo-sub {
+  font-size: 10px;
+  color: var(--txt3);
+}
+.tomo-badge {
+  font-size: 10px;
+  font-family: var(--cinzel);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.tomo-empty {
+  font-size: 12px;
+  color: var(--txt3);
+  font-style: italic;
+  padding: 8px 4px;
+}
+.tomo-close-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  border: 1px solid var(--brd2);
+  border-radius: 10px;
+  color: var(--txt2);
+  font-family: var(--cinzel);
+  font-size: 13px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+.tomo-close-btn:hover { border-color: var(--acc); color: var(--acc); }
