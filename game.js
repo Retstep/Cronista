@@ -235,21 +235,85 @@ const MEMORIES = [
 ];
 
 /* ═══ NARRADOR ═══ */
+/* ═══ THOTH — Narrador entre os mundos ═══ */
 const NARR={
-  buy:["O ouro muda de mãos. O destino, quem sabe.","Transações honestas são raras nessas terras."],
-  win_combat:["Mais um obstáculo removido do seu caminho.","A vitória tem um sabor amargo quando se sabe o que vem a seguir.","Eles caíram. Você permanece. Por ora."],
-  lose_hp:["O sangue é um lembrete de que você ainda vive.","A dor ensina o que os livros não conseguem.","Sinta. Aprenda. Sobreviva."],
-  crit:["A sorte beija os ousados — desta vez.","Um golpe assim entra para as lendas. Suas ou de outrem."],
-  greed:["A ganância será sua ruína.","Quem tudo quer, tudo arrisca.","Olhos maiores que a bolsa, como sempre."],
-  help:["Uma boa ação no reino das sombras. Improvável. Necessário.","Há esperança ainda neste coração."],
-  abandon:["Cada escolha revela um pouco mais de quem você é.","Às vezes sobreviver exige deixar para trás."],
-  boss:["Este não é um inimigo comum. Sinta o peso do momento.","Aqui termina para muitos. Que não seja para você."],
-  death:["E assim se encerra mais um capítulo do Cronista.","Os livros registrarão sua tentativa. Apenas a tentativa."],
-  levelup:["Cada cicatriz é um ensinamento absorvido.","Você cresce. O mundo ao redor também."],
-  subclass:["Uma nova identidade. Carregue-a com responsabilidade.","O caminho se bifurca. Você escolheu o seu."],
-  curse:["Nem todo brilho é ouro. Nem todo tesouro é presente.","Maldito seja o dia em que a cobiça falou mais alto."],
-  item_rare:["Raro não significa seguro. Mas ajuda.","Poucos foram agraciados com tal achado."],
-  elite:["Brilha diferente. Mata diferente. Cuidado.","Um guerreiro comum... com algo a mais. Muito a mais."],
+  buy:[
+    "Thoth registra: uma troca foi feita. O equilíbrio se mantém.",
+    "O ouro é apenas símbolo. O que você comprou com ele — isso tem peso.",
+    "Cada moeda gasta é uma escolha escrita no Tomo eterno."
+  ],
+  win_combat:[
+    "Registrado. Mais um que tentou deter o inevitável.",
+    "Eles caíram. O Tomo anota. Você continua.",
+    "A vitória não apaga o que foi. Mas abre o que pode ser.",
+    "Entre os mortos e os vivos, você insiste em permanecer no meio.",
+    "Thoth vê. Thoth registra. A balança ainda pende."
+  ],
+  lose_hp:[
+    "Cada ferida é uma página. O livro ainda não terminou.",
+    "O sangue não mente — você ainda está aqui, ainda sente.",
+    "A dor é o preço do conhecimento proibido. Você sabia disso ao entrar.",
+    "Sinta. Aprenda. A alma que não sente, não merece redenção."
+  ],
+  crit:[
+    "Um golpe que entra para os registros eternos.",
+    "Thoth levanta os olhos do pergaminho. Impressionante.",
+    "Nem os deuses esperavam isso. O Tomo anota com tinta dourada."
+  ],
+  greed:[
+    "A ganância foi o primeiro pecado registrado. E ainda o mais comum.",
+    "Quem tudo quer, oferece tudo à balança. Cuidado com o peso.",
+    "Thoth já viu esse capítulo antes. O final raramente muda."
+  ],
+  help:[
+    "Uma alma que ajuda outra. Raro entre os mundos. Digno de nota.",
+    "O coração ainda bate com propósito. A balança registra.",
+    "Thoth sorri — raramente, mas sorri."
+  ],
+  abandon:[
+    "Cada abandono pesa. A balança não esquece.",
+    "Às vezes sobreviver exige deixar para trás. Thoth não julga. Apenas anota.",
+    "O Tomo registra o que foi feito e o que não foi."
+  ],
+  boss:[
+    "Este guardião existe para testar o que você realmente é. Não o que pretende ser.",
+    "Aqui termina para muitos. O Tomo está aberto. O que será escrito?",
+    "Um dos grandes. Thoth para de escrever para assistir.",
+    "Entre você e o próximo reino, existe apenas este obstáculo. E o medo."
+  ],
+  death:[
+    "O capítulo se encerra aqui. Mas o Tomo permanece.",
+    "Thoth fecha o pergaminho desta run. Haverá outra.",
+    "Não era sua hora de atravessar — mas foi a hora de aprender.",
+    "A alma retorna ao limbo. Com mais cicatrizes. Com mais sabedoria.",
+    "Registrado. Arquivado. Não esquecido."
+  ],
+  levelup:[
+    "Mais uma camada de poeira removida. O que resta começa a brilhar.",
+    "O Tomo cresce. A alma cresce. O caminho fica mais claro.",
+    "Thoth anota: a alma evolui. A redenção se aproxima.",
+    "Cada nível é uma verdade redescoberta sobre quem você foi."
+  ],
+  subclass:[
+    "Uma memória emerge das profundezas. Uma vida anterior fala.",
+    "O esquecimento cede. Algo antigo desperta em você.",
+    "Thoth reconhece este fragmento. Ele pertenceu a alguém importante."
+  ],
+  curse:[
+    "Nem todo conhecimento deve ser tocado. Você tocou.",
+    "A maldição é justa — quem busca poder sem mérito, paga o preço.",
+    "Thoth já escreveu este final antes. Espera que você leia mais rápido."
+  ],
+  item_rare:[
+    "Um artefato com história. Com peso. Com consequência.",
+    "Thoth reconhece este objeto. Ele pertenceu a alguém que também buscava redenção.",
+    "Raro não significa seguro. Significa que poucos sobreviveram para contar."
+  ],
+  elite:[
+    "Este não é um guardião comum. Foi corrompido por algo maior.",
+    "Thoth inclina a cabeça. Este oponente também carrega uma história.",
+    "Brilha diferente. Mata diferente. O Tomo já registrou sua espécie antes."
+  ],
 };
 const narr=key=>{const a=NARR[key]||NARR.win_combat;return a[Math.floor(Math.random()*a.length)];};
 
@@ -1801,6 +1865,20 @@ function goTitle(){
 function safeRender(fn,...args){try{fn(...args);}catch(e){console.error(e);toast('Erro na interface.',3000);if(G&&!G.inCombat)setTimeout(()=>navTo('explore'),300);}}
 
 /* ═══ NAV ═══ */
+function getThothFlavorText(){
+  const floor = G ? G.floor : 1;
+  const texts = {
+    1: ["Você adentra o Tártaro. As sombras aqui têm memória.", "O Submundo grego abre seus portões. Hades observa.", "Almas perdidas vagam por aqui. Evite se tornar uma delas."],
+    2: ["Nifleheim. O frio aqui não é temperatura — é ausência.", "Os mortos nórdicos não descansam. Eles lembram.", "A névoa eterna oculta mais do que visão."],
+    3: ["O Duat. Cada passo aqui é julgado por Anúbis.", "As areias do Egito eterno guardam segredos e armadilhas.", "A balança existe. Suas escolhas serão pesadas."],
+    4: ["Diyu — o submundo chinês. Yanluo Wang anota seus pecados.", "Os Dez Reis do Inferno observam cada movimento.", "A justiça aqui é implacável e precisa."],
+    5: ["Yomi. Izanami esperava por você.", "O reino dos mortos japonês não tem saída fácil.", "A escuridão aqui é sagrada. Não a profane."],
+    6: ["Naraka. O julgamento final se aproxima.", "Yama ergue os olhos do grande livro. Ele conhece sua história.", "Tudo que fez, tudo que deixou de fazer — será pesado aqui."],
+  };
+  const pool = texts[floor] || texts[1];
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
 function navTo(v) {
   sfx('click');
   const sc = $("scroll");
@@ -1829,6 +1907,8 @@ function renderExplore(sc){
   if(pendingLevelUp){pendingLevelUp=false;renderLevelUp(sc);return;}
   G.room++;G.events++;
   G._mNoDmg=true; // reset por sala; vira false se levar dano
+  // Thoth sussurra ao entrar num novo andar (sala 1)
+  if(G.room===1) setTimeout(()=>toast('📜 '+getThothFlavorText(), 3500), 400);
   if(G.room>G.maxRooms){G.room=G.maxRooms;startBoss(sc);return;}
 
   // ── Sala de Desafio — aparece na sala 5 de cada andar (se não feita ainda) ──
@@ -2034,7 +2114,7 @@ function outcome(sc,type,ico,lbl,txt,tags,narrKey){
     <div class="obody">${txt}</div>
     ${tags.length?`<div class="tags">${tags.map(t=>`<span class="tag ${t.c}">${t.t}</span>`).join('')}</div>`:''}
     ${narrKey?`<div class="narrator">"${narr(narrKey)}"</div>`:''}
-    <button class="btn-next" onclick="nextRoom()">Próxima Sala →</button>`;
+    <button class="btn-next" onclick="nextRoom()">Avançar →</button>`;
   sc.appendChild(el);scrollBot(sc);
 }
 const nextRoom = () => { G.currentEvent = null; navTo('explore'); };
@@ -2178,7 +2258,7 @@ function showChestGame(sc, revealed=false){
         <div class="obody">${result.txt}</div>
         ${result.tags.length?`<div class="tags">${result.tags.map(t=>`<span class="tag ${t.c}">${t.t}</span>`).join('')}</div>`:''}
         ${result.nk?`<div class="narrator">"${narr(result.nk)}"</div>`:''}
-        <button class="btn-next" onclick="nextRoom()">Próxima Sala →</button></div>`;
+        <button class="btn-next" onclick="nextRoom()">Avançar →</button></div>`;
       if(G.hp<=0)setTimeout(()=>showDeath('Maldição de um baú.'),400);
     };
     cg.appendChild(box);
@@ -2897,8 +2977,8 @@ function renderLevelUp(sc){
     .sort(()=>Math.random()-.5).slice(0,count);
   const tlbls={off:'Ofensivo',def:'Defensivo',magic:'Mágico',util:'Utilitário'};
   card.innerHTML=`
-    <div class="ctag"><div class="ctag-dot" style="background:var(--gold2)"></div><span class="ctag-txt" style="color:var(--gold2)">SUBIU DE NÍVEL</span></div>
-    <div class="lvup-title">⬆ Nível ${G.level}!</div>
+    <div class="ctag"><div class="ctag-dot" style="background:var(--gold2)"></div><span class="ctag-txt" style="color:var(--gold2)">ALMA EVOLUI</span></div>
+    <div class="lvup-title">📖 Nível ${G.level} — O Tomo Cresce</div>
     <div class="lvup-sub">"${narr('levelup')}"</div>
     <div class="upgrid" id="upgrid"></div>`;
   sc.appendChild(card);
@@ -3093,7 +3173,7 @@ function startBoss(sc){
     <div class="cillo">${boss.ico}</div>
     <div class="cbody">${boss.sub}<br><br>${boss.proc?'Uma presença antiga emerge das trevas. <b>Algo diferente. Algo maior.</b>':'Um adversário diferente. <b>Prepare-se.</b>'}</div>
     <div class="narrator">"${narr('boss')}"</div>
-    <button class="btn-next" style="border-color:#ff6b35;color:#ff9055;" onclick="startCombat(G._currentBoss,$('scroll'))">⚔ Enfrentar o Chefe</button>`;
+    <button class="btn-next" style="border-color:#ff6b35;color:#ff9055;" onclick="startCombat(G._currentBoss,$('scroll'))">⚔ Enfrentar o Guardião</button>`;
   sc.appendChild(card);scrollBot(sc);
 }
 
@@ -3870,7 +3950,7 @@ function showCombatVictory(wasBoss, xg, gg) {
 
     <!-- Botão único -->
     <button class="btn-next victory-btn" onclick="nextRoom()">
-      Próxima Sala →
+      Avançar →
     </button>`;
 
   scrollBot(sc);
@@ -4502,12 +4582,12 @@ function showDeath(msg){
 
   sd.innerHTML=`
     <div class="d-skull">💀</div>
-    <h2 class="d-title">Fim da Jornada</h2>
+    <h2 class="d-title">O Tomo se Fecha</h2>
     <p class="d-sub">${msg}</p>
     <p class="d-narr" style="font-style:italic;color:var(--txt2);margin-bottom:16px;font-size:14px;max-width:360px;text-align:center;">"${narr('death')}"</p>
     <div class="d-stats" id="d-stats">${dstatRows([['NÍVEL',G.level],['ANDAR',G.floor],['SUBCLASSE',G.subclass?G.subclass.name:'—'],['INIMIGOS',G.kills],['DANO',G.totalDmg],['TEMPO',fmtTime()]])}</div>
     ${logHtml}
-    <button class="btn-retry" onclick="goTitle()">↩ Nova Jornada</button>
+    <button class="btn-retry" onclick="goTitle()">↩ Retornar ao Limbo</button>
     <button class="btn-retry" style="background:transparent;border-color:var(--brd2);color:var(--txt2);margin-top:0;" onclick="goTitle()">Menu Principal</button>`;
   hide('s-game');show('s-death');
 }
@@ -4519,7 +4599,7 @@ function showVictory(){
   // Limpa botões antigos e reconstrói a tela
   sc.innerHTML=`
     <div class="w-star">🏆</div>
-    <h2 class="w-title">VITÓRIA!</h2>
+    <h2 class="w-title">REDENÇÃO</h2>
     <p style="font-style:italic;color:var(--txt2);margin-bottom:20px;" id="w-msg">
       ${ng>0?`NG+${ng} conquistado! `:''}Você derrotou o Rei Lich e libertou as terras das trevas!
     </p>
