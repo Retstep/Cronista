@@ -1443,7 +1443,7 @@ function compassChoose(type){
 
 /* ═══ VFX ═══ */
 let _tt=null;
-function toast(msg,ms=1800){const el=$('toast');el.textContent=msg;el.classList.remove('hide');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.add('hide'),ms);}
+function toast(msg,ms=1800){const el=$('toast');if(!el)return;el.textContent=msg;el.classList.remove('hide');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.add('hide'),ms);}
 function floatDmg(txt,color,x,y){
   const el=document.createElement('div');el.className='fdmg';
   el.style.cssText=`left:${x||45+r(20)}%;top:${y||38}%;color:${color};font-size:${txt.length>4?'16':'20'}px;`;
@@ -1656,12 +1656,13 @@ function upd(){
   if(G.equip.weapon)ico=G.equip.weapon.ico.split('')[0]||G.cls.ico;
   $('hud-ava').textContent=ico;
   const floorLabel=G.floor>3?`∞ ${G.floor}`:`${G.floor}`;
-  $('hud-cls').textContent=G.cls.name+(G.subclass?' · '+G.subclass.name:'')+' — Andar '+floorLabel;
+  if($('hud-name')) $('hud-name').textContent=G.soulName||'Herói';
+  $('hud-cls').textContent=(G.cls?.name||'Alma')+(G.subclass?' · '+G.subclass.name:'')+' — Andar '+floorLabel;
   $('vhp').style.width=pct(G.hp,G.hpMax);$('vmp').style.width=pct(G.mp,G.mpMax);
   $('nhp').textContent=G.hp+'/'+G.hpMax;$('nmp').textContent=G.mp+'/'+G.mpMax;
   $('hlv').textContent='Nv.'+G.level;$('xpf').style.width=pct(G.xp,G.xpNext);
   $('hgold').textContent='💰'+G.gold;
-  const subBadge=G.subclass?`<span class="sub-badge ${G.subclass.key}">${G.subclass.name}</span>`:'';
+  const subBadge=G.subclass?`<span class="sub-badge">${G.subclass.name}</span>`:'';
   $('hstats').innerHTML=
     `<div class="schip"><span class="l">ATK</span><span class="v">${G.atk}</span></div>
     <div class="schip"><span class="l">DEF</span><span class="v">${G.def}</span></div>
