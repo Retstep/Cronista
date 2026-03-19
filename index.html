@@ -21,16 +21,17 @@
 
 <!-- TÍTULO -->
 <div class="screen" id="s-title">
-  <div class="t-rune">⚔️</div>
+  <div class="t-rune">👻</div>
   <h1 class="t-main">CRONISTA</h1>
-  <p class="t-sub">RPG · ROGUELITE · SOLO</p>
+  <p class="t-sub">Uma alma entre os mundos</p>
+  <p class="t-thoth" style="font-style:italic;color:var(--txt3);font-size:12px;max-width:300px;text-align:center;margin:0 auto 10px;">"Diz-me quem foste, para que eu possa julgar quem serás."</p>
   <div class="divider"><div class="divider-gem"></div></div>
-  <div class="cls-label">ESCOLHA SUA CLASSE</div>
   <div class="class-grid" id="class-grid"></div>
-  <button class="btn-go" id="btn-go" disabled onclick="startGame()">— Iniciar Aventura —</button>
-  <p style="font-size:12px;color:var(--txt3);margin-top:10px;font-style:italic;">Cada run é única. Subclasses desbloqueiam no Nível 3.</p>
-  <button class="theme-toggle-btn" onclick="openThemeOverlay()">🎨 Personalizar Tema</button>
-  <button class="theme-toggle-btn" style="margin-top:6px;" onclick="showTomoScreen()">📖 Tomo do Cronista</button>
+  <button class="btn-go" id="btn-go" disabled onclick="startGame()">— Iniciar Jornada —</button>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center;">
+    <button class="theme-toggle-btn" onclick="openThemeOverlay()">🎨 Tema</button>
+    <button class="theme-toggle-btn" onclick="showTomoScreen()">📖 Tomo</button>
+  </div>
 </div>
 
 <!-- TOMO -->

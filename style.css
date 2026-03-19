@@ -1101,3 +1101,124 @@ body::after{
   cursor: pointer;
 }
 .tomo-close-btn:hover { border-color: var(--acc); color: var(--acc); }
+
+/* ═══ CRIAÇÃO DA ALMA ═══ */
+.soul-creation {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0;
+}
+.soul-name-row {
+  display: flex;
+  justify-content: center;
+}
+.soul-name-input {
+  width: 100%;
+  max-width: 320px;
+  padding: 12px 16px;
+  background: var(--card2, rgba(255,255,255,.04));
+  border: 1px solid var(--brd2);
+  border-radius: 10px;
+  color: var(--txt);
+  font-family: var(--cinzel);
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-align: center;
+  outline: none;
+}
+.soul-name-input:focus { border-color: var(--acc); }
+.soul-name-input::placeholder { color: var(--txt3); font-style: italic; letter-spacing: 1px; }
+.soul-points-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--cinzel);
+  font-size: 11px;
+  color: var(--txt3);
+  letter-spacing: 1px;
+  padding: 0 2px;
+}
+.soul-pts-num {
+  font-size: 18px;
+  color: var(--acc);
+  font-weight: 700;
+}
+.soul-pts-num.soul-pts-done { color: var(--grn2); }
+.soul-attrs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.soul-attr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--card2, rgba(255,255,255,.03));
+  border: 1px solid var(--brd);
+  border-radius: 10px;
+}
+.soul-attr-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+.soul-attr-ico { font-size: 20px; }
+.soul-attr-name {
+  font-family: var(--cinzel);
+  font-size: 12px;
+  color: var(--txt);
+  font-weight: 600;
+}
+.soul-attr-desc { font-size: 10px; color: var(--txt3); margin-top: 2px; }
+.soul-attr-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.soul-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--brd2);
+  background: transparent;
+  color: var(--txt);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--cinzel);
+}
+.soul-btn:disabled { opacity: .3; cursor: default; }
+.soul-plus { border-color: var(--acc); color: var(--acc); }
+.soul-minus { border-color: var(--red2,#e74c3c); color: var(--red2,#e74c3c); }
+.soul-val {
+  font-family: var(--cinzel);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--txt);
+  min-width: 20px;
+  text-align: center;
+}
+.soul-preview {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 8px 0 2px;
+}
+.soul-preview span {
+  font-family: var(--cinzel);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--txt2);
+  background: var(--card2, rgba(255,255,255,.04));
+  border: 1px solid var(--brd);
+  border-radius: 6px;
+  padding: 4px 8px;
+}

@@ -209,6 +209,31 @@ function hideTomoScreen(){
 }
 
 
+
+/* ═══ MEMÓRIAS — fragmentos de vidas passadas ═══ */
+const MEMORIES = [
+  // Afinidade: forca
+  {id:'mem_warrior',  name:'Memória do Guerreiro',   ico:'⚔️', mp:10, desc:'Golpe físico pesado. Dano baseado em ATK.',      type:'mem_warrior',   affinity:'forca',   rarity:'common'},
+  {id:'mem_berserker',name:'Memória do Berserker',   ico:'🪓', mp:14, desc:'Ataque duplo. Consome 10% do HP próprio.',       type:'mem_berserker', affinity:'forca',   rarity:'rare'},
+  {id:'mem_knight',   name:'Memória do Cavaleiro',   ico:'🛡️',mp:8,  desc:'Bloqueia próximo ataque. +3 DEF por 2 turnos.', type:'mem_knight',    affinity:'forca',   rarity:'common'},
+  // Afinidade: arcano
+  {id:'mem_mage',     name:'Memória do Mago',        ico:'🔥', mp:18, desc:'Dano mágico massivo baseado em MAG.',            type:'mem_mage',      affinity:'arcano',  rarity:'common'},
+  {id:'mem_shaman',   name:'Memória do Xamã',        ico:'🌀', mp:22, desc:'Invoca o elemento ativo.',                       type:'elemental',     affinity:'arcano',  rarity:'common'},
+  {id:'mem_oracle',   name:'Memória da Oráculo',     ico:'🔮', mp:16, desc:'Drena MP do inimigo e cura HP.',                type:'mem_oracle',    affinity:'arcano',  rarity:'rare'},
+  {id:'mem_necro',    name:'Memória do Necromante',  ico:'💀', mp:20, desc:'Enfraquece inimigo: -4 ATK por 3 turnos.',      type:'mem_necro',     affinity:'arcano',  rarity:'rare'},
+  // Afinidade: espirito
+  {id:'mem_healer',   name:'Memória do Curandeiro',  ico:'💚', mp:14, desc:'Cura HP baseada em MAG.',                       type:'mem_healer',    affinity:'espirito',rarity:'common'},
+  {id:'mem_assassin', name:'Memória do Assassino',   ico:'🌑', mp:12, desc:'Dano crítico garantido.',                       type:'sneak',         affinity:'espirito',rarity:'common'},
+  {id:'mem_bard',     name:'Memória do Trovador',    ico:'🎵', mp:10, desc:'+4 ATK e +4 DEF por 3 turnos.',                type:'mem_bard',      affinity:'espirito',rarity:'rare'},
+  // Afinidade: vigor
+  {id:'mem_titan',    name:'Memória do Titã',        ico:'💪', mp:16, desc:'Ataque pesado. Cura 10 HP por golpe.',          type:'mem_titan',     affinity:'vigor',   rarity:'rare'},
+  {id:'mem_monk',     name:'Memória do Monge',       ico:'🥋', mp:8,  desc:'Ataque rápido 3x consecutivo.',                type:'mem_monk',      affinity:'vigor',   rarity:'common'},
+  // Memórias épicas — andar 3+
+  {id:'mem_dragonborn',name:'Memória do Dragão',     ico:'🐉', mp:30, desc:'Sopro elemental devastador. Ignora DEF.',       type:'mem_dragon',    affinity:'arcano',  rarity:'epic'},
+  {id:'mem_valkyrie', name:'Memória da Valquíria',   ico:'⚡', mp:25, desc:'Ataque relâmpago + ressuscita com 30 HP uma vez.',type:'mem_valkyrie', affinity:'forca',  rarity:'epic'},
+  {id:'mem_anubis',   name:'Memória de Anúbis',      ico:'⚖️', mp:28, desc:'Julga o inimigo: dano = karma acumulado × 3.', type:'mem_anubis',    affinity:'espirito',rarity:'epic'},
+];
+
 /* ═══ NARRADOR ═══ */
 const NARR={
   buy:["O ouro muda de mãos. O destino, quem sabe.","Transações honestas são raras nessas terras."],
@@ -1158,37 +1183,100 @@ const EVENTS=[
 /* ═══ STATE ═══ */
 let G=null,CE=null,combatLog=[],pendingLevelUp=false,pendingSubclass=false;
 
-function newG(cls){
-  G={cls,hp:cls.hp,hpMax:cls.hp,mp:cls.mp,mpMax:cls.mp,
-    atk:cls.atk,def:cls.def,mag:cls.mag,spd:cls.spd,
-    crit:cls.crit,dodge:cls.dodge||.05,lifesteal:cls.lifesteal||0,critMult:2.0,
-    xp:0,xpNext:40,level:1,gold:20,floor:1,room:0,maxRooms:10,
-    kills:0,totalDmg:0,events:0,passives:[],inv:[],
+function newG(soulData){
+  // soulData: { name, vigor, forca, arcano, espirito }
+  // Cada ponto distribuído vale:
+  //   vigor   → +20 HP máx
+  //   forca   → +4 ATK
+  //   arcano  → +5 MAG, +10 MP
+  //   espirito→ +3 DEF, +5% dodge
+  const vigor   = soulData.vigor   || 0;
+  const forca   = soulData.forca   || 0;
+  const arcano  = soulData.arcano  || 0;
+  const espirito= soulData.espirito|| 0;
+
+  const baseHP  = 80  + vigor   * 20;
+  const baseMP  = 60  + arcano  * 10;
+  const baseATK = 8   + forca   * 4;
+  const baseDEF = 4   + espirito* 3;
+  const baseMAG = 6   + arcano  * 5;
+  const baseSPD = 6;
+  const baseDodge = 0.05 + espirito * 0.05;
+
+  G={
+    // Identidade
+    soulName: soulData.name || 'Alma Sem Nome',
+    cls:{id:'soul',name:'Alma',ico:'👻'}, // compatibilidade
+    soulBuild: {vigor, forca, arcano, espirito},
+
+    // Vitais
+    hp:baseHP, hpMax:baseHP,
+    mp:baseMP, mpMax:baseMP,
+    atk:baseATK, def:baseDEF, mag:baseMAG, spd:baseSPD,
+    crit:0.08, dodge:Math.min(0.40, baseDodge),
+    lifesteal:0, critMult:2.0,
+
+    // Progressão
+    xp:0, xpNext:40, level:1, gold:20,
+    floor:1, room:0, maxRooms:10,
+    kills:0, totalDmg:0, events:0,
+    karma:0, // novo — karma mitológico
+
+    // Memórias (substituem skills)
+    memories: [],
+
+    // Estado
+    passives:[], inv:[],
     equip:{head:null,chest:null,weapon:null,feet:null},
-    skills: cls.skill2 ? [{...cls.skill},{...cls.skill2}] : [{...cls.skill}],
-    elements:[],activeElement:null,_elChargeEl:null,_elChargeCount:0,runLog:[],
-    subclass:null,upgrades:[],mpRegen:cls.id==='mage'?14:8,view:'explore',inCombat:false,
-    t0:Date.now(),tmpBuffs:[],
+    elements:[], activeElement:null,
+    _elChargeEl:null, _elChargeCount:0,
+    runLog:[], upgrades:[],
+    mpRegen: 10 + arcano * 2,
+    mpDiscount:0,
+    view:'explore', inCombat:false,
+    t0:Date.now(), tmpBuffs:[],
+
     // Missões
-    missions:[],missionsCompleted:0,
+    missions:[], missionsCompleted:0,
+
     // Sets
     activeSets:{},
-    // Itens especiais de estado
+
+    // Estado de itens especiais
     compassNextRoom:null,
-    arcanaCooldown:0,    // combates restantes para recarregar Explosão Arcana
-    arcanaReady:true,    // true = pode usar
-    arcanaCombatsSince:0,
+    arcanaReady:true, arcanaCombatsSince:0,
     phoenixUsed:false,
-    // Buffs temporários de combate
     warcryTurns:0,
-    // Mercador Especial e Sala de Desafio
     specialMerchantSeen:false,
     challengeRoomDoneThisFloor:false,
+
+    // Compatibilidade legado
+    subclass:null,
+    skills:[],
   };
+
+  // Memórias iniciais — 2 aleatórias baseadas no build
+  assignStartingMemories();
   generateMissions();
-  cls.items.forEach(name=>{
-    G.inv.push({id:'start_'+r(9999),name,ico:name.split(' ')[0],uses:null,rarity:'common',desc:'Item inicial',slot:null,fn:null});
+}
+
+function assignStartingMemories(){
+  // Pool de memórias iniciais baseado nos atributos mais altos
+  const build = G.soulBuild;
+  const all = [...MEMORIES];
+  // Prioriza memórias compatíveis com o build
+  const preferred = all.filter(m=>{
+    if(build.forca>=3  && m.affinity==='forca')  return true;
+    if(build.arcano>=3 && m.affinity==='arcano')  return true;
+    if(build.espirito>=3&&m.affinity==='espirito')return true;
+    if(build.vigor>=3  && m.affinity==='vigor')   return true;
+    return false;
   });
+  const pool = preferred.length >= 2 ? preferred : all;
+  const chosen = [...pool].sort(()=>Math.random()-.5).slice(0,2);
+  G.memories = chosen.map(m=>({...m}));
+  // Compatibilidade: skills aponta para memories
+  G.skills = G.memories;
 }
 
 /* ═══ HELPERS ═══ */
@@ -1604,25 +1692,108 @@ function addXP(n){
 function addGold(n){if(G.passives.includes('loot'))n=Math.round(n*1.5);G.gold=Math.max(0,G.gold+n);upd();}
 
 /* ═══ TITLE ═══ */
-let selectedCls=null;
+// ── Sistema de criação de alma ──
+let _soulPoints = {vigor:0,forca:0,arcano:0,espirito:0};
+const SOUL_TOTAL_POINTS = 10;
+const SOUL_ATTRS = [
+  {key:'vigor',   label:'Vigor',    ico:'❤️', desc:'+20 HP máx por ponto'},
+  {key:'forca',   label:'Força',    ico:'⚔️', desc:'+4 ATK por ponto'},
+  {key:'arcano',  label:'Arcano',   ico:'✨', desc:'+5 MAG, +10 MP por ponto'},
+  {key:'espirito',label:'Espírito', ico:'🌀', desc:'+3 DEF, +5% Esquiva por ponto'},
+];
+
 function buildTitle(){
-  const grid=$('class-grid');grid.innerHTML='';
-  CLASSES.forEach(cls=>{
-    const d=document.createElement('div');d.className='cls';
-    d.innerHTML=`<span class="cls-ico">${cls.ico}</span>
-      <div class="cls-name">${cls.name}</div>
-      <div class="cls-desc">${cls.flavor}</div>
-      ${['atk','def','mag'].map(k=>`<div class="mini-bar"><span>${k.toUpperCase()}</span><div class="mini-bg"><div class="mini-fill fill-${k}" style="width:${cls.bars[k]}%"></div></div></div>`).join('')}`;
-    d.onclick=()=>{document.querySelectorAll('.cls').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');selectedCls=cls;$('btn-go').disabled=false;};
-    grid.appendChild(d);
-  });
+  renderSoulCreation();
 }
-function startGame(){if(!selectedCls)return;pendingLevelUp=false;pendingSubclass=false;newG(selectedCls);tomoApplyBonuses();hide('s-title');show('s-game');upd();navTo('explore');}
+
+function renderSoulCreation(){
+  const grid = $('class-grid');
+  if(!grid) return;
+
+  const used = ()=>Object.values(_soulPoints).reduce((a,b)=>a+b,0);
+  const remaining = ()=>SOUL_TOTAL_POINTS - used();
+
+  const render = ()=>{
+    const rem = remaining();
+    grid.innerHTML = `
+      <div class="soul-creation">
+        <div class="soul-name-row">
+          <input class="soul-name-input" id="soul-name-input" type="text"
+            placeholder="Nome da alma..." maxlength="20"
+            value="${$('soul-name-input')?$('soul-name-input').value:''}"
+            oninput="checkSoulReady()"/>
+        </div>
+        <div class="soul-points-label">
+          <span>Pontos restantes:</span>
+          <span class="soul-pts-num${rem===0?' soul-pts-done':''}">${rem}</span>
+        </div>
+        <div class="soul-attrs">
+          ${SOUL_ATTRS.map(a=>`
+            <div class="soul-attr-row">
+              <div class="soul-attr-info">
+                <span class="soul-attr-ico">${a.ico}</span>
+                <div>
+                  <div class="soul-attr-name">${a.label}</div>
+                  <div class="soul-attr-desc">${a.desc}</div>
+                </div>
+              </div>
+              <div class="soul-attr-ctrl">
+                <button class="soul-btn soul-minus" onclick="soulPt('${a.key}',-1)" ${_soulPoints[a.key]<=0?'disabled':''}>−</button>
+                <span class="soul-val">${_soulPoints[a.key]}</span>
+                <button class="soul-btn soul-plus"  onclick="soulPt('${a.key}',+1)" ${rem<=0?'disabled':''}>+</button>
+              </div>
+            </div>`).join('')}
+        </div>
+        <div class="soul-preview">
+          <span>HP ${80+_soulPoints.vigor*20}</span>
+          <span>MP ${60+_soulPoints.arcano*10}</span>
+          <span>ATK ${8+_soulPoints.forca*4}</span>
+          <span>DEF ${4+_soulPoints.espirito*3}</span>
+          <span>MAG ${6+_soulPoints.arcano*5}</span>
+        </div>
+      </div>`;
+    checkSoulReady();
+  };
+
+  render();
+  window._soulRender = render;
+}
+
+function soulPt(key, delta){
+  const used = Object.values(_soulPoints).reduce((a,b)=>a+b,0);
+  const val = _soulPoints[key];
+  if(delta>0 && used>=SOUL_TOTAL_POINTS) return;
+  if(delta<0 && val<=0) return;
+  _soulPoints[key] = Math.max(0, val+delta);
+  if(window._soulRender) window._soulRender();
+}
+
+function checkSoulReady(){
+  const inp = $('soul-name-input');
+  const name = inp ? inp.value.trim() : '';
+  const used = Object.values(_soulPoints).reduce((a,b)=>a+b,0);
+  const btn = $('btn-go');
+  if(btn) btn.disabled = !(name.length>0 && used===SOUL_TOTAL_POINTS);
+}
+
+function startGame(){
+  const inp = $('soul-name-input');
+  const name = inp ? inp.value.trim() : 'Alma Sem Nome';
+  const used = Object.values(_soulPoints).reduce((a,b)=>a+b,0);
+  if(!name || used!==SOUL_TOTAL_POINTS) return;
+  pendingLevelUp=false;pendingSubclass=false;
+  newG({name,..._soulPoints});
+  tomoApplyBonuses();
+  hide('s-title');show('s-game');upd();navTo('explore');
+}
+
 function goTitle(){
   ['s-death','s-win'].forEach(hide);
-  G=null;CE=null;combatLog=[];pendingLevelUp=false;pendingSubclass=false;selectedCls=null;
-  document.querySelectorAll('.cls').forEach(x=>x.classList.remove('sel'));
-  $('btn-go').disabled=true;show('s-title');
+  G=null;CE=null;combatLog=[];pendingLevelUp=false;pendingSubclass=false;
+  _soulPoints={vigor:0,forca:0,arcano:0,espirito:0};
+  const btn=$('btn-go');if(btn)btn.disabled=true;
+  show('s-title');
+  renderSoulCreation();
 }
 
 /* ═══ SAFE RENDER ═══ */
@@ -3112,6 +3283,101 @@ function pAtk(bonus=0,forceCrit=false){
 }
 
 function doSkill(type){
+  // Memórias — tipos novos
+  if(type==='mem_warrior'){
+    const dmg=Math.round(Math.max(8,G.atk*1.8+r(10)));
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    dentReadyBar(dmg);floatDmg('⚔️'+dmg,'#e74c3c');spawnParticles(10,'#e74c3c');
+    clog(`⚔️ Memória do Guerreiro: ${dmg} dano físico!`,'lc');
+    updateCombatUI();return;
+  }
+  if(type==='mem_berserker'){
+    const dmg1=Math.round(Math.max(6,G.atk*1.4+r(8)));
+    const dmg2=Math.round(Math.max(6,G.atk*1.4+r(8)));
+    const selfDmg=Math.round(G.hp*0.10);
+    CE.hpCur=Math.max(0,CE.hpCur-dmg1-dmg2);G.totalDmg+=dmg1+dmg2;
+    G.hp=Math.max(1,G.hp-selfDmg);
+    dentReadyBar(dmg1+dmg2);floatDmg('🪓'+(dmg1+dmg2),'#c0392b');spawnParticles(14,'#c0392b');
+    clog(`🪓 Berserker: ${dmg1}+${dmg2} dano! (-${selfDmg} HP próprio)`,'lc');
+    updateCombatUI();return;
+  }
+  if(type==='mem_knight'){
+    G.tmpBuffs.push({stat:'def',val:3,turns:2});
+    G._shieldNext=true;
+    clog('🛡️ Cavaleiro: bloqueio ativado! +3 DEF por 2 turnos.','lh');
+    updateCombatUI();return;
+  }
+  if(type==='mem_mage'){
+    const dmg=Math.round(Math.max(10,G.mag*2.2+r(12)));
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    dentReadyBar(dmg);floatDmg('🔥'+dmg,'#e67e22');spawnParticles(12,'#e67e22');flashCard('rgba(230,126,34,.3)',280);
+    clog(`🔥 Memória do Mago: ${dmg} dano mágico!`,'lc');
+    updateCombatUI();return;
+  }
+  if(type==='mem_oracle'){
+    const dmg=Math.round(Math.max(6,G.mag*1.2+r(8)));
+    const heal=Math.round(dmg*0.5);
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    G.hp=Math.min(G.hpMax,G.hp+heal);
+    dentReadyBar(dmg);floatDmg('🔮'+dmg,'#9b59b6');
+    clog(`🔮 Oráculo: ${dmg} dano + ${heal} HP curado!`,'lh');
+    updateCombatUI();return;
+  }
+  if(type==='mem_necro'){
+    CE._atkDebuff=(CE._atkDebuff||0)+4;CE.atk=Math.max(1,CE.atk-4);
+    clog('💀 Necromante: inimigo enfraquecido! -4 ATK por 3 turnos.','lh');
+    updateCombatUI();return;
+  }
+  if(type==='mem_healer'){
+    const heal=Math.round(Math.max(15,G.mag*1.5+r(10)));
+    G.hp=Math.min(G.hpMax,G.hp+heal);
+    floatDmg('💚+'+heal,'#27ae60');sfx('heal'||'open');
+    clog(`💚 Curandeiro: +${heal} HP restaurado!`,'lh');
+    updateCombatUI();return;
+  }
+  if(type==='mem_bard'){
+    G.tmpBuffs.push({stat:'atk',val:4,turns:3},{stat:'def',val:4,turns:3});
+    clog('🎵 Trovador: +4 ATK e +4 DEF por 3 turnos!','lh');
+    updateCombatUI();return;
+  }
+  if(type==='mem_titan'){
+    const dmg=Math.round(Math.max(12,G.atk*2.0+r(8)));
+    const heal=10;
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;G.hp=Math.min(G.hpMax,G.hp+heal);
+    dentReadyBar(dmg);floatDmg('💪'+dmg,'#e67e22');spawnParticles(12,'#f39c12');
+    clog(`💪 Titã: ${dmg} dano + ${heal} HP recuperado!`,'lh');
+    updateCombatUI();return;
+  }
+  if(type==='mem_monk'){
+    const hits=[r(6)+G.atk,r(6)+G.atk,r(6)+G.atk];
+    const total=hits.reduce((a,b)=>a+b,0);
+    CE.hpCur=Math.max(0,CE.hpCur-total);G.totalDmg+=total;
+    dentReadyBar(total);floatDmg('🥋'+total,'#f1c40f');spawnParticles(16,'#f1c40f');
+    clog(`🥋 Monge: ${hits.join('+')}=${total} dano!`,'lc');
+    updateCombatUI();return;
+  }
+  if(type==='mem_dragon'){
+    const dmg=Math.round(Math.max(20,G.mag*3.0+r(15)));
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    dentReadyBar(dmg);floatDmg('🐉'+dmg,'#e74c3c');spawnParticles(20,'#e74c3c');flashCard('rgba(231,76,60,.4)',400);
+    clog(`🐉 Dragão: ${dmg} dano elemental! (ignora DEF)`,'lc');
+    updateCombatUI();return;
+  }
+  if(type==='mem_valkyrie'){
+    const dmg=Math.round(Math.max(15,(G.atk+G.mag)*1.5+r(12)));
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    if(!G._valkyrieUsed){G._valkyrieUsed=true;G.passives.push('phoenix_once');}
+    dentReadyBar(dmg);floatDmg('⚡'+dmg,'#f1c40f');spawnParticles(16,'#f1c40f');flashCard('rgba(241,196,15,.3)',300);
+    clog(`⚡ Valquíria: ${dmg} dano! Ressurreição ativada.`,'lc');
+    updateCombatUI();return;
+  }
+  if(type==='mem_anubis'){
+    const dmg=Math.round(Math.max(10,(G.karma||0)*3+G.mag));
+    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
+    dentReadyBar(dmg);floatDmg('⚖️'+dmg,'#9b59b6');spawnParticles(14,'#9b59b6');
+    clog(`⚖️ Anúbis: ${dmg} dano do julgamento! (karma: ${G.karma||0})`,'lc');
+    updateCombatUI();return;
+  }
   if(type==='brutal'){
     const dmg=Math.round(Math.max(1,G.atk*1.7+r(12)-Math.floor(CE.def*.4)));
     const stun=Math.random()<.40;if(stun)CE.stunned=true;
