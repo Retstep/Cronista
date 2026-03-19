@@ -711,229 +711,316 @@ const UPGRADES=[
 
 /* ═══ ELEMENTOS ═══ */
 const ELEMENTS=[
-  // Tier 0 — Primordiais
-  {id:'tempo',     name:'Tempo',         ico:'⏳',tier:0, mult:2.5, desc:'Manipula a causalidade.'},
-  {id:'vacuo',     name:'Vácuo',         ico:'🌑',tier:0, mult:2.5, desc:'Aniquila o espaço.'},
-  {id:'gravidade', name:'Gravidade',     ico:'🌀',tier:0, mult:2.5, desc:'Colapsa matéria.'},
-  {id:'espaco',    name:'Espaço',        ico:'🌌',tier:0, mult:2.5, desc:'Dobra a realidade.'},
-  {id:'materia_escura',name:'Matéria Escura',ico:'🕳️',tier:0,mult:2.5,desc:'Dissolve a existência.'},
-  {id:'caos',      name:'Caos',          ico:'🌀',tier:0, mult:2.5, desc:'Força primordial que distorce toda ordem e realidade.'},
-  // Tier 1 — Energias Puras
-  {id:'eter',      name:'Éter',          ico:'✨',tier:1, mult:2.1, desc:'Energia primordial.'},
-  {id:'vida',      name:'Vida',          ico:'💚',tier:1, mult:2.1, desc:'Força vital que sustenta e regenera tudo.'},
-  {id:'raio',      name:'Raio',          ico:'⚡',tier:1, mult:2.1, desc:'Destruição instantânea.'},
-  {id:'luz',       name:'Luz',           ico:'☀️',tier:1, mult:2.1, desc:'Alta energia radiante.'},
-  {id:'fogo',      name:'Fogo',          ico:'🔥',tier:1, mult:2.1, desc:'Calor extremo.'},
-  {id:'magma',     name:'Magma',         ico:'🌋',tier:1, mult:2.1, desc:'Rocha incandescente.'},
-  {id:'plasma',    name:'Plasma',        ico:'💫',tier:1, mult:2.1, desc:'Estado energético puro.'},
-  {id:'radiacao',  name:'Radiação',      ico:'☢️',tier:1, mult:2.1, desc:'Penetra qualquer matéria.'},
-  // Tier 2 — Entrópicos
-  {id:'necrose',   name:'Necrose',       ico:'🦠',tier:2, mult:1.8, desc:'Corrompe a vida.'},
-  {id:'morte',     name:'Morte',         ico:'💀',tier:2, mult:1.8, desc:'Fim absoluto de qualquer existência viva.'},
-  {id:'veneno',    name:'Veneno',        ico:'🐍',tier:2, mult:1.8, desc:'Dissolve o organismo.'},
-  {id:'acido',     name:'Ácido',         ico:'⚗️',tier:2, mult:1.8, desc:'Corrói estruturas.'},
-  {id:'escuridao', name:'Escuridão',     ico:'🌒',tier:2, mult:1.8, desc:'Corrói a alma.'},
-  {id:'podridao',  name:'Podridão',      ico:'💀',tier:2, mult:1.8, desc:'Decompõe tudo.'},
-  {id:'virus',     name:'Vírus',         ico:'🧬',tier:2, mult:1.8, desc:'Infecta e replica.'},
-  {id:'carie',     name:'Cárie',         ico:'🦷',tier:2, mult:1.8, desc:'Corrói por dentro.'},
-  // Tier 3 — Condutores
-  {id:'mercurio',  name:'Mercúrio',      ico:'🪞',tier:3, mult:1.5, desc:'Metal tóxico fluido.'},
-  {id:'som',       name:'Som',           ico:'🔊',tier:3, mult:1.5, desc:'Vibração devastadora.'},
-  {id:'gelo',      name:'Gelo',          ico:'❄️',tier:3, mult:1.5, desc:'Congela e fragmenta.'},
-  {id:'sangue',    name:'Sangue',        ico:'🩸',tier:3, mult:1.5, desc:'Manipula o vital.'},
-  {id:'sombra',    name:'Sombra',        ico:'👤',tier:3, mult:1.5, desc:'Ilude e penetra.'},
-  {id:'fumaca',    name:'Fumaça',        ico:'💨',tier:3, mult:1.5, desc:'Ofusca e sufoca.'},
-  {id:'areia',     name:'Areia',         ico:'⏱️',tier:3, mult:1.5, desc:'Corrói por atrito.'},
-  {id:'vidro',     name:'Vidro',         ico:'🔮',tier:3, mult:1.5, desc:'Fragmentos cortantes.'},
-  {id:'oleo',      name:'Óleo',          ico:'🛢️',tier:3, mult:1.5, desc:'Inflamável e escorregadio.'},
-  {id:'espuma',    name:'Espuma',        ico:'🫧',tier:3, mult:1.5, desc:'Aprisiona e sufoca.'},
-  // Tier 4 — Materiais Nobres
-  {id:'diamante',  name:'Diamante',      ico:'💎',tier:4, mult:1.3, desc:'Perfura qualquer coisa.'},
-  {id:'platina',   name:'Platina',       ico:'🥈',tier:4, mult:1.3, desc:'Conduz e reflete.'},
-  {id:'ouro',      name:'Ouro',          ico:'🥇',tier:4, mult:1.3, desc:'Conduz e estabiliza.'},
-  {id:'metal',     name:'Metal',         ico:'⚙️',tier:4, mult:1.3, desc:'Resistência pura.'},
-  {id:'cristal',   name:'Cristal',       ico:'🔷',tier:4, mult:1.3, desc:'Amplifica energia.'},
-  {id:'titanio',   name:'Titânio',       ico:'🛡️',tier:4, mult:1.3, desc:'Leveza e dureza.'},
-  {id:'aco',       name:'Aço',           ico:'⚔️',tier:4, mult:1.3, desc:'Resistência extrema.'},
-  {id:'obsidiana', name:'Obsidiana',     ico:'🖤',tier:4, mult:1.3, desc:'Absorve impactos.'},
-  {id:'marmore',   name:'Mármore',       ico:'🗿',tier:4, mult:1.3, desc:'Defesa absoluta.'},
-  // Tier 5 — Elementais Básicos
-  {id:'terra',     name:'Terra',         ico:'🌍',tier:5, mult:1.0, desc:'Fundação do mundo.'},
-  {id:'ar',        name:'Ar',            ico:'🌬️',tier:5, mult:1.0, desc:'Onipresente e invisível.'},
-  {id:'agua',      name:'Água',          ico:'💧',tier:5, mult:1.0, desc:'Adapta-se a tudo.'},
-  {id:'flora',     name:'Flora',         ico:'🌿',tier:5, mult:1.0, desc:'Vida e crescimento.'},
-  {id:'lodo',      name:'Lodo',          ico:'🟫',tier:5, mult:1.0, desc:'Prende e sufoca.'},
-  {id:'cinzas',    name:'Cinzas',        ico:'🌫️',tier:5, mult:1.0, desc:'Resta após tudo.'},
-  {id:'argila',    name:'Argila',        ico:'🏺',tier:5, mult:1.0, desc:'Moldável e resistente.'},
-  {id:'nevoa',     name:'Névoa',         ico:'🌁',tier:5, mult:1.0, desc:'Obscurece e penetra.'},
-  {id:'poeira',    name:'Poeira',        ico:'💭',tier:5, mult:1.0, desc:'Onipresente e corrosiva.'},
-  {id:'espinho',   name:'Espinho',       ico:'🌵',tier:5, mult:1.0, desc:'Perfura e sangra.'},
-  {id:'raiz',      name:'Raiz',          ico:'🪨',tier:5, mult:1.0, desc:'Prende e sufoca.'},
+  /* ══════════════════════════════════════════════════
+     ELEMENTOS UNIVERSAIS — disponíveis desde o início
+     Aparecem nos tomos dos primeiros andares
+  ══════════════════════════════════════════════════ */
+  // Tier 5 — Base (mult 1.0)
+  {id:'fogo',      name:'Fogo',          ico:'🔥', tier:5, mult:1.0, andar:0, desc:'Chama universal. Calor que destrói e purifica.'},
+  {id:'agua',      name:'Água',          ico:'💧', tier:5, mult:1.0, andar:0, desc:'Fluxo eterno. Se adapta e penetra tudo.'},
+  {id:'terra',     name:'Terra',         ico:'🌍', tier:5, mult:1.0, andar:0, desc:'Fundação do mundo. Imóvel e implacável.'},
+  {id:'ar',        name:'Ar',            ico:'🌬️', tier:5, mult:1.0, andar:0, desc:'Onipresente e invisível. Carrega tudo.'},
+  // Tier 4 — Comuns (mult 1.2)
+  {id:'luz',       name:'Luz',           ico:'☀️', tier:4, mult:1.2, andar:0, desc:'Energia radiante. Expõe e queima.'},
+  {id:'sombra',    name:'Sombra',        ico:'👤', tier:4, mult:1.2, andar:0, desc:'Ausência de luz. Cobre e corrói.'},
+  {id:'vida',      name:'Vida',          ico:'💚', tier:4, mult:1.2, andar:0, desc:'Força vital primordial. Cura e sustenta.'},
+
+  /* ══════════════════════════════════════════════════
+     TÁRTARO — Andar 1 (Mitologia Grega)
+     Elementos do reino de Hades: morte, trovão, pedra
+  ══════════════════════════════════════════════════ */
+  // Tier 4 — Comuns do Tártaro (mult 1.2)
+  {id:'trovao',    name:'Trovão',        ico:'⚡', tier:4, mult:1.2, andar:1, desc:'Arma de Zeus. Descarga que não perdoa.'},
+  {id:'veneno',    name:'Veneno',        ico:'🐍', tier:4, mult:1.2, andar:1, desc:'Hidra e Medusa. Dissolve por dentro.'},
+  {id:'pedra',     name:'Pedra',         ico:'🪨', tier:4, mult:1.2, andar:1, desc:'Petrificação de Medusa. Rígida e esmagadora.'},
+  // Tier 3 — Incomuns do Tártaro (mult 1.4)
+  {id:'morte',     name:'Morte',         ico:'💀', tier:3, mult:1.4, andar:1, desc:'Tânatos personificado. Fim absoluto.'},
+  {id:'alma',      name:'Alma',          ico:'👻', tier:3, mult:1.4, andar:1, desc:'Psique grega. Energia do ser que persiste.'},
+  // Tier 2 — Raros do Tártaro (mult 1.7)
+  {id:'eris',      name:'Discórdia',     ico:'⚔️', tier:2, mult:1.7, andar:1, desc:'Poder de Éris. Caos que divide e enfraquece.'},
+  {id:'tartaro_fogo',name:'Chama Eterna',ico:'🔴', tier:2, mult:1.7, andar:1, desc:'Fogo do Tártaro. Não se apaga — nunca.'},
+
+  /* ══════════════════════════════════════════════════
+     NIFLEHEIM — Andar 2 (Mitologia Nórdica)
+     Elementos do reino de Hel: gelo, runas, vento ártico
+  ══════════════════════════════════════════════════ */
+  // Tier 4 — Comuns de Nifleheim (mult 1.2)
+  {id:'gelo',      name:'Gelo',          ico:'❄️', tier:4, mult:1.2, andar:2, desc:'Fimbulwinter. Congela e fragmenta.'},
+  {id:'ferro',     name:'Ferro',         ico:'⚙️', tier:4, mult:1.2, andar:2, desc:'Metal nórdico. Resistência de Asgard.'},
+  {id:'vento',     name:'Vento Glacial', ico:'🌪️', tier:4, mult:1.2, andar:2, desc:'Vento de Nifleheim. Penetra qualquer armadura.'},
+  // Tier 3 — Incomuns de Nifleheim (mult 1.4)
+  {id:'runas',     name:'Runas',         ico:'🔵', tier:3, mult:1.4, andar:2, desc:'Sabedoria de Odin. Gravadas no custo de um olho.'},
+  {id:'trevas',    name:'Trevas Nórdicas',ico:'🌑',tier:3, mult:1.4, andar:2, desc:'Escuridão de Nifleheim. Apaga calor e esperança.'},
+  // Tier 2 — Raros de Nifleheim (mult 1.7)
+  {id:'yggdrasil', name:'Yggdrasil',     ico:'🌳', tier:2, mult:1.7, andar:2, desc:'A Árvore do Mundo. Conecta e absorve tudo.'},
+  {id:'mjolnir',   name:'Mjolnir',       ico:'🔨', tier:2, mult:1.7, andar:2, desc:'Martelo de Thor. Raio e força em uma só arma.'},
+
+  /* ══════════════════════════════════════════════════
+     DUAT — Andar 3 (Mitologia Egípcia)
+     Elementos do reino de Anúbis: areia, sol, hieróglifos
+  ══════════════════════════════════════════════════ */
+  // Tier 4 — Comuns do Duat (mult 1.2)
+  {id:'areia',     name:'Areia',         ico:'🏜️', tier:4, mult:1.2, andar:3, desc:'Deserto eterno. Corrói e cobre tudo.'},
+  {id:'sol_ra',    name:'Sol de Rá',     ico:'☀️', tier:4, mult:1.2, andar:3, desc:'Olho de Rá. Calor divino que purifica.'},
+  {id:'cobra',     name:'Apófis',        ico:'🐍', tier:4, mult:1.2, andar:3, desc:'Serpente do caos. Veneno e trevas em forma de deus.'},
+  // Tier 3 — Incomuns do Duat (mult 1.4)
+  {id:'magia_egip',name:'Heka',          ico:'𓂀', tier:3, mult:1.4, andar:3, desc:'Magia primordial egípcia. Transforma realidade por palavras.'},
+  {id:'ka',        name:'Ka',            ico:'⚖️', tier:3, mult:1.4, andar:3, desc:'Duplo espiritual egípcio. A força que sobrevive à morte.'},
+  // Tier 2 — Raros do Duat (mult 1.7)
+  {id:'ankh',      name:'Ankh',          ico:'☥', tier:2, mult:1.7, andar:3, desc:'Símbolo da vida eterna. Cura e maldiz com igual poder.'},
+  {id:'olho_horus_el',name:'Olho de Hórus',ico:'👁️',tier:2,mult:1.7, andar:3, desc:'Visão que atravessa ilusões e revela a verdade absoluta.'},
+
+  /* ══════════════════════════════════════════════════
+     DIYU — Andar 4 (Mitologia Chinesa)
+     Elementos do reino de Yanluo: jade, karma, dragão
+  ══════════════════════════════════════════════════ */
+  // Tier 3 — Comuns de Diyu (mult 1.4)
+  {id:'jade',      name:'Jade',          ico:'🐲', tier:3, mult:1.4, andar:4, desc:'Pedra imperial. Canal entre mortal e divino.'},
+  {id:'karma_neg', name:'Karma Negro',   ico:'☯️', tier:3, mult:1.4, andar:4, desc:'Karma acumulado em atos impuros. Pesa e destrói.'},
+  {id:'correntes', name:'Correntes',     ico:'⛓️', tier:3, mult:1.4, andar:4, desc:'Grilhões do Diyu. Prendem e drenam força vital.'},
+  // Tier 2 — Incomuns de Diyu (mult 1.7)
+  {id:'dragao_sangue',name:'Sangue de Dragão',ico:'🩸',tier:2,mult:1.7, andar:4, desc:'Sangue do Long Wang. Poder que corrompe quem toca.'},
+  {id:'qi_negro',  name:'Qi Sombrio',    ico:'🌀', tier:2, mult:1.7, andar:4, desc:'Energia vital corrompida. Drena força de dentro para fora.'},
+  // Tier 1 — Raros de Diyu (mult:2.0)
+  {id:'fogo_infernal',name:'Fogo Infernal',ico:'🔥',tier:1,mult:2.0, andar:4, desc:'Chama do Diyu. Queima alma, não corpo — dor eterna.'},
+  {id:'espectro',  name:'Espectro',      ico:'👁️', tier:1, mult:2.0, andar:4, desc:'Jiangshi liberado. Drena qi e corrompe o ambiente.'},
+
+  /* ══════════════════════════════════════════════════
+     YOMI — Andar 5 (Mitologia Japonesa)
+     Elementos do reino de Izanami: youki, oni, kekkai
+  ══════════════════════════════════════════════════ */
+  // Tier 3 — Comuns de Yomi (mult 1.4)
+  {id:'youki',     name:'Youki',         ico:'🌑', tier:3, mult:1.4, andar:5, desc:'Energia dos youkai. Corrompe e transforma.'},
+  {id:'kekkai',    name:'Kekkai',        ico:'🔮', tier:3, mult:1.4, andar:5, desc:'Barreira espiritual japonesa. Prende e sela.'},
+  // Tier 2 — Incomuns de Yomi (mult 1.7)
+  {id:'oni_fogo',  name:'Fogo do Oni',   ico:'👹', tier:2, mult:1.7, andar:5, desc:'Chama dos demônios Oni. Devora tudo — incluindo almas.'},
+  {id:'kuroi_kaze',name:'Vento Negro',   ico:'🌪️', tier:2, mult:1.7, andar:5, desc:'Vento de Yomi. Carrega maldições para onde sopra.'},
+  {id:'mizuchi',   name:'Mizuchi',       ico:'🐉', tier:2, mult:1.7, andar:5, desc:'Dragão aquático japonês. Veneno e fluência em uma só força.'},
+  // Tier 1 — Raros de Yomi (mult 2.0)
+  {id:'shinigami_el',name:'Shinigami',   ico:'⚰️', tier:1, mult:2.0, andar:5, desc:'Deus da Morte japonês. Coleta almas indiscriminadamente.'},
+  {id:'kusanagi_el',name:'Kusanagi',     ico:'🗡️', tier:1, mult:2.0, andar:5, desc:'Espada sagrada de Yamato. Corta vento, destino e ilusão.'},
+
+  /* ══════════════════════════════════════════════════
+     NARAKA — Andar 6 (Mitologia Tailandesa/Budista)
+     Elementos do reino de Yama: lótus, dharma, nirvana
+  ══════════════════════════════════════════════════ */
+  // Tier 2 — Comuns de Naraka (mult 1.7)
+  {id:'loto_el',   name:'Lótus Sombrio', ico:'🪷', tier:2, mult:1.7, andar:6, desc:'Flor que floresce no lodo. Pureza que emerge do horror.'},
+  {id:'naga_el',   name:'Naga',          ico:'🐍', tier:2, mult:1.7, andar:6, desc:'Serpente divina tailandesa. Veneno sagrado e proteção.'},
+  // Tier 1 — Incomuns de Naraka (mult 2.2)
+  {id:'garuda_el', name:'Garuda',        ico:'🦅', tier:1, mult:2.2, andar:6, desc:'Pássaro divino de Vishnu. Devora nagas e purifica o ar.'},
+  {id:'dharma_el', name:'Dharma',        ico:'☸️', tier:1, mult:2.2, andar:6, desc:'Lei cósmica budista. Ordena e pune o caos com precisão.'},
+  {id:'karma_el',  name:'Karma',         ico:'⚖️', tier:1, mult:2.2, andar:6, desc:'Equilíbrio absoluto. Cada golpe retorna ao atacante.'},
+  // Tier 0 — Raríssimos de Naraka (mult 2.5)
+  {id:'nirvana',   name:'Nirvana Sombrio',ico:'🌌',tier:0, mult:2.5, andar:6, desc:'Extinção total. Nada permanece — nem dor, nem existência.'},
+  {id:'yama_el',   name:'Julgamento',    ico:'⚖️', tier:0, mult:2.5, andar:6, desc:'Sentença de Yama. Instantânea e sem apelação.'},
 ];
 
 /* ═══ FUSÕES ═══ */
 const ELEM_TYPE = {
-  // Primordiais / espaço-tempo
-  tempo:'temporal',    espaco:'espacial',   gravidade:'gravitacional',
-  vacuo:'vacuo',       materia_escura:'escuro_cosmico', caos:'caotico',
-  // Energias puras
-  eter:'arcano',       vida:'vital',        raio:'voltaico',
-  luz:'luminoso',      fogo:'igneo',        magma:'magmatico',
-  plasma:'eletrico',   radiacao:'radioativo',
-  // Entrópicos
-  necrose:'necrotico',morte:'mortal',      veneno:'toxico',
-  acido:'corrosivo',   escuridao:'sombrio', podridao:'corruptivo',
-  virus:'toxico',      carie:'corrosivo',
-  // Condutores
-  mercurio:'mercurial',   som:'sonico',        gelo:'gelido',
-  sangue:'vital',      sombra:'sombrio',    fumaca:'gasoso',
-  areia:'arenoso',    vidro:'abrasivo',    oleo:'inflamavel',
-  espuma:'espumoso',     osso:'osseo',
-  // Materiais
-  diamante:'solido',   platina:'solido',    ouro:'solido',
-  metal:'solido',      cristal:'solido',    titanio:'solido',
-  aco:'metalico',      obsidiana:'vulcanico', marmore:'pedroso',
-  // Elementais básicos
-  terra:'terreo',      ar:'gasoso',         agua:'aquatico',
-  flora:'natural',     lodo:'terreo',       cinzas:'cinzas',
-  argila:'terreo',     nevoa:'nebuloso',      poeira:'abrasivo',
-  espinho:'natural',   raiz:'radicular',
+  /* Universal */
+  fogo:'igneo',        agua:'aquatico',     terra:'terreo',
+  ar:'gasoso',         luz:'luminoso',      sombra:'sombrio',
+  vida:'vital',
+
+  /* Tártaro — Grego */
+  trovao:'voltaico',   veneno:'toxico',     pedra:'solido',
+  morte:'mortal',      alma:'espiritual',
+  eris:'caotico',      tartaro_fogo:'igneo_eterno',
+
+  /* Nifleheim — Nórdico */
+  gelo:'gelido',       ferro:'metalico',    vento:'gasoso',
+  runas:'arcano',      trevas:'sombrio',
+  yggdrasil:'natural', mjolnir:'voltaico',
+
+  /* Duat — Egípcio */
+  areia:'abrasivo',    sol_ra:'luminoso',   cobra:'toxico',
+  magia_egip:'arcano', ka:'espiritual',
+  ankh:'vital',        olho_horus_el:'luminoso',
+
+  /* Diyu — Chinês */
+  jade:'cristalino',   karma_neg:'corruptivo', correntes:'metalico',
+  dragao_sangue:'vital', qi_negro:'sombrio',
+  fogo_infernal:'igneo_eterno', espectro:'espiritual',
+
+  /* Yomi — Japonês */
+  youki:'sombrio',     kekkai:'arcano',
+  oni_fogo:'igneo',    kuroi_kaze:'gasoso',  mizuchi:'aquatico',
+  shinigami_el:'mortal', kusanagi_el:'metalico',
+
+  /* Naraka — Tailandês/Budista */
+  loto_el:'vital',     naga_el:'toxico',
+  garuda_el:'luminoso', dharma_el:'divino',  karma_el:'divino',
+  nirvana:'vacuo',     yama_el:'mortal',
 };
 
 // Regras de fusão: par de tipos → {name, ico, desc, tierOffset, multBonus}
 // tierOffset: reduz o tier médio (resultado mais poderoso que a média)
 // multBonus: somado ao mult calculado
 const FUSION_RULES = {
-  // Par canonizado (a <= b alfabeticamente) → resultado
-  'abrasivo+abrasivo':   {name:'Tempestade de Lâminas',ico:'🌪️', desc:'Fragmentos cortantes em alta velocidade rasgam qualquer defesa.'},
-  'abrasivo+aquatico':   {name:'Areia Abrasiva',       ico:'🏖️', desc:'Pasta corrosiva que penetra armaduras e irrita tecidos.'},
-  'abrasivo+gasoso':     {name:'Nuvem Cortante',       ico:'💨', desc:'Névoa de partículas que lacera pulmões e olhos.'},
-  'abrasivo+igneo':      {name:'Cinzas Candentes',     ico:'🌋', desc:'Partículas incandescentes que queimam ao contato.'},
-  'abrasivo+natural':    {name:'Espinheiro',            ico:'🌵', desc:'Lanchas vegetais que rastreiam o alvo pelo calor.'},
-  'abrasivo+solido':     {name:'Pó de Diamante',       ico:'💎', desc:'Nuvem de carbono indestrutível que perfura como agulhas ardentes.'},
-  'abrasivo+sombrio':    {name:'Poeira das Sombras',   ico:'🌑', desc:'Partículas invisíveis que corroem de dentro.'},
-  'abrasivo+terreo':     {name:'Tempestade de Areia',  ico:'🌪️', desc:'Tornado de partículas que desintegra carne e pedra por atrito.'},
-  'abrasivo+toxico':     {name:'Névoa Ácida',          ico:'☠️', desc:'Micropartículas tóxicas em suspensão que envenenam ao respirar.'},
-  'aquatico+gasoso':     {name:'Vapor Superaquecido',  ico:'♨️', desc:'Névoa invisível que cozinha alvos por dentro, ignorando armaduras.'},
-  'aquatico+gelido':     {name:'Gelo Eterno',          ico:'🧊', desc:'Congela a água nos tecidos; morte lenta e inevitável.'},
-  'aquatico+igneo':      {name:'Vapor Explosivo',      ico:'💥', desc:'Expansão violenta de vapor superaquecido.'},
-  'aquatico+natural':    {name:'Seiva Vital',          ico:'🌿', desc:'Aura de cura acelerada capaz de regenerar membros perdidos.'},
-  'aquatico+terreo':     {name:'Lodo Cinzento',        ico:'🌫️', desc:'Massa viscosa que endurece como cimento ao tocar o inimigo.'},
-  'aquatico+toxico':     {name:'Toxina Líquida',       ico:'🐍', desc:'Contamina correntes d\'água; paralisia instantânea ao contato.'},
-  'aquatico+vital':      {name:'Água da Vida',         ico:'💧', desc:'Cura ferimentos graves e prolonga a vida; pode reverter o envelhecimento.'},
-  'arcano+caotico':      {name:'Éter Caótico',         ico:'✨', desc:'Altera as leis da física; cria áreas de gravidade zero ou fluxo temporal lento.'},
-  'arcano+luminoso':     {name:'Luz Arcana',           ico:'💫', desc:'Energia pura que dissolve escudos mágicos e queima almas.'},
-  'arcano+mortal':       {name:'Morte Arcana',         ico:'🌑', desc:'Feitiço que apaga a faísca vital diretamente, sem dano físico.'},
-  'arcano+sombrio':      {name:'Sombra Arcana',        ico:'🌒', desc:'Magia das trevas que corrói a mente e o corpo simultaneamente.'},
-  'arcano+temporal':     {name:'Crônica Etérea',       ico:'✨', desc:'A energia primordial do éter flui através de todas as eras simultaneamente.'},
-  'caotico+corruptivo':  {name:'Vida Caótica',         ico:'💚', desc:'Gera mutações aleatórias em seres vivos (cura, fortalece ou deforma o alvo).'},
-  'caotico+corrosivo':   {name:'Ácido Instável',       ico:'⚗️', desc:'Corrosão aleatória que pode dissolver armadura completa em instantes.'},
-  'caotico+espacial':    {name:'Dobra Dimensional',    ico:'🌌', desc:'Abre portais instáveis para dimensões aleatórias; invoca criaturas ou distorce a realidade.'},
-  'caotico+igneo':       {name:'Chama do Caos',        ico:'🔥', desc:'Fogo imprevisível que explode em padrões impossíveis de prever.'},
-  'caotico+luminoso':    {name:'Luz Caótica',          ico:'💥', desc:'Flashes imprevisíveis que podem cegar inimigos ou revelar verdades ocultas.'},
-  'caotico+mortal':      {name:'Aniquilação Absoluta', ico:'⬛', desc:'Apaga qualquer alvo da existência, sem chance de ressurreição ou vestígios.'},
-  'caotico+solido':      {name:'Metal Maleável',       ico:'⚙️', desc:'Metal que muda de forma aleatoriamente; cria armas ou armaduras instáveis.'},
-  'caotico+sombrio':     {name:'Trevas Caóticas',      ico:'🌒', desc:'Escuridão viva que se move e consome tudo, causando confusão e dano contínuo.'},
-  'caotico+temporal':    {name:'Linha do Tempo Caótica',ico:'🌀',desc:'Passado, presente e futuro se misturam; eventos podem se repetir ou nunca acontecer.'},
-  'caotico+vacuo':       {name:'Vazio Absoluto',       ico:'⬛', desc:'Aniquilação atômica total. Uma zona onde a existência é simplesmente deletada.'},
-  'caotico+vital':       {name:'Caos Vital',           ico:'🌱', desc:'Cura e corrompe ao acaso; pode salvar ou destruir instantaneamente.'},
-  'corruptivo+igneo':    {name:'Chama Negra',          ico:'🖤', desc:'Fogo que não ilumina; consome a alma e deixa o corpo físico intacto.'},
-  'corruptivo+natural':  {name:'Flora Morta',          ico:'🌵', desc:'Plantas secas e murchas que sugam energia ou lançam galhos mortais.'},
-  'corruptivo+solido':   {name:'Metal Corrompido',     ico:'⚰️', desc:'Metal infestado de necrose que envenena ao toque.'},
-  'corruptivo+vital':    {name:'Vida na Morte',        ico:'🦠', desc:'Fungos e bactérias que prosperam na decomposição para gerar nova vida.'},
-  'corrosivo+igneo':     {name:'Piroclasto',           ico:'🌋', desc:'Chuva de cinzas e rochas incandescentes; soterra exércitos e cidades.'},
-  'corrosivo+solido':    {name:'Corrosão',             ico:'⚗️', desc:'Derrete instantaneamente armaduras e estruturas metálicas nobres.'},
-  'corrosivo+toxico':    {name:'Peste',                ico:'☠️', desc:'Corrupção imediata do sistema circulatório; o sangue apodrece nas veias.'},
-  'eletrico+aquatico':   {name:'Eletrólise',           ico:'⚡', desc:'Condução elétrica total em líquidos; gera explosões gasosas de hidrogênio.'},
-  'eletrico+gasoso':     {name:'Eletricidade Estática',ico:'⚡', desc:'Ar carregado que gera descargas de alta voltagem a qualquer movimento.'},
-  'eletrico+gelido':     {name:'Tempestade Polar',     ico:'❄️', desc:'Relâmpagos congelantes que paralisam e queimam simultaneamente.'},
-  'eletrico+luminoso':   {name:'Luz Sônica',           ico:'💥', desc:'Flash cegante acompanhado de uma onda de choque que explode órgãos.'},
-  'eletrico+solido':     {name:'Liga de Plasma',       ico:'💫', desc:'Metal energético que corta a nível molecular e se autorregenera.'},
-  'eletrico+vital':      {name:'Choque Revigorante',   ico:'⚡', desc:'Descarga elétrica que reanima seres inconscientes e remove estados de paralisia.'},
-  'espacial+gravitacional':{name:'Dobra Espacial',     ico:'🌀', desc:'Comprime distâncias infinitas; esmaga inimigos em um ponto singular.'},
-  'espacial+temporal':   {name:'Continuum',            ico:'♾️', desc:'Altera a malha da causalidade; permite onipresença local e manipulação cronológica.'},
-  'gasoso+igneo':        {name:'Erupção de Cinzas',    ico:'🌋', desc:'Nuvem flamejante de gás incandescente que queima tudo em contato.'},
-  'gasoso+natural':      {name:'Bolhas Eternas',       ico:'🫧', desc:'Prisões esféricas inquebráveis que asfixiam o alvo lentamente.'},
-  'gasoso+toxico':       {name:'Epidemia',             ico:'🦠', desc:'O ar torna-se o vetor de uma doença imparável e onipresente.'},
-  'gelido+igneo':        {name:'Vapor Superaquecido',  ico:'♨️', desc:'Névoa invisível que cozinha alvos por dentro, ignorando armaduras.'},
-  'gelido+mortal':       {name:'Frio da Morte',        ico:'❄️', desc:'Gelo que congela a alma; causa morte instantânea ao toque espiritual.'},
-  'gelido+natural':      {name:'Preservação',          ico:'🧊', desc:'Gelo que mantém organismos em animação suspensa (não envelhecem nem morrem).'},
-  'gelido+solido':       {name:'Mercúrio Sólido',      ico:'🪞', desc:'Lâminas de metal tóxico que derretem após atingir a corrente sanguínea.'},
-  'gelido+toxico':       {name:'Veneno Gélido',        ico:'🐍', desc:'Veneno que cristaliza o sangue lentamente, causando dor extrema.'},
-  'gelido+vital':        {name:'Criogenia Vital',      ico:'💙', desc:'Suspende a vida em estado cristalino; cura ou preserva por tempo indefinido.'},
-  'gravitacional+luminoso':{name:'Lente Gravitacional',ico:'🔭',desc:'Invisibilidade perfeita e distorção da realidade visual em escala global.'},
-  'gravitacional+sombrio':{name:'Matéria Sombria',     ico:'🌑', desc:'Matéria paradoxal que alterna entre solidez e intangibilidade absoluta.'},
-  'gravitacional+vacuo': {name:'Singularidade',        ico:'🕳️', desc:'Um ponto de colapso total — nada escapa, nem luz, nem magia.'},
-  'igneo+luminoso':      {name:'Chama Solar',          ico:'☀️', desc:'Chamas sagradas que cegam e purificam o alvo simultaneamente.'},
-  'igneo+natural':       {name:'Fogo Silvestre',       ico:'🌿', desc:'Chamas que se espalham pela vegetação e envenenam com fumaça.'},
-  'igneo+solido':        {name:'Metal Incandescente',  ico:'🔥', desc:'Metal fundido que adere à pele e não pode ser removido.'},
-  'igneo+toxico':        {name:'Raio Ígneo',           ico:'🔥', desc:'Explosão ardente carregada de toxinas que queimam por dentro e por fora.'},
-  'igneo+vital':         {name:'Fênix',                ico:'🔥', desc:'Chamas douradas que curam, regeneram e queimam; renasce das cinzas se destruída.'},
-  'luminoso+mortal':     {name:'Fosforescência',       ico:'💡', desc:'Brilho que drena a vitalidade; quanto mais brilha, mais vida consome.'},
-  'luminoso+sombrio':    {name:'Eclipse',              ico:'🌑', desc:'Trevas absolutas seguidas de luz devastadora — paralisa e queima.'},
-  'mortal+voltaico':     {name:'Pulso Fúnebre',        ico:'💀', desc:'Descarga elétrica que faz o coração parar, os neurônios se apagam, mas o corpo permanece intacto.'},
-  'mortal+sombrio':      {name:'Espectro',             ico:'👻', desc:'Invoca uma entidade sombria persistente que drena a vitalidade dos inimigos.'},
-  'mortal+sonico':       {name:'Grito da Morte',       ico:'💀', desc:'Som que ressoa apenas para o alvo — silencioso externamente, letal internamente.'},
-  'mortal+temporal':     {name:'Fim dos Tempos',       ico:'⏳', desc:'Acelera o envelhecimento ou encerra ciclos instantaneamente; pode destruir eras inteiras.'},
-  'mortal+toxico':       {name:'Toxina Mortal',        ico:'☠️', desc:'Veneno letal fulminante; causa morte em segundos sem antídoto comum.'},
-  'mortal+vital':        {name:'Ciclo Eterno',         ico:'♾️', desc:'Equilíbrio supremo; pode ressuscitar aliados ou destruir inimigos conforme o uso.'},
-  'natural+terreo':      {name:'Barro Vermelho',       ico:'🟫', desc:'Cria golems de carne e terra com memória genética residual.'},
-  'natural+vital':       {name:'Sopro Vital',          ico:'🌬️',desc:'Vento revigorante que restaura a energia total e remove efeitos de exaustão.'},
-  'solido+solido':       {name:'Superliga',            ico:'🛡️', desc:'O metal definitivo: leve como o ar, porém impossível de amassar.'},
-  'solido+terreo':       {name:'Rocha Metamórfica',    ico:'🗿', desc:'Absorve impactos físicos e os devolve como ondas de choque.'},
-  'sonico+sombrio':      {name:'Neblina Sombria',      ico:'👤', desc:'Cortina de fumaça viva que permite teletransporte entre sombras.'},
-  'sonico+temporal':     {name:'Eco Temporal',         ico:'⏪', desc:'Gritos que ecoam pelo tempo, permitindo prever ataques ou alterar o passado.'},
-  'sonico+vacuo':        {name:'Silêncio Absoluto',    ico:'🔇', desc:'Remove o meio de propagação física; explosões e impactos tornam-se nulos.'},
-  'sombrio+vital':       {name:'Espelho de Sangue',  ico:'🩸', desc:'Poça de sangue que reflete sombras do passado, revelando segredos ou invocando formas do inconsciente.'},
-  'temporal+vacuo':      {name:'Apagamento',           ico:'⬛', desc:'Retira o alvo da linha do tempo, como se nunca tivesse existido.'},
-  'temporal+vital':      {name:'Sangue do Tempo',      ico:'🩸', desc:'Permite visualizar e acessar a memória genética de todas as eras.'},
-  'terreo+gasoso':       {name:'Terremoto',            ico:'🌍', desc:'Ondas sísmicas que se propagam pelo ar e pelo chão simultaneamente.'},
-  'terreo+igneo':        {name:'Cerâmica',             ico:'🏺', desc:'Cascas defensivas que endurecem sob calor extremo.'},
-  'terreo+vital':        {name:'Fertilidade',          ico:'🌱', desc:'Torna o solo fértil instantaneamente; faz plantas crescerem em segundos.'},
-  'toxico+vital':        {name:'Mutação',              ico:'🧬', desc:'Crescimento grotesco e acelerado; organismos tornam-se predadores imprevisíveis.'},
 
-  // ═══ NOVAS FUSÕES ═══
-  // Tier 0 — Cósmicas
-  'escuro_cosmico+gravitacional': {name:'Singularidade',          ico:'🕳️', desc:'Colapso gravitacional infinito que apaga dimensões inteiras; nada — nem luz, nem conceito — escapa.'},
-  'espacial+vacuo':          {name:'Horizonte de Eventos',   ico:'🌌', desc:'Fronteira além da qual as leis da física deixam de existir; criaturas aprisionadas perdem toda forma e memória.'},
-  'caotico+gravitacional':   {name:'Vetor do Caos',          ico:'🌀', desc:'Distorce a força gravitacional de forma imprevisível, podendo inverter a atração de planetas ou fragmentar estrelas.'},
-  // Tier 1 — Energéticas
-  'eletrico+radioativo':     {name:'Pulsar',                 ico:'💫', desc:'Emissão rítmica de energia em ondas que destroem circuitos biológicos e tecnológicos em raio continental.'},
-  'gasoso+magmatico':        {name:'Névoa Ardente',          ico:'🌋', desc:'Cortina de gases superaquecidos que carbonizam pulmões; avança lentamente mas é impossível de conter.'},
-  'eletrico+igneo':          {name:'Coroa Solar',            ico:'☀️', desc:'Anel de plasma solar que incendeia a atmosfera local; tudo no raio se torna combustível.'},
-  'arcano+gasoso':           {name:'Vórtice Etéreo',         ico:'🌀', desc:'Redemoinho de energia pura que suga a vontade dos oponentes, dissolvendo magias e intenções antes de agir.'},
-  'radioativo+voltaico':     {name:'Tempestade Gamma',       ico:'⚡', desc:'Descarga ionizante que queima por dentro e por fora simultaneamente; tecidos e armaduras viram pó em segundos.'},
-  'eletrico+natural':        {name:'Espinho Solar',          ico:'🌵', desc:'Lanças de plasma vegetais que penetram qualquer escudo mágico; combinam o orgânico com o cósmico.'},
-  // Tier 2 — Corrupção e matéria
-  'corruptivo+gasoso':       {name:'Hálito Pútrido',         ico:'🌬️', desc:'Vento que carrega a decomposição — cada respiração avança a necrose nos tecidos vivos.'},
-  'gelido+sombrio':          {name:'Lâmina de Sombra',       ico:'🌑', desc:'Fragmentos de escuridão solidificada que cortam tanto a carne quanto o espírito projetado do alvo.'},
-  'necrotico+vital':         {name:'Coágulo Sombrio',        ico:'🩸', desc:'O sangue para de fluir e se solidifica em grumos que pressionam os órgãos por dentro.'},
-  'corruptivo+sonico':       {name:'Ecos da Podridão',       ico:'🔊', desc:'Frequência sônica que ressoa com tecidos em decomposição, acelerando a putrefação apenas ao ouvir.'},
-  'solido+sombrio':          {name:'Espelho Negro',          ico:'🪞', desc:'Superfície que absorve a identidade do alvo refletido; quem olha perde o senso de si mesmo progressivamente.'},
-  'corrosivo+gasoso':        {name:'Bruma Ácida',            ico:'☠️', desc:'Névoa invisível de partículas corrosivas que dissolve armaduras de dentro para fora sem contato direto.'},
-  'abrasivo+mortal':         {name:'Crisálide Mortal',       ico:'⏳', desc:'Areia que enterra o alvo vivo e drena sua força vital durante a asfixia, convertendo-a em energia.'},
-  'corrosivo+terreo':        {name:'Lodo Corrosivo',         ico:'🟫', desc:'Pasta viscosa ácida que gruda e corrói simultaneamente; impossível de remover sem piorar o dano.'},
-  'natural+sonico':          {name:'Grito da Floresta',      ico:'🌿', desc:'Resonância vegetal que libera esporos explosivos ao atingir frequência crítica — detonação orgânica em cadeia.'},
-  'nebuloso+toxico':         {name:'Nevoeiro Venenoso',      ico:'🐍', desc:'Névoa que entrega veneno diretamente pelo trato respiratório; difícil de detectar e impossível de evitar.'},
-  // Tier 3 — Híbridas
-  'osseo+sonico':            {name:'Ressonância Óssea',      ico:'💀', desc:'Vibração calibrada para a frequência dos ossos do alvo; fraturas internas sem nenhum contato físico visível.'},
-  'abrasivo+luminoso':       {name:'Vitral',                 ico:'🔮', desc:'Refração controlada que cria ilusões perfeitas e lasers de precisão cirúrgica a partir de qualquer fonte luminosa.'},
-  'igneo+mercurial':         {name:'Mercúrio Ardente',       ico:'🔥', desc:'Metal líquido em chamas que adere à pele e não pode ser apagado com água — expande ao tentar remover.'},
-  'eletrico+espumoso':       {name:'Espuma Elétrica',        ico:'⚡', desc:'Bolhas condutoras que explodem em descargas ao mínimo toque; cria campo minado eletrostático.'},
-  'arenoso+nebuloso':        {name:'Névoa de Areia',         ico:'🌫️', desc:'Partículas de areia suspensas em névoa que laceram internamente ao serem inaladas.'},
-  'gasoso+gelido':           {name:'Seda de Gelo',           ico:'❄️', desc:'Fumaça que congela instantaneamente em contato com o alvo, criando uma armadura de prisão de gelo.'},
-  'cinzas+gasoso':           {name:'Véu de Cinzas',          ico:'🌫️', desc:'Nuvem de cinzas suspensas que abafa fogo, bloqueia visão e sufoca — perfeita para emboscadas lentas.'},
-  'radicular+terreo':        {name:'Raiz de Pedra',          ico:'🌱', desc:'Raízes que perfuram e fragmentam rochas; podem minar fundações de castelos ou prender gigantes.'},
-  // Tier 4 — Materiais raros
-  'gasoso+solido':           {name:'Platina Espelhada',      ico:'✨', desc:'Névoa metálica que endurece ao contato com energia mágica, formando armaduras espontâneas.'},
-  'vulcanico+gasoso':        {name:'Obsidiana Fumacenta',    ico:'🌑', desc:'Fragmentos de vidro vulcânico suspensos em fumaça — uma nuvem de navalhas invisíveis.'},
-  'metalico+sombrio':        {name:'Aço Sombrio',            ico:'⚔️', desc:'Metal que absorve luz e ataques mágicos; torna armas feitas com ele imperceptíveis no escuro.'},
-  'radioativo+solido':       {name:'Âmbar Radioativo',       ico:'💎', desc:'Cristais translúcidos que emitem radiação focada; belas e mortais, usadas como prisões ou armadilhas.'},
-  'metalico+terreo':         {name:'Coluna de Titânio',      ico:'🏛️', desc:'Pilares de metal emergem do chão de forma instantânea; podem murar cidades ou esmagar alvos verticalmente.'},
-  'gelido+pedroso':          {name:'Mármore Gelado',         ico:'🪨', desc:'Superfície perfeitamente polida e congelante; propaga o frio por contato e reflete impactos com dureza máxima.'},
+  /* ══════════════════════════════════════
+     CÓSMICAS — Vácuo, Divino, Espiritual
+  ══════════════════════════════════════ */
+  'divino+sombrio':       {name:'Dharma das Trevas',     ico:'☯️', desc:'A lei cósmica corrói o que está fora de equilíbrio — dano proporcional ao karma.'},
+  'divino+vital':         {name:'Bênção Eterna',         ico:'🌸', desc:'Karma positivo manifesto — cura massiva e fortalece quem tem karma alto.'},
+  'divino+mortal':        {name:'Extinção Cármica',      ico:'☸️', desc:'Karma negativo acumulado destruído de uma vez — dano escalonado pelo karma do inimigo.'},
+  'arcano+divino':        {name:'Mandala Arcana',        ico:'✨', desc:'Magia estruturada pela lei cósmica — feitiço que não pode ser resistido nem esquivado.'},
+  'mortal+vacuo':         {name:'Nirvana',               ico:'🌌', desc:'Extinção absoluta — o alvo deixa de existir sem deixar rastro ou memória.'},
+  'vacuo+vital':          {name:'Vácuo Vital',           ico:'🌑', desc:'Drena a força vital ao criar vácuo interno — silencioso e inevitável.'},
+  'sombrio+vacuo':        {name:'Abismo',                ico:'⬛', desc:'Escuridão sem fundo que engole tudo — nenhuma luz, nenhuma magia persiste.'},
+  'arcano+vacuo':         {name:'Silêncio Arcano',       ico:'🔇', desc:'Dissolve magia no vácuo — anula escudos e feitiços instantaneamente.'},
+  'espiritual+mortal':    {name:'Colheita de Almas',     ico:'👻', desc:'Shinigami e Tânatos agem juntos — drena a alma sem tocar o corpo.'},
+  'espiritual+sombrio':   {name:'Possessão',             ico:'🌑', desc:'Espírito sombrio invade o alvo — causa confusão e dano contínuo por dentro.'},
+  'espiritual+vital':     {name:'Ressurreição',          ico:'💫', desc:'Alma e vida reunidas — cura drástica ou ressuscita aliados caídos.'},
+  'arcano+espiritual':    {name:'Invocação',             ico:'🔮', desc:'Ka e runas combinados — manifesta uma entidade que atua por 3 turnos.'},
+  'espiritual+luminoso':  {name:'Ascensão',              ico:'✨', desc:'Alma iluminada — purifica todos os debuffs e causa dano sagrado massivo.'},
 
-  'vacuo+vital':         {name:'Vácuo Vital',          ico:'🌑', desc:'Drena a força vital ao criar vácuo interno nos tecidos do alvo.'},
-  'sombrio+sombrio':      {name:'Abismo Sombrio',        ico:'🌑', desc:'Cria uma região de escuridão absoluta onde as sombras se tornam entidades hostis, drenando vida e causando medo.'},
+  /* ══════════════════════════════════════
+     ENERGIA — Igneo, Igneo Eterno, Voltaico, Luminoso
+  ══════════════════════════════════════ */
+  'igneo+igneo_eterno':   {name:'Fogo do Averno',        ico:'🔴', desc:'Chama comum encontra fogo eterno do Tártaro — arde para sempre, não apaga.'},
+  'igneo+voltaico':       {name:'Tempestade de Fogo',    ico:'⛈️', desc:'Relâmpago e chamas — explosão termal devastadora que deixa queimaduras elétricas.'},
+  'igneo+luminoso':       {name:'Chama Solar',           ico:'☀️', desc:'Fogo de Rá — chamas sagradas que cegam e purificam simultaneamente.'},
+  'igneo+sombrio':        {name:'Chama Negra',           ico:'🖤', desc:'Fogo do Oni — não ilumina, consome alma e deixa o corpo intacto.'},
+  'aquatico+igneo':       {name:'Vapor Explosivo',       ico:'💥', desc:'Fogo e água — expansão violenta de vapor superaquecido em área.'},
+  'igneo+vital':          {name:'Fênix',                 ico:'🔥', desc:'Fogo e vida — chama que cura e queima; quem cai em batalha pode renascer.'},
+  'igneo+mortal':         {name:'Chama da Morte',        ico:'💀', desc:'Fogo infernal que mata alma e corpo — não deixa cinzas, nem memória.'},
+  'igneo+toxico':         {name:'Veneno Ardente',        ico:'☠️', desc:'Chama venenosa — queima por fora e apodrece por dentro simultaneamente.'},
+  'gelido+igneo':         {name:'Forja Polar',           ico:'🌋', desc:'Calor extremo encontra frio absoluto — explosão de cristais incandescentes.'},
+  'arcano+igneo':         {name:'Brasas Rúnicas',        ico:'🔴', desc:'Fogo gravado com runas nórdicas — queima que enfraquece defesas mágicas.'},
+  'igneo+terreo':         {name:'Magma',                 ico:'🌋', desc:'Rocha derretida emerge do chão — devorador lento e inevitável.'},
+  'gasoso+igneo':         {name:'Erupção',               ico:'🌋', desc:'Fogo e gás — nuvem flamejante que queima e asfixia ao mesmo tempo.'},
+  'igneo_eterno+sombrio': {name:'Fogo Sombrio',          ico:'🖤', desc:'Chama eterna do Diyu — queima o que não pode ser queimado: esperança e vontade.'},
+  'igneo_eterno+vital':   {name:'Vida Eterna',           ico:'🌺', desc:'Fogo que dá vida em vez de destruir — regenera massivamente aliados.'},
+  'igneo_eterno+mortal':  {name:'Purgatório',            ico:'🔴', desc:'Fogo eterno do Tártaro — condena o alvo a arder sem destruir, ciclo sem fim.'},
+  'aquatico+igneo_eterno':{name:'Dilúvio de Fogo',       ico:'🌊', desc:'Água e fogo eterno — vapor que escala e queima por dentro como lava líquida.'},
+  'igneo_eterno+voltaico':{name:'Zeus Desencadeado',     ico:'⚡', desc:'Trovão e fogo eterno — a ira máxima de Zeus manifesta em um único golpe.'},
+  'aquatico+voltaico':    {name:'Maré Elétrica',         ico:'⚡', desc:'Raio e água — condução total, atinge todos os alvos em contato com o líquido.'},
+  'gelido+voltaico':      {name:'Relâmpago Gélido',      ico:'❄️', desc:'Mjolnir encontra gelo — paralisa e queima ao mesmo tempo, sem escapatória.'},
+  'sombrio+voltaico':     {name:'Raio das Trevas',       ico:'🌑', desc:'Descarga elétrica invisível — atinge sem aviso, impossível de desviar.'},
+  'mortal+voltaico':      {name:'Pulso Fúnebre',         ico:'💀', desc:'Raio que para o coração — silencioso, limpo e absolutamente letal.'},
+  'toxico+voltaico':      {name:'Descarga Tóxica',       ico:'☠️', desc:'Relâmpago e veneno — envenena e paralisa simultaneamente.'},
+  'terreo+voltaico':      {name:'Faísca da Terra',       ico:'⚡', desc:'Corrente elétrica que percorre o solo — atinge todos que pisam no chão.'},
+  'arcano+voltaico':      {name:'Runa de Relâmpago',     ico:'⚡', desc:'Raio carregado de magia rúnica — ignora resistências e atinge alma e corpo.'},
+  'gasoso+voltaico':      {name:'Tempestade Estática',   ico:'⚡', desc:'Ar carregado que dispara descargas espontâneas a qualquer movimento.'},
+  'caotico+voltaico':     {name:'Caos Elétrico',         ico:'🌀', desc:'Eris e trovão — descarga sem padrão que salta entre alvos imprevisível.'},
+  'luminoso+sombrio':     {name:'Eclipse',               ico:'🌑', desc:'Luz e trevas em colapso — cegueira total seguida de explosão devastadora.'},
+  'luminoso+mortal':      {name:'Luz Mortal',            ico:'💡', desc:'Brilho que drena vitalidade — quanto mais ilumina, mais vida consome.'},
+  'luminoso+vital':       {name:'Cura Sagrada',          ico:'💛', desc:'Luz divina que restaura e protege — cura massiva, remove todos os debuffs.'},
+  'arcano+luminoso':      {name:'Luz Arcana',            ico:'✨', desc:'Éter irradiado — dissolve escudos mágicos e queima almas diretamente.'},
+  'luminoso+toxico':      {name:'Luz Corrosiva',         ico:'☠️', desc:'Sol de Rá combinado com veneno de Apófis — queima e apodrece ao mesmo tempo.'},
+  'gasoso+luminoso':      {name:'Nuvem Flamejante',      ico:'☀️', desc:'Luz concentrada aquece gás ao ponto de ignição — explosão de fotorradical.'},
+  'luminoso+terreo':      {name:'Cristalização Solar',   ico:'💎', desc:'Calor de Rá petrifica e cristaliza — transforma inimigos em estátuas de luz.'},
+
+  /* ══════════════════════════════════════
+     SOMBRA — Sombrio, Trevas, Corrupto
+  ══════════════════════════════════════ */
+  'mortal+sombrio':       {name:'Espectro',              ico:'👻', desc:'Sombra e morte — entidade invocada que drena vitalidade sem poder ser atacada.'},
+  'sombrio+toxico':       {name:'Veneno das Sombras',    ico:'🌑', desc:'Youki e cobra — veneno que viaja pelas sombras, imperceptível até agir.'},
+  'arcano+sombrio':       {name:'Trevas Arcanas',        ico:'🌒', desc:'Magia negra — corrói mente e corpo simultaneamente de dentro para fora.'},
+  'sombrio+vital':        {name:'Drenagem',              ico:'🩸', desc:'Sombra e sangue — vampiriza força vital transferindo ao conjurador.'},
+  'gelido+sombrio':       {name:'Lâmina de Sombra',      ico:'🌑', desc:'Escuridão solidificada — corta carne e espírito, ignorando armaduras.'},
+  'aquatico+sombrio':     {name:'Névoa Sombria',         ico:'🌫️', desc:'Qi negro e água — névoa escura que drena força e desorienta os sentidos.'},
+  'gasoso+sombrio':       {name:'Vento Maldito',         ico:'🌪️', desc:'Kuroi Kaze ampliado — vento que carrega maldições para onde sopra.'},
+  'sombrio+terreo':       {name:'Terra Corrompida',      ico:'🌑', desc:'Solo absorvido pelo qi sombrio — terreno que enfraquece quem pisa nele.'},
+  'caotico+sombrio':      {name:'Caos Sombrio',          ico:'🌒', desc:'Eris e youki — escuridão viva que consome tudo sem ordem ou propósito.'},
+  'corruptivo+sombrio':   {name:'Podridão das Trevas',   ico:'☠️', desc:'Karma negro e youki — corrupção que se espalha por qualquer sombra.'},
+  'corruptivo+vital':     {name:'Vida Corrompida',       ico:'🦠', desc:'Karma negativo corrói a força vital — quanto mais saudável, mais doloroso.'},
+  'arcano+corruptivo':    {name:'Magia Corrompida',      ico:'🌀', desc:'Runas e karma negro — feitiços do inimigo se voltam contra ele.'},
+  'corruptivo+mortal':    {name:'Maldição Terminal',     ico:'💀', desc:'Karma e morte — maldição que inevitavelmente mata, só o momento varia.'},
+
+  /* ══════════════════════════════════════
+     MORTE E VENENO
+  ══════════════════════════════════════ */
+  'mortal+toxico':        {name:'Toxina Mortal',         ico:'☠️', desc:'Shinigami e naga — veneno que mata em segundos, sem antídoto conhecido.'},
+  'arcano+mortal':        {name:'Toque da Morte',        ico:'💀', desc:'Feitiço que apaga a faísca vital — sem dano visível, sem rastro mágico.'},
+  'aquatico+mortal':      {name:'Águas do Estige',       ico:'💧', desc:'Morte e água — beber desta água paralisa alma e corpo por tempo indeterminado.'},
+  'mortal+terreo':        {name:'Sepultura',             ico:'⚰️', desc:'Terra e morte — o solo engole o alvo vivo, aprisionando até a extinção.'},
+  'gasoso+mortal':        {name:'Último Suspiro',        ico:'💨', desc:'O ar se torna veneno de Tânatos — cada respiração aproxima do fim.'},
+  'aquatico+toxico':      {name:'Veneno Líquido',        ico:'🐍', desc:'Naga e água — contamina qualquer líquido, paralisia instantânea ao contato.'},
+  'gasoso+toxico':        {name:'Epidemia',              ico:'🦠', desc:'Veneno de cobra se vaporiza — ar torna-se vetor de doença imparável.'},
+  'terreo+toxico':        {name:'Solo Envenenado',       ico:'🐍', desc:'Veneno que satura o chão — todo movimento expõe a novas doses de toxina.'},
+  'gelido+toxico':        {name:'Veneno Gélido',         ico:'❄️', desc:'Mizuchi e gelo — veneno que cristaliza o sangue, dor que aumenta com o frio.'},
+  'toxico+vital':         {name:'Mutação',               ico:'🧬', desc:'Veneno e vida — crescimento grotesco, o organismo torna-se predador imprevisível.'},
+  'arcano+toxico':        {name:'Veneno Arcano',         ico:'🐍', desc:'Heka e veneno — toxina que dissolve escudos mágicos antes de atacar o corpo.'},
+
+  /* ══════════════════════════════════════
+     ARCANO — Runas, Heka, Kekkai
+  ══════════════════════════════════════ */
+  'aquatico+arcano':      {name:'Água Arcana',           ico:'💧', desc:'Kekkai e água — barreira líquida que reflete magias e envenena quem as lança.'},
+  'arcano+gasoso':        {name:'Vórtice Etéreo',        ico:'🌀', desc:'Magia e ar — redemoinho que dissolve feitiços inimigos antes de atingir.'},
+  'arcano+vital':         {name:'Cura Rúnica',           ico:'🔵', desc:'Runas de cura — recuperação que escala com o nível de magia acumulada.'},
+  'arcano+terreo':        {name:'Pedra Rúnica',          ico:'🪨', desc:'Magia e terra — pilar de pedra gravado com runas emerge e esmaga o alvo.'},
+  'arcano+natural':       {name:'Floresta Encantada',    ico:'🌳', desc:'Yggdrasil e runas — árvore que cresce instantaneamente e prende o inimigo.'},
+
+  /* ══════════════════════════════════════
+     ELEMENTAIS — Terra, Água, Ar
+  ══════════════════════════════════════ */
+  'aquatico+terreo':      {name:'Lama Sufocante',        ico:'🌫️', desc:'Terra e água — massa viscosa que gruda, imobiliza e sufoca progressivamente.'},
+  'gasoso+terreo':        {name:'Terremoto',             ico:'🌍', desc:'Terra e ar — ondas sísmicas que se propagam pelo solo e pelo ar simultaneamente.'},
+  'gelido+terreo':        {name:'Tundra',                ico:'🧊', desc:'Terra e gelo de Nifleheim — solo que congela ao toque, campo de gelo em área.'},
+  'natural+terreo':       {name:'Floresta de Pedra',     ico:'🗿', desc:'Yggdrasil e terra — raízes de rocha que aprisionam e esmagam o alvo.'},
+  'abrasivo+terreo':      {name:'Tempestade de Areia',   ico:'🌪️', desc:'Terra e areia do Duat — tornado que desintegra armadura por atrito.'},
+  'caotico+terreo':       {name:'Caos Sísmico',          ico:'🌍', desc:'Terra e Eris — terremoto imprevisível que abre falhas sem padrão definido.'},
+  'aquatico+gasoso':      {name:'Vapor Letal',           ico:'♨️', desc:'Água e ar quente — névoa invisível que cozinha alvos por dentro.'},
+  'aquatico+gelido':      {name:'Gelo Vivo',             ico:'🧊', desc:'Água e gelo — congela ao toque, aprisionando o alvo sem matar imediatamente.'},
+  'aquatico+natural':     {name:'Seiva Vital',           ico:'🌿', desc:'Mizuchi e Yggdrasil — aura de regeneração acelerada, cura ferimentos graves.'},
+  'aquatico+solido':      {name:'Pedra Submersa',        ico:'🪨', desc:'Pedra de Medusa e água — petrifica por dentro, começando pelo sangue.'},
+  'gasoso+gelido':        {name:'Blizzard',              ico:'❄️', desc:'Vento glacial de Nifleheim — tempestade de gelo que cega e congela em área.'},
+  'gasoso+natural':       {name:'Esporos Letais',        ico:'🍄', desc:'Ar e Yggdrasil — esporos explosivos que explodem ao contato, infectam pulmões.'},
+  'caotico+gasoso':       {name:'Tornado do Caos',       ico:'🌪️', desc:'Vento e Eris — tempestade que não tem centro nem direção, devasta aleatoriamente.'},
+  'abrasivo+gasoso':      {name:'Nuvem Cortante',        ico:'💨', desc:'Ar e areia do Duat — névoa de partículas que lacera pulmões e olhos.'},
+
+  /* ══════════════════════════════════════
+     MATERIAIS — Metalico, Solido, Cristalino
+  ══════════════════════════════════════ */
+  'igneo+metalico':       {name:'Metal Incandescente',   ico:'🔥', desc:'Ferro e fogo — metal fundido que adere à pele, impossível de remover.'},
+  'igneo_eterno+metalico':{name:'Aço Eterno',            ico:'⚔️', desc:'Kusanagi e fogo eterno — lâmina que arde para sempre e não quebra.'},
+  'metalico+sombrio':     {name:'Aço Sombrio',           ico:'⚔️', desc:'Correntes e youki — metal que absorve luz e magia, imperceptível no escuro.'},
+  'metalico+voltaico':    {name:'Liga Elétrica',         ico:'⚡', desc:'Mjolnir e ferro — metal condutor que transmite descarga ao toque.'},
+  'gelido+metalico':      {name:'Ferro Congelado',       ico:'❄️', desc:'Ferro de Nifleheim e gelo — metal que congela ao toque, prende o alvo.'},
+  'arcano+metalico':      {name:'Correntes Rúnicas',     ico:'⛓️', desc:'Correntes e runas — grilhões mágicos que não podem ser quebrados por força.'},
+  'metalico+terreo':      {name:'Pilar de Ferro',        ico:'🏛️', desc:'Ferro e terra — pilar emerge do solo instantaneamente, esmaga ou muralha.'},
+  'metalico+mortal':      {name:'Lâmina da Morte',       ico:'⚰️', desc:'Kusanagi e Shinigami — espada que corta destino além de carne e osso.'},
+  'igneo+solido':         {name:'Pedra Incandescente',   ico:'🌋', desc:'Pedra de Medusa e fogo — rocha fundida que petrifica e queima ao mesmo tempo.'},
+  'mortal+solido':        {name:'Petrificação Fatal',    ico:'🪨', desc:'Pedra de Medusa e morte — olhar que mata e petrifica instantaneamente.'},
+  'arcano+solido':        {name:'Runa de Pedra',         ico:'🪨', desc:'Pedra e magia — muro mágico que reflete projéteis e absorve impactos.'},
+  'solido+terreo':        {name:'Rocha Metamórfica',     ico:'🗿', desc:'Pedra e terra — absorve impactos físicos e os devolve em ondas de choque.'},
+  'cristalino+luminoso':  {name:'Prisma Solar',          ico:'💎', desc:'Jade e sol de Rá — refrata luz em lasers focados, atravessa qualquer material.'},
+  'cristalino+gelido':    {name:'Cristal de Gelo',       ico:'🧊', desc:'Jade e gelo — estrutura que amplifica frio e propaga congelamento em área.'},
+  'arcano+cristalino':    {name:'Amplificador Arcano',   ico:'🔷', desc:'Jade imperial e runas — amplifica qualquer feitiço ao triplo do poder normal.'},
+  'cristalino+sombrio':   {name:'Cristal Negro',         ico:'🔮', desc:'Jade e youki — cristal que absorve e redireciona magia sombria ao atacante.'},
+  'cristalino+vital':     {name:'Cristal da Vida',       ico:'🔷', desc:'Jade e Ka — amplifica energia vital para cura massiva ou dano devastador.'},
+  'cristalino+toxico':    {name:'Jade Envenenado',       ico:'💎', desc:'Jade e naga — fragmentos que liberam veneno ao partir, armadilha perfeita.'},
+
+  /* ══════════════════════════════════════
+     NATUREZA — Natural, Gelido, Abrasivo
+  ══════════════════════════════════════ */
+  'natural+vital':        {name:'Sopro da Vida',         ico:'🌬️', desc:'Yggdrasil e vida — vento que restaura energia total e remove todos os debuffs.'},
+  'natural+sombrio':      {name:'Floresta das Trevas',   ico:'🌑', desc:'Yggdrasil e trevas nórdicas — árvore que cresce no escuro e suga energia vital.'},
+  'natural+toxico':       {name:'Veneno da Floresta',    ico:'🌿', desc:'Yggdrasil e veneno de cobra — toxina orgânica que dissolve o organismo lentamente.'},
+  'mortal+natural':       {name:'Raiz da Morte',         ico:'🌿', desc:'Árvore do Mundo toca o inimigo — raízes que drenam a alma enquanto prendem.'},
+  'gelido+natural':       {name:'Floresta Congelada',    ico:'🌳', desc:'Yggdrasil e gelo de Nifleheim — árvore que cresce e imediatamente congela o alvo.'},
+  'caotico+natural':      {name:'Floresta Caótica',      ico:'🌳', desc:'Eris e Yggdrasil — árvore que cresce em padrão aleatório, imprevisível e letal.'},
+  'gelido+mortal':        {name:'Frio da Morte',         ico:'❄️', desc:'Gelo de Nifleheim e morte — congela a alma antes do corpo, morte instantânea.'},
+  'gelido+vital':         {name:'Criogenia',             ico:'💙', desc:'Gelo e vida — suspende o alvo em animação, preserva ou mata conforme o uso.'},
+  'arcano+gelido':        {name:'Feitiço Rúnico de Gelo',ico:'❄️', desc:'Runas nórdicas e gelo — congelamento que escala com o poder mágico disponível.'},
+  'abrasivo+igneo':       {name:'Cinzas Ardentes',       ico:'🌋', desc:'Areia e fogo — partículas incandescentes que penetram qualquer proteção.'},
+  'abrasivo+sombrio':     {name:'Areia das Sombras',     ico:'🌑', desc:'Areia do Duat e youki — partículas invisíveis que corroem de dentro para fora.'},
+  'abrasivo+mortal':      {name:'Tempestade Mortal',     ico:'💀', desc:'Areia e morte — tornado que enterra vivo e drena força vital durante a asfixia.'},
+  'abrasivo+toxico':      {name:'Névoa Ácida',           ico:'☠️', desc:'Areia e veneno — micropartículas tóxicas que envenenam ao respirar.'},
+  'abrasivo+aquatico':    {name:'Pasta Corrosiva',       ico:'🏖️', desc:'Areia e água — pasta que penetra armaduras e irrita tecidos profundamente.'},
+
+  /* ══════════════════════════════════════
+     CAOS — Eris
+  ══════════════════════════════════════ */
+  'caotico+vital':        {name:'Caos Vital',            ico:'💚', desc:'Eris e vida — cura e corrompe ao acaso; pode salvar ou destruir instantaneamente.'},
+  'arcano+caotico':       {name:'Magia do Caos',         ico:'✨', desc:'Eris e Heka — feitiços que se transformam em outros ao serem conjurados.'},
+  'caotico+mortal':       {name:'Morte Caótica',         ico:'⬛', desc:'Eris e Yama — a morte vem sem aviso, sem ordem, sem lógica — imparável.'},
+  'caotico+gelido':       {name:'Caos Glacial',          ico:'🌪️', desc:'Eris e gelo — blizzard sem direção que pode congelar aliados ou inimigos igualmente.'},
+  'caotico+toxico':       {name:'Praga Caótica',         ico:'🦠', desc:'Eris e veneno — doença que muta constantemente, impossível de curar ou prever.'},
+  'caotico+luminoso':     {name:'Luz Caótica',           ico:'💥', desc:'Eris e luz — flashes imprevisíveis que podem cegar inimigos ou revelar fraquezas.'},
 }
 
 function tryFuse(id1, id2){
