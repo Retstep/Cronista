@@ -24,116 +24,66 @@
   --r:6px;--r2:10px;--r3:16px;
 }
 
-/* ════ TEMAS ════ */
-[data-theme="grimorio"]{
-  --bg:#12090a;--bg2:#1a0e10;--surf:#221318;--surf2:#2a1820;--surf3:#321d28;
-  --brd:#50302a;--brd2:#704030;--brd3:#906050;
-  --acc:#d4884a;--acc2:#f0a860;--acc3:#ffd090;--acc-glow:rgba(212,136,74,.4);
-  --red:#c03828;--red2:#f05838;--grn:#4a9858;--grn2:#72c878;
-  --blu:#3878b8;--blu2:#60a8e8;--pur:#9048b8;
-  --txt:#f2dcc0;--txt2:#b07858;--txt3:#785040;
-  --common:#c8a880;--rare:#5898e0;--epic:#a858c8;--legendary:#e87820;
+/* ════ TEMAS MITOLÓGICOS ════ */
+/* Tartaro — Grego: pedra negra, chamas frias, violeta sombrio */
+[data-theme="tartaro"]{
+  --bg:#0a0508;--bg2:#120810;--surf:#1a0c18;--surf2:#221020;--surf3:#2c1428;
+  --brd:#5a1848;--brd2:#7a2060;--brd3:#a02878;
+  --acc:#d040a0;--acc2:#f060c0;--acc3:#ffa0dc;--acc-glow:rgba(208,64,160,.42);
+  --red:#e03060;--red2:#ff5080;--grn:#408858;--grn2:#60b878;
+  --blu:#3858a0;--blu2:#5888d0;--pur:#a020c0;
+  --txt:#f0d0e8;--txt2:#b07898;--txt3:#785060;
+  --common:#c07898;--rare:#5878d8;--epic:#d050c0;--legendary:#f89820;
 }
-[data-theme="ice"]{
-  --bg:#030a14;--bg2:#071220;--surf:#0c1c30;--surf2:#102540;--surf3:#162e50;
-  --brd:#204870;--brd2:#3068a0;--brd3:#4888c8;
-  --acc:#48c8f8;--acc2:#80e0ff;--acc3:#b8f0ff;--acc-glow:rgba(72,200,248,.42);
-  --red:#d04870;--red2:#f06898;--grn:#38b898;--grn2:#60e0c0;
-  --blu:#2890e0;--blu2:#58b8ff;--pur:#7060e0;
-  --txt:#d8eeff;--txt2:#78a8d0;--txt3:#406888;
-  --common:#90a8c0;--rare:#40b0f8;--epic:#8870f0;--legendary:#f0b820;
+/* Nifleheim — Nórdico: gelo, névoa, azul pálido congelante */
+[data-theme="nifleheim"]{
+  --bg:#020810;--bg2:#040e1c;--surf:#071628;--surf2:#0a1e34;--surf3:#0e2840;
+  --brd:#103858;--brd2:#185880;--brd3:#2478a8;
+  --acc:#50d0f8;--acc2:#80e8ff;--acc3:#b8f8ff;--acc-glow:rgba(80,208,248,.4);
+  --red:#c03858;--red2:#e85878;--grn:#1898a0;--grn2:#30c8d0;
+  --blu:#1868c0;--blu2:#38a0f0;--pur:#6050d0;
+  --txt:#c8eeff;--txt2:#6898b8;--txt3:#305878;
+  --common:#7098b0;--rare:#30a8e8;--epic:#6860e8;--legendary:#e8a818;
 }
-[data-theme="inferno"]{
-  --bg:#100500;--bg2:#1c0800;--surf:#280d00;--surf2:#341200;--surf3:#401800;
-  --brd:#602010;--brd2:#882818;--brd3:#b03820;
-  --acc:#ff6820;--acc2:#ff9448;--acc3:#ffbe80;--acc-glow:rgba(255,104,32,.45);
-  --red:#e82000;--red2:#ff4810;--grn:#809020;--grn2:#b8d030;
-  --blu:#384898;--blu2:#5870d8;--pur:#a030a8;
-  --txt:#ffd8a0;--txt2:#c07848;--txt3:#885030;
-  --common:#c89060;--rare:#4888e0;--epic:#d040c8;--legendary:#ff9800;
+/* Duat — Egípcio: dourado, areia, azul lapislázuli */
+[data-theme="duat"]{
+  --bg:#080600;--bg2:#100c00;--surf:#1c1400;--surf2:#281c00;--surf3:#342400;
+  --brd:#604800;--brd2:#906800;--brd3:#c08800;
+  --acc:#e8b820;--acc2:#ffd840;--acc3:#fff080;--acc-glow:rgba(232,184,32,.45);
+  --red:#c83018;--red2:#f05020;--grn:#286898;--grn2:#3898d0;
+  --blu:#2060a0;--blu2:#3890d8;--pur:#7030a0;
+  --txt:#fff0c0;--txt2:#c09040;--txt3:#886020;
+  --common:#b09040;--rare:#3080d0;--epic:#9040b0;--legendary:#ff8800;
 }
-[data-theme="void"]{
-  --bg:#080512;--bg2:#0f0920;--surf:#15102e;--surf2:#1c163c;--surf3:#231d4a;
-  --brd:#382860;--brd2:#503880;--brd3:#6848a8;
-  --acc:#b068ff;--acc2:#d090ff;--acc3:#ecc8ff;--acc-glow:rgba(176,104,255,.42);
-  --red:#c03878;--red2:#f05898;--grn:#3898b8;--grn2:#58c8e0;
-  --blu:#3860d8;--blu2:#6090ff;--pur:#9040d0;
-  --txt:#e8d8ff;--txt2:#9878c8;--txt3:#604888;
-  --common:#a890c8;--rare:#48b8e8;--epic:#d068f8;--legendary:#f8b020;
+/* Diyu — Chinês: vermelho imperial, jade, preto lacado */
+[data-theme="diyu"]{
+  --bg:#0c0200;--bg2:#180400;--surf:#240600;--surf2:#300800;--surf3:#3c0a00;
+  --brd:#702010;--brd2:#a03018;--brd3:#d04020;
+  --acc:#ff4820;--acc2:#ff7040;--acc3:#ffb080;--acc-glow:rgba(255,72,32,.45);
+  --red:#e81008;--red2:#ff3018;--grn:#208848;--grn2:#38c068;
+  --blu:#283898;--blu2:#4060d8;--pur:#a028a0;
+  --txt:#ffd8b0;--txt2:#c06038;--txt3:#883820;
+  --common:#c07848;--rare:#3870e0;--epic:#c030c0;--legendary:#ffa000;
 }
-[data-theme="nature"]{
-  --bg:#040c06;--bg2:#081408;--surf:#0d1e10;--surf2:#122818;--surf3:#183220;
-  --brd:#205030;--brd2:#307848;--brd3:#409860;
-  --acc:#40d870;--acc2:#70f098;--acc3:#a8ffc0;--acc-glow:rgba(64,216,112,.38);
-  --red:#c04828;--red2:#f07038;--grn:#28a850;--grn2:#48e878;
-  --blu:#2878a0;--blu2:#48b0d8;--pur:#608848;
-  --txt:#c8f0d0;--txt2:#609870;--txt3:#387850;
-  --common:#78b888;--rare:#38b8c0;--epic:#88d040;--legendary:#e8a818;
+/* Yomi — Japonês: roxo escuro, cereja, névoa */
+[data-theme="yomi"]{
+  --bg:#080408;--bg2:#100810;--surf:#180c18;--surf2:#201020;--surf3:#281428;
+  --brd:#481838;--brd2:#682050;--brd3:#882868;
+  --acc:#e04898;--acc2:#ff70b8;--acc3:#ffb0d8;--acc-glow:rgba(224,72,152,.4);
+  --red:#d02040;--red2:#f04060;--grn:#387858;--grn2:#58b078;
+  --blu:#303898;--blu2:#5060d8;--pur:#b820a8;
+  --txt:#f8d8f0;--txt2:#a86890;--txt3:#704860;
+  --common:#b87898;--rare:#5068d8;--epic:#d040b8;--legendary:#f89010;
 }
-[data-theme="blood"]{
-  --bg:#0e0408;--bg2:#180610;--surf:#240818;--surf2:#2e0a20;--surf3:#380d28;
-  --brd:#601830;--brd2:#902040;--brd3:#c02850;
-  --acc:#f02858;--acc2:#ff5878;--acc3:#ff90a8;--acc-glow:rgba(240,40,88,.45);
-  --red:#d81020;--red2:#ff3040;--grn:#986828;--grn2:#d89838;
-  --blu:#582898;--blu2:#8848d8;--pur:#d030b8;
-  --txt:#ffd8e0;--txt2:#c06070;--txt3:#884050;
-  --common:#c07880;--rare:#7848e0;--epic:#e030c0;--legendary:#ff6818;
-}
-[data-theme="abyss"]{
-  --bg:#010810;--bg2:#021218;--surf:#041e28;--surf2:#062838;--surf3:#083248;
-  --brd:#0a4060;--brd2:#106080;--brd3:#1888a8;
-  --acc:#00d8d0;--acc2:#30f0e8;--acc3:#88fff8;--acc-glow:rgba(0,216,208,.42);
-  --red:#e02848;--red2:#ff4860;--grn:#009870;--grn2:#18d898;
-  --blu:#0860b8;--blu2:#20a0f0;--pur:#3028a8;
-  --txt:#c0f0f8;--txt2:#408898;--txt3:#206070;
-  --common:#307888;--rare:#1090e0;--epic:#2868d8;--legendary:#e89810;
-}
-[data-theme="dawn"]{
-  --bg:#e0eef8;--bg2:#d4e8f4;--surf:#eaf4ff;--surf2:#ddeef8;--surf3:#cce6f0;
-  --brd:#90c0d8;--brd2:#60a0c0;--brd3:#3880a8;
-  --acc:#0878a8;--acc2:#109cc8;--acc3:#28c0f0;--acc-glow:rgba(8,120,168,.3);
-  --red:#c02818;--red2:#e84020;--grn:#187848;--grn2:#289860;
-  --blu:#0858a8;--blu2:#1880d8;--pur:#4828a8;
-  --txt:#081828;--txt2:#184870;--txt3:#487898;
-  --common:#407090;--rare:#0868c0;--epic:#3828b8;--legendary:#9c6000;
-  --gold:#8a5800;
-}
-[data-theme="relic"]{
-  --bg:#0e0a02;--bg2:#181202;--surf:#221a04;--surf2:#2c2206;--surf3:#382c08;
-  --brd:#584010;--brd2:#785818;--brd3:#a07828;
-  --acc:#d4a020;--acc2:#f0c030;--acc3:#ffe870;--acc-glow:rgba(212,160,32,.42);
-  --red:#c03818;--red2:#e85828;--grn:#507818;--grn2:#78b020;
-  --blu:#384880;--blu2:#5878c0;--pur:#784090;
-  --txt:#ffe8b0;--txt2:#c09840;--txt3:#887020;
-  --common:#c09848;--rare:#4878d8;--epic:#a048b8;--legendary:#ff9808;
-}
-[data-theme="temple"]{
-  --bg:#080808;--bg2:#101010;--surf:#181818;--surf2:#202020;--surf3:#2a2a2a;
-  --brd:#383020;--brd2:#504828;--brd3:#706030;
-  --acc:#c8a028;--acc2:#e8c038;--acc3:#fff080;--acc-glow:rgba(200,160,40,.4);
-  --red:#b82018;--red2:#e84020;--grn:#408028;--grn2:#68b840;
-  --blu:#304888;--blu2:#5070c8;--pur:#7838a8;
-  --txt:#f0e8c0;--txt2:#a09040;--txt3:#706028;
-  --common:#a09050;--rare:#4878e8;--epic:#9840c0;--legendary:#ff8808;
-}
-[data-theme="nebula"]{
-  --bg:#0e0610;--bg2:#180a18;--surf:#220e22;--surf2:#2c1230;--surf3:#38183e;
-  --brd:#602060;--brd2:#903080;--brd3:#c04098;
-  --acc:#e840a8;--acc2:#ff68c0;--acc3:#ffa0d8;--acc-glow:rgba(232,64,168,.42);
-  --red:#e02030;--red2:#ff4040;--grn:#8848c8;--grn2:#b070e8;
-  --blu:#4030c0;--blu2:#6858f0;--pur:#c828c0;
-  --txt:#ffe0f0;--txt2:#d068a8;--txt3:#904870;
-  --common:#c07898;--rare:#6858f0;--epic:#e030c8;--legendary:#ff8820;
-}
-[data-theme="tundra"]{
-  --bg:#f0f4f8;--bg2:#e4eaf4;--surf:#fafcff;--surf2:#eef2fc;--surf3:#e0e8f8;
-  --brd:#a8c0d8;--brd2:#7898c0;--brd3:#5078a8;
-  --acc:#2860c0;--acc2:#3880e8;--acc3:#60a8ff;--acc-glow:rgba(40,96,192,.28);
-  --red:#c82018;--red2:#e83020;--grn:#187848;--grn2:#289860;
-  --blu:#1858b8;--blu2:#2878e0;--pur:#5030b0;
-  --txt:#080e20;--txt2:#204880;--txt3:#5878a8;
-  --common:#407898;--rare:#1860c8;--epic:#5028b8;--legendary:#a85800;
-  --gold:#8a5000;
+/* Naraka — Tailandês/Budista: dourado sagrado, turquesa, preto profundo */
+[data-theme="naraka"]{
+  --bg:#040808;--bg2:#081010;--surf:#0c1818;--surf2:#102020;--surf3:#162828;
+  --brd:#184840;--brd2:#286858;--brd3:#388870;
+  --acc:#30d8a8;--acc2:#58f0c8;--acc3:#90fff0;--acc-glow:rgba(48,216,168,.38);
+  --red:#c83028;--red2:#f05040;--grn:#20a878;--grn2:#38d898;
+  --blu:#188898;--blu2:#28b8d0;--pur:#487088;
+  --txt:#c8f8f0;--txt2:#488878;--txt3:#286858;
+  --common:#308878;--rare:#28b0d8;--epic:#38d8b0;--legendary:#e8c020;
 }
 
 /* ════ RESET ════ */
