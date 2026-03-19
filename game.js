@@ -2829,34 +2829,51 @@ function buySpecialItem(i){
 
 /* ═══ SUBCLASS ═══ */
 function renderSubclass(sc){
-  // No novo sistema, subclasse = ganhar uma Memória Épica ou Rara exclusiva
   sc.innerHTML='';
-  const card=mkCard('explore');
-  card.innerHTML=`
-    <div class="ctag"><div class="ctag-dot" style="background:#9b59b6"></div><span class="ctag-txt" style="color:#9b59b6">MEMÓRIA DESPERTA</span></div>
-    <div class="lvup-title">🌟 Uma Lembrança Emerge</div>
-    <div class="lvup-sub">"${narr('subclass')}"</div>
-    <div class="subcls-grid" id="subcls-grid"></div>`;
-  sc.appendChild(card);
+  // Garantir que G.memories existe
+  if(!G.memories) G.memories=[];
+
   // Oferecer 2 Memórias raras/épicas que a alma ainda não tem
   const owned = new Set(G.memories.map(m=>m.id));
   const opts = MEMORIES.filter(m=>!owned.has(m.id)&&(m.rarity==='rare'||m.rarity==='epic'))
     .sort(()=>Math.random()-.5).slice(0,2);
-  // Fallback: qualquer memória não possuída
   const fallback = MEMORIES.filter(m=>!owned.has(m.id)).sort(()=>Math.random()-.5).slice(0,2);
-  const choices = opts.length>=2 ? opts : fallback;
-  choices.forEach(m=>{
-    const d=document.createElement('div');d.className='subcls-card pld';
-    d.innerHTML=`<div class="subcls-ico">${m.ico}</div><div class="subcls-name">${m.name}</div><div class="subcls-desc">${m.desc}</div><div class="subcls-bonus">${m.rarity.toUpperCase()} · ${m.affinity}</div>`;
-    d.onclick=()=>{
+  const choices = opts.length>=2 ? opts : (fallback.length ? fallback : [...MEMORIES].sort(()=>Math.random()-.5).slice(0,2));
+
+  // Se não há memórias disponíveis, pula direto
+  if(!choices.length){ nextRoom(); return; }
+
+  const card=mkCard('explore');
+  // Renderizar as opções diretamente no innerHTML — sem appendChild posterior
+  const optRows = choices.map((m,idx)=>`
+    <div class="subcls-card pld" id="subcls-opt-${idx}" style="cursor:pointer;">
+      <div class="subcls-ico">${m.ico}</div>
+      <div class="subcls-name">${m.name}</div>
+      <div class="subcls-desc">${m.desc}</div>
+      <div class="subcls-bonus">${m.rarity.toUpperCase()} · ${m.affinity}</div>
+    </div>`).join('');
+
+  card.innerHTML=`
+    <div class="ctag"><div class="ctag-dot" style="background:#9b59b6"></div><span class="ctag-txt" style="color:#9b59b6">MEMÓRIA DESPERTA</span></div>
+    <div class="lvup-title">🌟 Uma Lembrança Emerge</div>
+    <div class="lvup-sub">"${narr('subclass')}"</div>
+    <div class="subcls-grid">${optRows}</div>`;
+
+  sc.appendChild(card);
+
+  // Adicionar onclick após o card estar no DOM
+  choices.forEach((m,idx)=>{
+    const el = card.querySelector(`#subcls-opt-${idx}`);
+    if(!el) return;
+    el.onclick=()=>{
       G.memories.push({...m});
-      G.skills=G.memories; // compatibilidade
+      G.skills=G.memories;
       G.subclass={name:m.name};
       upd();logRun('🌟',`Memória: ${m.name}`,'win');sfx('subclass');
       toast('🌟 '+m.name+' memorado!',2500);lvFlash();nextRoom();
     };
-    card.querySelector('#subcls-grid').appendChild(d);
   });
+  scrollBot(sc);
 }
 
 /* ═══ LEVEL UP ═══ */
