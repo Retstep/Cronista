@@ -1861,7 +1861,7 @@ function renderExplore(sc){
 
   if(chosen==='combat'){
     let enemy;
-    if(Math.random()<.20){
+    if(Math.random()<.12){
       enemy=genElite(G.floor);
     } else {
       enemy=genEnemy(G.floor);
@@ -2476,7 +2476,7 @@ function openSmith(sc){
 // ─── Melhorar item equipado ───
 function smithUpgrade(){
   const sc=$('scroll');
-  const equipped=Object.entries(G.equipped||{}).filter(([slot,it])=>it&&it.bonus);
+  const equipped=Object.entries(G.equip||{}).filter(([slot,it])=>it&&it.bonus);
   if(!equipped.length){toast('Nenhum item equipado para melhorar!');return;}
 
   const costs={common:30,rare:60,epic:100,legendary:150};
@@ -2512,8 +2512,45 @@ function smithUpgrade(){
 
 
 // ─── Fundir dois itens ───
-function smithFuse(){
+function smithFuse(doFuse){
   const sc=$('scroll');
+  // Executar a fusão
+  if(doFuse===true){
+    const sel=G._smithFuseSelected;
+    if(!sel||sel.length!==2){toast('Selecione 2 itens!');return;}
+    if(G.gold<80){toast('Ouro insuficiente! (80💰)');return;}
+    const it1=G.inv[sel[0]];
+    const it2=G.inv[sel[1]];
+    if(!it1||!it2){toast('Itens inválidos!');return;}
+    G.gold-=80;
+    // Fusão: combina bonus dos dois itens
+    const rarityOrder=['common','uncommon','rare','epic','legendary'];
+    const r1=rarityOrder.indexOf(it1.rarity||'common');
+    const r2=rarityOrder.indexOf(it2.rarity||'common');
+    const newRar=rarityOrder[Math.min(4,Math.max(r1,r2)+1)];
+    const combinedBonus={};
+    [it1,it2].forEach(it=>{
+      if(it.bonus) Object.entries(it.bonus).forEach(([k,v])=>{combinedBonus[k]=(combinedBonus[k]||0)+Math.round(v*0.7);});
+    });
+    const fused={
+      id:'fused_'+r(99999),
+      name:`${it1.name} & ${it2.name}`,
+      ico:it1.ico,
+      rarity:newRar,
+      slot:it1.slot||it2.slot||null,
+      desc:`Fusão de ${it1.name} e ${it2.name}.`,
+      bonus:Object.keys(combinedBonus).length?combinedBonus:null,
+      uses:null,fn:null,
+    };
+    // Remove os dois itens (do maior índice para não deslocar)
+    const idxs=[sel[0],sel[1]].sort((a,b)=>b-a);
+    idxs.forEach(i=>G.inv.splice(i,1));
+    addItemToInv(fused);
+    if(fused.bonus) applyBonus(fused);
+    toast(`⚒️ ${fused.name} (${newRar}) criado!`,2500);
+    upd();
+    openSmith(sc);return;
+  }
   if(G.inv.length<2){toast('Precisa de pelo menos 2 itens no inventário!');return;}
   G._smithFuseSelected=[];
 
@@ -2791,18 +2828,32 @@ function buySpecialItem(i){
 
 /* ═══ SUBCLASS ═══ */
 function renderSubclass(sc){
+  // No novo sistema, subclasse = ganhar uma Memória Épica ou Rara exclusiva
   sc.innerHTML='';
   const card=mkCard('explore');
   card.innerHTML=`
-    <div class="ctag"><div class="ctag-dot" style="background:#9b59b6"></div><span class="ctag-txt" style="color:#9b59b6">SUBCLASSE DESBLOQUEADA</span></div>
-    <div class="lvup-title">🌟 Escolha seu Caminho</div>
+    <div class="ctag"><div class="ctag-dot" style="background:#9b59b6"></div><span class="ctag-txt" style="color:#9b59b6">MEMÓRIA DESPERTA</span></div>
+    <div class="lvup-title">🌟 Uma Lembrança Emerge</div>
     <div class="lvup-sub">"${narr('subclass')}"</div>
     <div class="subcls-grid" id="subcls-grid"></div>`;
   sc.appendChild(card);
-  G.cls.subclasses.forEach(s=>{
-    const d=document.createElement('div');d.className=`subcls-card ${s.key}`;
-    d.innerHTML=`<div class="subcls-ico">${s.ico}</div><div class="subcls-name">${s.name}</div><div class="subcls-desc">${s.desc}</div><div class="subcls-bonus">${s.bonus}</div>`;
-    d.onclick=()=>{G.subclass=s;s.fn(G);upd();logRun('🌟',`Subclasse: ${s.name}`,'win');sfx('subclass');toast('🌟 '+s.name+' desbloqueado!',2500);lvFlash();nextRoom();};
+  // Oferecer 2 Memórias raras/épicas que a alma ainda não tem
+  const owned = new Set(G.memories.map(m=>m.id));
+  const opts = MEMORIES.filter(m=>!owned.has(m.id)&&(m.rarity==='rare'||m.rarity==='epic'))
+    .sort(()=>Math.random()-.5).slice(0,2);
+  // Fallback: qualquer memória não possuída
+  const fallback = MEMORIES.filter(m=>!owned.has(m.id)).sort(()=>Math.random()-.5).slice(0,2);
+  const choices = opts.length>=2 ? opts : fallback;
+  choices.forEach(m=>{
+    const d=document.createElement('div');d.className='subcls-card pld';
+    d.innerHTML=`<div class="subcls-ico">${m.ico}</div><div class="subcls-name">${m.name}</div><div class="subcls-desc">${m.desc}</div><div class="subcls-bonus">${m.rarity.toUpperCase()} · ${m.affinity}</div>`;
+    d.onclick=()=>{
+      G.memories.push({...m});
+      G.skills=G.memories; // compatibilidade
+      G.subclass={name:m.name};
+      upd();logRun('🌟',`Memória: ${m.name}`,'win');sfx('subclass');
+      toast('🌟 '+m.name+' memorado!',2500);lvFlash();nextRoom();
+    };
     card.querySelector('#subcls-grid').appendChild(d);
   });
 }
