@@ -648,33 +648,6 @@ const ITEMS_POOL=[
   {id:'set_mage_staff',cls:'mage',  name:'Cajado Ancestral+',   ico:'🔱',rarity:'epic',  uses:null,slot:'weapon',set:'mage_anc',bonus:{mag:10},              desc:'+10 MAG | Set Mago Ancestral'},
   {id:'set_mage_robe',cls:'mage',   name:'Túnica Arcana',       ico:'🥻',rarity:'epic',  uses:null,slot:'chest', set:'mage_anc',bonus:{mag:6,mp:10},         desc:'+6 MAG +10 MP | Set Mago Ancestral'},
   {id:'set_mage_crown',cls:'mage',  name:'Coroa da Sabedoria',  ico:'👑',rarity:'epic',  uses:null,slot:'head',  set:'mage_anc',bonus:{mag:8,mp:20},         desc:'+8 MAG +20 MP | Set Mago Ancestral'},
-  // ══ ARTEFATOS DIVINOS MITOLÓGICOS ══
-  // Tártaro (Andar 1)
-  {id:'moeda_caronte',  name:'Moeda de Caronte',    ico:'⛵',rarity:'epic',    uses:1, slot:null,desc:'Fuga garantida de qualquer combate.',fn:(G,ctx)=>{if(ctx?.combat)ctx.flee(true);else toast('Só em combate.');}},
-  {id:'chama_prometeu', name:'Chama de Prometeu',   ico:'🔥',rarity:'epic',    uses:1, slot:null,desc:'+12 MAG e dano de fogo por 1 combate.',fn:G=>{G.mag+=12;G.tmpBuffs.push({stat:'mag',val:12,rooms:1});toast('🔥 Chama de Prometeu — +12 MAG!');}},
-  {id:'escudo_perseu',  name:'Escudo de Perseu',    ico:'🛡️',rarity:'legendary',uses:null,slot:'chest',bonus:{def:10,dodge:.10},desc:'+10 DEF +10% Esquiva — reflexo divino.'},
-  // Nifleheim (Andar 2)
-  {id:'mjolnir_frag',   name:'Fragmento de Mjolnir',ico:'⚡',rarity:'legendary',uses:null,slot:'weapon',bonus:{atk:12,mag:6},desc:'+12 ATK +6 MAG. 20% chance de atordoar.'},
-  {id:'runa_odin',      name:'Runa de Odin',        ico:'🔵',rarity:'epic',    uses:1, slot:null,desc:'Revela os próximos 3 tipos de sala.',fn:G=>{G.passives.push('divination');toast('🔵 Runa de Odin ativada!');}},
-  {id:'manto_freya',    name:'Manto de Freya',      ico:'🌿',rarity:'epic',    uses:null,slot:'chest',bonus:{def:8,hpMax:20},desc:'+8 DEF +20 HP MAX — proteção da deusa.'},
-  // Duat (Andar 3)
-  {id:'olho_horus',     name:'Olho de Hórus',       ico:'👁️',rarity:'epic',   uses:null,slot:'head', bonus:{mag:6},desc:'Revela ATK/DEF/XP de todos os inimigos.', fn:G=>{G.passives.push('guardian_eye');toast('👁️ Olho de Hórus ativado!');}},
-  {id:'amuleto_isis',   name:'Amuleto de Ísis',     ico:'☥', rarity:'legendary',uses:null,slot:null, bonus:{hpMax:25,mag:8},desc:'+25 HP MAX +8 MAG — proteção da mãe dos deuses.'},
-  {id:'luz_ra',         name:'Luz de Rá',           ico:'☀️',rarity:'epic',    uses:1, slot:null,desc:'Cura 40 HP e remove todos os debuffs.',fn:G=>{G.hp=Math.min(G.hpMax,G.hp+40);G.poisonTurns=0;G.curseTurns=0;toast('☀️ Luz de Rá — purificado!');}},
-  // Diyu (Andar 4)
-  {id:'jade_imperial',  name:'Jade Imperial',       ico:'🐲',rarity:'legendary',uses:1, slot:null,desc:'+12 MAG e +25 MP.',fn:G=>{G.mag+=12;G.mpMax+=25;G.mp=Math.min(G.mpMax,G.mp+25);toast('🐲 Poder do Jade Imperial!');}},
-  {id:'pergaminho_monkey',name:'Pergaminho de Sun Wukong',ico:'🐒',rarity:'epic',uses:1,slot:null,desc:'Ataca 3 vezes com dano crítico garantido.',fn:(G,ctx)=>{if(!ctx?.combat){toast('Só em combate!');return;}const dmg=Math.round(G.atk*3);ctx.E.hpCur=Math.max(0,ctx.E.hpCur-dmg);updateCombatUI();toast(`🐒 Sun Wukong: ${dmg} dano!`);}},
-  {id:'espada_guan_yu',  name:'Espada de Guan Yu',  ico:'⚔️',rarity:'legendary',uses:null,slot:'weapon',bonus:{atk:16,def:4},desc:'+16 ATK +4 DEF — lâmina do Deus da Guerra.'},
-  // Yomi (Andar 5)
-  {id:'kusanagi',       name:'Lâmina de Kusanagi',  ico:'🗡️',rarity:'legendary',uses:null,slot:'weapon',bonus:{atk:14,mag:8,crit:.12},desc:'+14 ATK +8 MAG +12% CRIT — espada sagrada japonesa.'},
-  {id:'mascara_tengu',  name:'Máscara do Tengu',    ico:'🦅',rarity:'epic',    uses:null,slot:'head',  bonus:{spd:4,dodge:.10,crit:.08},desc:'+4 VEL +10% ESQ +8% CRIT.'},
-  {id:'espelho_amaterasu',name:'Espelho de Amaterasu',ico:'🪞',rarity:'legendary',uses:null,slot:null, bonus:{mag:10,dodge:.08},desc:'+10 MAG +8% Esquiva — reflete magias.'},
-  // Naraka (Andar 6)
-  {id:'dente_naga',     name:'Dente de Naga',       ico:'🐍',rarity:'epic',    uses:null,slot:'weapon',bonus:{atk:10,mag:6},desc:'+10 ATK +6 MAG. Ataques envenenam o inimigo.'},
-  {id:'pena_garuda',    name:'Pena de Garuda',      ico:'🦅',rarity:'epic',    uses:1, slot:null,desc:'Fuga garantida + +20 HP.',fn:(G,ctx)=>{if(ctx?.combat){G.hp=Math.min(G.hpMax,G.hp+20);ctx.flee(true);}else toast('Só em combate.');}},
-  {id:'loto_negro',     name:'Coroa do Lótus Negro',ico:'🪷',rarity:'legendary',uses:null,slot:'head',  bonus:{mag:12,hpMax:20,mp:30},desc:'+12 MAG +20 HP MAX +30 MP — iluminação escura.'},
-  {id:'petala_lotus',   name:'Pétala do Lótus',     ico:'🪷',rarity:'legendary',uses:1, slot:null,desc:'HP cheio e +5 karma.',fn:G=>{G.hp=G.hpMax;G.karma=(G.karma||0)+5;toast('🪷 Purificação completa!');}},
-
   // Set do Berserker (Guerreiro)
   {id:'set_bsk_axe',cls:'warrior',     name:'Machado Duplo',       ico:'🪓',rarity:'epic',  uses:null,slot:'weapon',set:'berserker',bonus:{atk:14,spd:-3},      desc:'+14 ATK -3 VEL | Set Berserker'},
   {id:'set_bsk_armor',cls:'warrior',   name:'Armadura do Berserker',ico:'🔴',rarity:'epic', uses:null,slot:'chest', set:'berserker',bonus:{atk:5,def:-2},       desc:'+5 ATK -2 DEF | Set Berserker'},
@@ -711,316 +684,229 @@ const UPGRADES=[
 
 /* ═══ ELEMENTOS ═══ */
 const ELEMENTS=[
-  /* ══════════════════════════════════════════════════
-     ELEMENTOS UNIVERSAIS — disponíveis desde o início
-     Aparecem nos tomos dos primeiros andares
-  ══════════════════════════════════════════════════ */
-  // Tier 5 — Base (mult 1.0)
-  {id:'fogo',      name:'Fogo',          ico:'🔥', tier:5, mult:1.0, andar:0, desc:'Chama universal. Calor que destrói e purifica.'},
-  {id:'agua',      name:'Água',          ico:'💧', tier:5, mult:1.0, andar:0, desc:'Fluxo eterno. Se adapta e penetra tudo.'},
-  {id:'terra',     name:'Terra',         ico:'🌍', tier:5, mult:1.0, andar:0, desc:'Fundação do mundo. Imóvel e implacável.'},
-  {id:'ar',        name:'Ar',            ico:'🌬️', tier:5, mult:1.0, andar:0, desc:'Onipresente e invisível. Carrega tudo.'},
-  // Tier 4 — Comuns (mult 1.2)
-  {id:'luz',       name:'Luz',           ico:'☀️', tier:4, mult:1.2, andar:0, desc:'Energia radiante. Expõe e queima.'},
-  {id:'sombra',    name:'Sombra',        ico:'👤', tier:4, mult:1.2, andar:0, desc:'Ausência de luz. Cobre e corrói.'},
-  {id:'vida',      name:'Vida',          ico:'💚', tier:4, mult:1.2, andar:0, desc:'Força vital primordial. Cura e sustenta.'},
-
-  /* ══════════════════════════════════════════════════
-     TÁRTARO — Andar 1 (Mitologia Grega)
-     Elementos do reino de Hades: morte, trovão, pedra
-  ══════════════════════════════════════════════════ */
-  // Tier 4 — Comuns do Tártaro (mult 1.2)
-  {id:'trovao',    name:'Trovão',        ico:'⚡', tier:4, mult:1.2, andar:1, desc:'Arma de Zeus. Descarga que não perdoa.'},
-  {id:'veneno',    name:'Veneno',        ico:'🐍', tier:4, mult:1.2, andar:1, desc:'Hidra e Medusa. Dissolve por dentro.'},
-  {id:'pedra',     name:'Pedra',         ico:'🪨', tier:4, mult:1.2, andar:1, desc:'Petrificação de Medusa. Rígida e esmagadora.'},
-  // Tier 3 — Incomuns do Tártaro (mult 1.4)
-  {id:'morte',     name:'Morte',         ico:'💀', tier:3, mult:1.4, andar:1, desc:'Tânatos personificado. Fim absoluto.'},
-  {id:'alma',      name:'Alma',          ico:'👻', tier:3, mult:1.4, andar:1, desc:'Psique grega. Energia do ser que persiste.'},
-  // Tier 2 — Raros do Tártaro (mult 1.7)
-  {id:'eris',      name:'Discórdia',     ico:'⚔️', tier:2, mult:1.7, andar:1, desc:'Poder de Éris. Caos que divide e enfraquece.'},
-  {id:'tartaro_fogo',name:'Chama Eterna',ico:'🔴', tier:2, mult:1.7, andar:1, desc:'Fogo do Tártaro. Não se apaga — nunca.'},
-
-  /* ══════════════════════════════════════════════════
-     NIFLEHEIM — Andar 2 (Mitologia Nórdica)
-     Elementos do reino de Hel: gelo, runas, vento ártico
-  ══════════════════════════════════════════════════ */
-  // Tier 4 — Comuns de Nifleheim (mult 1.2)
-  {id:'gelo',      name:'Gelo',          ico:'❄️', tier:4, mult:1.2, andar:2, desc:'Fimbulwinter. Congela e fragmenta.'},
-  {id:'ferro',     name:'Ferro',         ico:'⚙️', tier:4, mult:1.2, andar:2, desc:'Metal nórdico. Resistência de Asgard.'},
-  {id:'vento',     name:'Vento Glacial', ico:'🌪️', tier:4, mult:1.2, andar:2, desc:'Vento de Nifleheim. Penetra qualquer armadura.'},
-  // Tier 3 — Incomuns de Nifleheim (mult 1.4)
-  {id:'runas',     name:'Runas',         ico:'🔵', tier:3, mult:1.4, andar:2, desc:'Sabedoria de Odin. Gravadas no custo de um olho.'},
-  {id:'trevas',    name:'Trevas Nórdicas',ico:'🌑',tier:3, mult:1.4, andar:2, desc:'Escuridão de Nifleheim. Apaga calor e esperança.'},
-  // Tier 2 — Raros de Nifleheim (mult 1.7)
-  {id:'yggdrasil', name:'Yggdrasil',     ico:'🌳', tier:2, mult:1.7, andar:2, desc:'A Árvore do Mundo. Conecta e absorve tudo.'},
-  {id:'mjolnir',   name:'Mjolnir',       ico:'🔨', tier:2, mult:1.7, andar:2, desc:'Martelo de Thor. Raio e força em uma só arma.'},
-
-  /* ══════════════════════════════════════════════════
-     DUAT — Andar 3 (Mitologia Egípcia)
-     Elementos do reino de Anúbis: areia, sol, hieróglifos
-  ══════════════════════════════════════════════════ */
-  // Tier 4 — Comuns do Duat (mult 1.2)
-  {id:'areia',     name:'Areia',         ico:'🏜️', tier:4, mult:1.2, andar:3, desc:'Deserto eterno. Corrói e cobre tudo.'},
-  {id:'sol_ra',    name:'Sol de Rá',     ico:'☀️', tier:4, mult:1.2, andar:3, desc:'Olho de Rá. Calor divino que purifica.'},
-  {id:'cobra',     name:'Apófis',        ico:'🐍', tier:4, mult:1.2, andar:3, desc:'Serpente do caos. Veneno e trevas em forma de deus.'},
-  // Tier 3 — Incomuns do Duat (mult 1.4)
-  {id:'magia_egip',name:'Heka',          ico:'𓂀', tier:3, mult:1.4, andar:3, desc:'Magia primordial egípcia. Transforma realidade por palavras.'},
-  {id:'ka',        name:'Ka',            ico:'⚖️', tier:3, mult:1.4, andar:3, desc:'Duplo espiritual egípcio. A força que sobrevive à morte.'},
-  // Tier 2 — Raros do Duat (mult 1.7)
-  {id:'ankh',      name:'Ankh',          ico:'☥', tier:2, mult:1.7, andar:3, desc:'Símbolo da vida eterna. Cura e maldiz com igual poder.'},
-  {id:'olho_horus_el',name:'Olho de Hórus',ico:'👁️',tier:2,mult:1.7, andar:3, desc:'Visão que atravessa ilusões e revela a verdade absoluta.'},
-
-  /* ══════════════════════════════════════════════════
-     DIYU — Andar 4 (Mitologia Chinesa)
-     Elementos do reino de Yanluo: jade, karma, dragão
-  ══════════════════════════════════════════════════ */
-  // Tier 3 — Comuns de Diyu (mult 1.4)
-  {id:'jade',      name:'Jade',          ico:'🐲', tier:3, mult:1.4, andar:4, desc:'Pedra imperial. Canal entre mortal e divino.'},
-  {id:'karma_neg', name:'Karma Negro',   ico:'☯️', tier:3, mult:1.4, andar:4, desc:'Karma acumulado em atos impuros. Pesa e destrói.'},
-  {id:'correntes', name:'Correntes',     ico:'⛓️', tier:3, mult:1.4, andar:4, desc:'Grilhões do Diyu. Prendem e drenam força vital.'},
-  // Tier 2 — Incomuns de Diyu (mult 1.7)
-  {id:'dragao_sangue',name:'Sangue de Dragão',ico:'🩸',tier:2,mult:1.7, andar:4, desc:'Sangue do Long Wang. Poder que corrompe quem toca.'},
-  {id:'qi_negro',  name:'Qi Sombrio',    ico:'🌀', tier:2, mult:1.7, andar:4, desc:'Energia vital corrompida. Drena força de dentro para fora.'},
-  // Tier 1 — Raros de Diyu (mult:2.0)
-  {id:'fogo_infernal',name:'Fogo Infernal',ico:'🔥',tier:1,mult:2.0, andar:4, desc:'Chama do Diyu. Queima alma, não corpo — dor eterna.'},
-  {id:'espectro',  name:'Espectro',      ico:'👁️', tier:1, mult:2.0, andar:4, desc:'Jiangshi liberado. Drena qi e corrompe o ambiente.'},
-
-  /* ══════════════════════════════════════════════════
-     YOMI — Andar 5 (Mitologia Japonesa)
-     Elementos do reino de Izanami: youki, oni, kekkai
-  ══════════════════════════════════════════════════ */
-  // Tier 3 — Comuns de Yomi (mult 1.4)
-  {id:'youki',     name:'Youki',         ico:'🌑', tier:3, mult:1.4, andar:5, desc:'Energia dos youkai. Corrompe e transforma.'},
-  {id:'kekkai',    name:'Kekkai',        ico:'🔮', tier:3, mult:1.4, andar:5, desc:'Barreira espiritual japonesa. Prende e sela.'},
-  // Tier 2 — Incomuns de Yomi (mult 1.7)
-  {id:'oni_fogo',  name:'Fogo do Oni',   ico:'👹', tier:2, mult:1.7, andar:5, desc:'Chama dos demônios Oni. Devora tudo — incluindo almas.'},
-  {id:'kuroi_kaze',name:'Vento Negro',   ico:'🌪️', tier:2, mult:1.7, andar:5, desc:'Vento de Yomi. Carrega maldições para onde sopra.'},
-  {id:'mizuchi',   name:'Mizuchi',       ico:'🐉', tier:2, mult:1.7, andar:5, desc:'Dragão aquático japonês. Veneno e fluência em uma só força.'},
-  // Tier 1 — Raros de Yomi (mult 2.0)
-  {id:'shinigami_el',name:'Shinigami',   ico:'⚰️', tier:1, mult:2.0, andar:5, desc:'Deus da Morte japonês. Coleta almas indiscriminadamente.'},
-  {id:'kusanagi_el',name:'Kusanagi',     ico:'🗡️', tier:1, mult:2.0, andar:5, desc:'Espada sagrada de Yamato. Corta vento, destino e ilusão.'},
-
-  /* ══════════════════════════════════════════════════
-     NARAKA — Andar 6 (Mitologia Tailandesa/Budista)
-     Elementos do reino de Yama: lótus, dharma, nirvana
-  ══════════════════════════════════════════════════ */
-  // Tier 2 — Comuns de Naraka (mult 1.7)
-  {id:'loto_el',   name:'Lótus Sombrio', ico:'🪷', tier:2, mult:1.7, andar:6, desc:'Flor que floresce no lodo. Pureza que emerge do horror.'},
-  {id:'naga_el',   name:'Naga',          ico:'🐍', tier:2, mult:1.7, andar:6, desc:'Serpente divina tailandesa. Veneno sagrado e proteção.'},
-  // Tier 1 — Incomuns de Naraka (mult 2.2)
-  {id:'garuda_el', name:'Garuda',        ico:'🦅', tier:1, mult:2.2, andar:6, desc:'Pássaro divino de Vishnu. Devora nagas e purifica o ar.'},
-  {id:'dharma_el', name:'Dharma',        ico:'☸️', tier:1, mult:2.2, andar:6, desc:'Lei cósmica budista. Ordena e pune o caos com precisão.'},
-  {id:'karma_el',  name:'Karma',         ico:'⚖️', tier:1, mult:2.2, andar:6, desc:'Equilíbrio absoluto. Cada golpe retorna ao atacante.'},
-  // Tier 0 — Raríssimos de Naraka (mult 2.5)
-  {id:'nirvana',   name:'Nirvana Sombrio',ico:'🌌',tier:0, mult:2.5, andar:6, desc:'Extinção total. Nada permanece — nem dor, nem existência.'},
-  {id:'yama_el',   name:'Julgamento',    ico:'⚖️', tier:0, mult:2.5, andar:6, desc:'Sentença de Yama. Instantânea e sem apelação.'},
+  // Tier 0 — Primordiais
+  {id:'tempo',     name:'Tempo',         ico:'⏳',tier:0, mult:2.5, desc:'Manipula a causalidade.'},
+  {id:'vacuo',     name:'Vácuo',         ico:'🌑',tier:0, mult:2.5, desc:'Aniquila o espaço.'},
+  {id:'gravidade', name:'Gravidade',     ico:'🌀',tier:0, mult:2.5, desc:'Colapsa matéria.'},
+  {id:'espaco',    name:'Espaço',        ico:'🌌',tier:0, mult:2.5, desc:'Dobra a realidade.'},
+  {id:'materia_escura',name:'Matéria Escura',ico:'🕳️',tier:0,mult:2.5,desc:'Dissolve a existência.'},
+  {id:'caos',      name:'Caos',          ico:'🌀',tier:0, mult:2.5, desc:'Força primordial que distorce toda ordem e realidade.'},
+  // Tier 1 — Energias Puras
+  {id:'eter',      name:'Éter',          ico:'✨',tier:1, mult:2.1, desc:'Energia primordial.'},
+  {id:'vida',      name:'Vida',          ico:'💚',tier:1, mult:2.1, desc:'Força vital que sustenta e regenera tudo.'},
+  {id:'raio',      name:'Raio',          ico:'⚡',tier:1, mult:2.1, desc:'Destruição instantânea.'},
+  {id:'luz',       name:'Luz',           ico:'☀️',tier:1, mult:2.1, desc:'Alta energia radiante.'},
+  {id:'fogo',      name:'Fogo',          ico:'🔥',tier:1, mult:2.1, desc:'Calor extremo.'},
+  {id:'magma',     name:'Magma',         ico:'🌋',tier:1, mult:2.1, desc:'Rocha incandescente.'},
+  {id:'plasma',    name:'Plasma',        ico:'💫',tier:1, mult:2.1, desc:'Estado energético puro.'},
+  {id:'radiacao',  name:'Radiação',      ico:'☢️',tier:1, mult:2.1, desc:'Penetra qualquer matéria.'},
+  // Tier 2 — Entrópicos
+  {id:'necrose',   name:'Necrose',       ico:'🦠',tier:2, mult:1.8, desc:'Corrompe a vida.'},
+  {id:'morte',     name:'Morte',         ico:'💀',tier:2, mult:1.8, desc:'Fim absoluto de qualquer existência viva.'},
+  {id:'veneno',    name:'Veneno',        ico:'🐍',tier:2, mult:1.8, desc:'Dissolve o organismo.'},
+  {id:'acido',     name:'Ácido',         ico:'⚗️',tier:2, mult:1.8, desc:'Corrói estruturas.'},
+  {id:'escuridao', name:'Escuridão',     ico:'🌒',tier:2, mult:1.8, desc:'Corrói a alma.'},
+  {id:'podridao',  name:'Podridão',      ico:'💀',tier:2, mult:1.8, desc:'Decompõe tudo.'},
+  {id:'virus',     name:'Vírus',         ico:'🧬',tier:2, mult:1.8, desc:'Infecta e replica.'},
+  {id:'carie',     name:'Cárie',         ico:'🦷',tier:2, mult:1.8, desc:'Corrói por dentro.'},
+  // Tier 3 — Condutores
+  {id:'mercurio',  name:'Mercúrio',      ico:'🪞',tier:3, mult:1.5, desc:'Metal tóxico fluido.'},
+  {id:'som',       name:'Som',           ico:'🔊',tier:3, mult:1.5, desc:'Vibração devastadora.'},
+  {id:'gelo',      name:'Gelo',          ico:'❄️',tier:3, mult:1.5, desc:'Congela e fragmenta.'},
+  {id:'sangue',    name:'Sangue',        ico:'🩸',tier:3, mult:1.5, desc:'Manipula o vital.'},
+  {id:'sombra',    name:'Sombra',        ico:'👤',tier:3, mult:1.5, desc:'Ilude e penetra.'},
+  {id:'fumaca',    name:'Fumaça',        ico:'💨',tier:3, mult:1.5, desc:'Ofusca e sufoca.'},
+  {id:'areia',     name:'Areia',         ico:'⏱️',tier:3, mult:1.5, desc:'Corrói por atrito.'},
+  {id:'vidro',     name:'Vidro',         ico:'🔮',tier:3, mult:1.5, desc:'Fragmentos cortantes.'},
+  {id:'oleo',      name:'Óleo',          ico:'🛢️',tier:3, mult:1.5, desc:'Inflamável e escorregadio.'},
+  {id:'espuma',    name:'Espuma',        ico:'🫧',tier:3, mult:1.5, desc:'Aprisiona e sufoca.'},
+  // Tier 4 — Materiais Nobres
+  {id:'diamante',  name:'Diamante',      ico:'💎',tier:4, mult:1.3, desc:'Perfura qualquer coisa.'},
+  {id:'platina',   name:'Platina',       ico:'🥈',tier:4, mult:1.3, desc:'Conduz e reflete.'},
+  {id:'ouro',      name:'Ouro',          ico:'🥇',tier:4, mult:1.3, desc:'Conduz e estabiliza.'},
+  {id:'metal',     name:'Metal',         ico:'⚙️',tier:4, mult:1.3, desc:'Resistência pura.'},
+  {id:'cristal',   name:'Cristal',       ico:'🔷',tier:4, mult:1.3, desc:'Amplifica energia.'},
+  {id:'titanio',   name:'Titânio',       ico:'🛡️',tier:4, mult:1.3, desc:'Leveza e dureza.'},
+  {id:'aco',       name:'Aço',           ico:'⚔️',tier:4, mult:1.3, desc:'Resistência extrema.'},
+  {id:'obsidiana', name:'Obsidiana',     ico:'🖤',tier:4, mult:1.3, desc:'Absorve impactos.'},
+  {id:'marmore',   name:'Mármore',       ico:'🗿',tier:4, mult:1.3, desc:'Defesa absoluta.'},
+  // Tier 5 — Elementais Básicos
+  {id:'terra',     name:'Terra',         ico:'🌍',tier:5, mult:1.0, desc:'Fundação do mundo.'},
+  {id:'ar',        name:'Ar',            ico:'🌬️',tier:5, mult:1.0, desc:'Onipresente e invisível.'},
+  {id:'agua',      name:'Água',          ico:'💧',tier:5, mult:1.0, desc:'Adapta-se a tudo.'},
+  {id:'flora',     name:'Flora',         ico:'🌿',tier:5, mult:1.0, desc:'Vida e crescimento.'},
+  {id:'lodo',      name:'Lodo',          ico:'🟫',tier:5, mult:1.0, desc:'Prende e sufoca.'},
+  {id:'cinzas',    name:'Cinzas',        ico:'🌫️',tier:5, mult:1.0, desc:'Resta após tudo.'},
+  {id:'argila',    name:'Argila',        ico:'🏺',tier:5, mult:1.0, desc:'Moldável e resistente.'},
+  {id:'nevoa',     name:'Névoa',         ico:'🌁',tier:5, mult:1.0, desc:'Obscurece e penetra.'},
+  {id:'poeira',    name:'Poeira',        ico:'💭',tier:5, mult:1.0, desc:'Onipresente e corrosiva.'},
+  {id:'espinho',   name:'Espinho',       ico:'🌵',tier:5, mult:1.0, desc:'Perfura e sangra.'},
+  {id:'raiz',      name:'Raiz',          ico:'🪨',tier:5, mult:1.0, desc:'Prende e sufoca.'},
 ];
 
 /* ═══ FUSÕES ═══ */
 const ELEM_TYPE = {
-  /* Universal */
-  fogo:'igneo',        agua:'aquatico',     terra:'terreo',
-  ar:'gasoso',         luz:'luminoso',      sombra:'sombrio',
-  vida:'vital',
-
-  /* Tártaro — Grego */
-  trovao:'voltaico',   veneno:'toxico',     pedra:'solido',
-  morte:'mortal',      alma:'espiritual',
-  eris:'caotico',      tartaro_fogo:'igneo_eterno',
-
-  /* Nifleheim — Nórdico */
-  gelo:'gelido',       ferro:'metalico',    vento:'gasoso',
-  runas:'arcano',      trevas:'sombrio',
-  yggdrasil:'natural', mjolnir:'voltaico',
-
-  /* Duat — Egípcio */
-  areia:'abrasivo',    sol_ra:'luminoso',   cobra:'toxico',
-  magia_egip:'arcano', ka:'espiritual',
-  ankh:'vital',        olho_horus_el:'luminoso',
-
-  /* Diyu — Chinês */
-  jade:'cristalino',   karma_neg:'corruptivo', correntes:'metalico',
-  dragao_sangue:'vital', qi_negro:'sombrio',
-  fogo_infernal:'igneo_eterno', espectro:'espiritual',
-
-  /* Yomi — Japonês */
-  youki:'sombrio',     kekkai:'arcano',
-  oni_fogo:'igneo',    kuroi_kaze:'gasoso',  mizuchi:'aquatico',
-  shinigami_el:'mortal', kusanagi_el:'metalico',
-
-  /* Naraka — Tailandês/Budista */
-  loto_el:'vital',     naga_el:'toxico',
-  garuda_el:'luminoso', dharma_el:'divino',  karma_el:'divino',
-  nirvana:'vacuo',     yama_el:'mortal',
+  // Primordiais / espaço-tempo
+  tempo:'temporal',    espaco:'espacial',   gravidade:'gravitacional',
+  vacuo:'vacuo',       materia_escura:'escuro_cosmico', caos:'caotico',
+  // Energias puras
+  eter:'arcano',       vida:'vital',        raio:'voltaico',
+  luz:'luminoso',      fogo:'igneo',        magma:'magmatico',
+  plasma:'eletrico',   radiacao:'radioativo',
+  // Entrópicos
+  necrose:'necrotico',morte:'mortal',      veneno:'toxico',
+  acido:'corrosivo',   escuridao:'sombrio', podridao:'corruptivo',
+  virus:'toxico',      carie:'corrosivo',
+  // Condutores
+  mercurio:'mercurial',   som:'sonico',        gelo:'gelido',
+  sangue:'vital',      sombra:'sombrio',    fumaca:'gasoso',
+  areia:'arenoso',    vidro:'abrasivo',    oleo:'inflamavel',
+  espuma:'espumoso',     osso:'osseo',
+  // Materiais
+  diamante:'solido',   platina:'solido',    ouro:'solido',
+  metal:'solido',      cristal:'solido',    titanio:'solido',
+  aco:'metalico',      obsidiana:'vulcanico', marmore:'pedroso',
+  // Elementais básicos
+  terra:'terreo',      ar:'gasoso',         agua:'aquatico',
+  flora:'natural',     lodo:'terreo',       cinzas:'cinzas',
+  argila:'terreo',     nevoa:'nebuloso',      poeira:'abrasivo',
+  espinho:'natural',   raiz:'radicular',
 };
 
 // Regras de fusão: par de tipos → {name, ico, desc, tierOffset, multBonus}
 // tierOffset: reduz o tier médio (resultado mais poderoso que a média)
 // multBonus: somado ao mult calculado
 const FUSION_RULES = {
+  // Par canonizado (a <= b alfabeticamente) → resultado
+  'abrasivo+abrasivo':   {name:'Tempestade de Lâminas',ico:'🌪️', desc:'Fragmentos cortantes em alta velocidade rasgam qualquer defesa.'},
+  'abrasivo+aquatico':   {name:'Areia Abrasiva',       ico:'🏖️', desc:'Pasta corrosiva que penetra armaduras e irrita tecidos.'},
+  'abrasivo+gasoso':     {name:'Nuvem Cortante',       ico:'💨', desc:'Névoa de partículas que lacera pulmões e olhos.'},
+  'abrasivo+igneo':      {name:'Cinzas Candentes',     ico:'🌋', desc:'Partículas incandescentes que queimam ao contato.'},
+  'abrasivo+natural':    {name:'Espinheiro',            ico:'🌵', desc:'Lanchas vegetais que rastreiam o alvo pelo calor.'},
+  'abrasivo+solido':     {name:'Pó de Diamante',       ico:'💎', desc:'Nuvem de carbono indestrutível que perfura como agulhas ardentes.'},
+  'abrasivo+sombrio':    {name:'Poeira das Sombras',   ico:'🌑', desc:'Partículas invisíveis que corroem de dentro.'},
+  'abrasivo+terreo':     {name:'Tempestade de Areia',  ico:'🌪️', desc:'Tornado de partículas que desintegra carne e pedra por atrito.'},
+  'abrasivo+toxico':     {name:'Névoa Ácida',          ico:'☠️', desc:'Micropartículas tóxicas em suspensão que envenenam ao respirar.'},
+  'aquatico+gasoso':     {name:'Vapor Superaquecido',  ico:'♨️', desc:'Névoa invisível que cozinha alvos por dentro, ignorando armaduras.'},
+  'aquatico+gelido':     {name:'Gelo Eterno',          ico:'🧊', desc:'Congela a água nos tecidos; morte lenta e inevitável.'},
+  'aquatico+igneo':      {name:'Vapor Explosivo',      ico:'💥', desc:'Expansão violenta de vapor superaquecido.'},
+  'aquatico+natural':    {name:'Seiva Vital',          ico:'🌿', desc:'Aura de cura acelerada capaz de regenerar membros perdidos.'},
+  'aquatico+terreo':     {name:'Lodo Cinzento',        ico:'🌫️', desc:'Massa viscosa que endurece como cimento ao tocar o inimigo.'},
+  'aquatico+toxico':     {name:'Toxina Líquida',       ico:'🐍', desc:'Contamina correntes d\'água; paralisia instantânea ao contato.'},
+  'aquatico+vital':      {name:'Água da Vida',         ico:'💧', desc:'Cura ferimentos graves e prolonga a vida; pode reverter o envelhecimento.'},
+  'arcano+caotico':      {name:'Éter Caótico',         ico:'✨', desc:'Altera as leis da física; cria áreas de gravidade zero ou fluxo temporal lento.'},
+  'arcano+luminoso':     {name:'Luz Arcana',           ico:'💫', desc:'Energia pura que dissolve escudos mágicos e queima almas.'},
+  'arcano+mortal':       {name:'Morte Arcana',         ico:'🌑', desc:'Feitiço que apaga a faísca vital diretamente, sem dano físico.'},
+  'arcano+sombrio':      {name:'Sombra Arcana',        ico:'🌒', desc:'Magia das trevas que corrói a mente e o corpo simultaneamente.'},
+  'arcano+temporal':     {name:'Crônica Etérea',       ico:'✨', desc:'A energia primordial do éter flui através de todas as eras simultaneamente.'},
+  'caotico+corruptivo':  {name:'Vida Caótica',         ico:'💚', desc:'Gera mutações aleatórias em seres vivos (cura, fortalece ou deforma o alvo).'},
+  'caotico+corrosivo':   {name:'Ácido Instável',       ico:'⚗️', desc:'Corrosão aleatória que pode dissolver armadura completa em instantes.'},
+  'caotico+espacial':    {name:'Dobra Dimensional',    ico:'🌌', desc:'Abre portais instáveis para dimensões aleatórias; invoca criaturas ou distorce a realidade.'},
+  'caotico+igneo':       {name:'Chama do Caos',        ico:'🔥', desc:'Fogo imprevisível que explode em padrões impossíveis de prever.'},
+  'caotico+luminoso':    {name:'Luz Caótica',          ico:'💥', desc:'Flashes imprevisíveis que podem cegar inimigos ou revelar verdades ocultas.'},
+  'caotico+mortal':      {name:'Aniquilação Absoluta', ico:'⬛', desc:'Apaga qualquer alvo da existência, sem chance de ressurreição ou vestígios.'},
+  'caotico+solido':      {name:'Metal Maleável',       ico:'⚙️', desc:'Metal que muda de forma aleatoriamente; cria armas ou armaduras instáveis.'},
+  'caotico+sombrio':     {name:'Trevas Caóticas',      ico:'🌒', desc:'Escuridão viva que se move e consome tudo, causando confusão e dano contínuo.'},
+  'caotico+temporal':    {name:'Linha do Tempo Caótica',ico:'🌀',desc:'Passado, presente e futuro se misturam; eventos podem se repetir ou nunca acontecer.'},
+  'caotico+vacuo':       {name:'Vazio Absoluto',       ico:'⬛', desc:'Aniquilação atômica total. Uma zona onde a existência é simplesmente deletada.'},
+  'caotico+vital':       {name:'Caos Vital',           ico:'🌱', desc:'Cura e corrompe ao acaso; pode salvar ou destruir instantaneamente.'},
+  'corruptivo+igneo':    {name:'Chama Negra',          ico:'🖤', desc:'Fogo que não ilumina; consome a alma e deixa o corpo físico intacto.'},
+  'corruptivo+natural':  {name:'Flora Morta',          ico:'🌵', desc:'Plantas secas e murchas que sugam energia ou lançam galhos mortais.'},
+  'corruptivo+solido':   {name:'Metal Corrompido',     ico:'⚰️', desc:'Metal infestado de necrose que envenena ao toque.'},
+  'corruptivo+vital':    {name:'Vida na Morte',        ico:'🦠', desc:'Fungos e bactérias que prosperam na decomposição para gerar nova vida.'},
+  'corrosivo+igneo':     {name:'Piroclasto',           ico:'🌋', desc:'Chuva de cinzas e rochas incandescentes; soterra exércitos e cidades.'},
+  'corrosivo+solido':    {name:'Corrosão',             ico:'⚗️', desc:'Derrete instantaneamente armaduras e estruturas metálicas nobres.'},
+  'corrosivo+toxico':    {name:'Peste',                ico:'☠️', desc:'Corrupção imediata do sistema circulatório; o sangue apodrece nas veias.'},
+  'eletrico+aquatico':   {name:'Eletrólise',           ico:'⚡', desc:'Condução elétrica total em líquidos; gera explosões gasosas de hidrogênio.'},
+  'eletrico+gasoso':     {name:'Eletricidade Estática',ico:'⚡', desc:'Ar carregado que gera descargas de alta voltagem a qualquer movimento.'},
+  'eletrico+gelido':     {name:'Tempestade Polar',     ico:'❄️', desc:'Relâmpagos congelantes que paralisam e queimam simultaneamente.'},
+  'eletrico+luminoso':   {name:'Luz Sônica',           ico:'💥', desc:'Flash cegante acompanhado de uma onda de choque que explode órgãos.'},
+  'eletrico+solido':     {name:'Liga de Plasma',       ico:'💫', desc:'Metal energético que corta a nível molecular e se autorregenera.'},
+  'eletrico+vital':      {name:'Choque Revigorante',   ico:'⚡', desc:'Descarga elétrica que reanima seres inconscientes e remove estados de paralisia.'},
+  'espacial+gravitacional':{name:'Dobra Espacial',     ico:'🌀', desc:'Comprime distâncias infinitas; esmaga inimigos em um ponto singular.'},
+  'espacial+temporal':   {name:'Continuum',            ico:'♾️', desc:'Altera a malha da causalidade; permite onipresença local e manipulação cronológica.'},
+  'gasoso+igneo':        {name:'Erupção de Cinzas',    ico:'🌋', desc:'Nuvem flamejante de gás incandescente que queima tudo em contato.'},
+  'gasoso+natural':      {name:'Bolhas Eternas',       ico:'🫧', desc:'Prisões esféricas inquebráveis que asfixiam o alvo lentamente.'},
+  'gasoso+toxico':       {name:'Epidemia',             ico:'🦠', desc:'O ar torna-se o vetor de uma doença imparável e onipresente.'},
+  'gelido+igneo':        {name:'Vapor Superaquecido',  ico:'♨️', desc:'Névoa invisível que cozinha alvos por dentro, ignorando armaduras.'},
+  'gelido+mortal':       {name:'Frio da Morte',        ico:'❄️', desc:'Gelo que congela a alma; causa morte instantânea ao toque espiritual.'},
+  'gelido+natural':      {name:'Preservação',          ico:'🧊', desc:'Gelo que mantém organismos em animação suspensa (não envelhecem nem morrem).'},
+  'gelido+solido':       {name:'Mercúrio Sólido',      ico:'🪞', desc:'Lâminas de metal tóxico que derretem após atingir a corrente sanguínea.'},
+  'gelido+toxico':       {name:'Veneno Gélido',        ico:'🐍', desc:'Veneno que cristaliza o sangue lentamente, causando dor extrema.'},
+  'gelido+vital':        {name:'Criogenia Vital',      ico:'💙', desc:'Suspende a vida em estado cristalino; cura ou preserva por tempo indefinido.'},
+  'gravitacional+luminoso':{name:'Lente Gravitacional',ico:'🔭',desc:'Invisibilidade perfeita e distorção da realidade visual em escala global.'},
+  'gravitacional+sombrio':{name:'Matéria Sombria',     ico:'🌑', desc:'Matéria paradoxal que alterna entre solidez e intangibilidade absoluta.'},
+  'gravitacional+vacuo': {name:'Singularidade',        ico:'🕳️', desc:'Um ponto de colapso total — nada escapa, nem luz, nem magia.'},
+  'igneo+luminoso':      {name:'Chama Solar',          ico:'☀️', desc:'Chamas sagradas que cegam e purificam o alvo simultaneamente.'},
+  'igneo+natural':       {name:'Fogo Silvestre',       ico:'🌿', desc:'Chamas que se espalham pela vegetação e envenenam com fumaça.'},
+  'igneo+solido':        {name:'Metal Incandescente',  ico:'🔥', desc:'Metal fundido que adere à pele e não pode ser removido.'},
+  'igneo+toxico':        {name:'Raio Ígneo',           ico:'🔥', desc:'Explosão ardente carregada de toxinas que queimam por dentro e por fora.'},
+  'igneo+vital':         {name:'Fênix',                ico:'🔥', desc:'Chamas douradas que curam, regeneram e queimam; renasce das cinzas se destruída.'},
+  'luminoso+mortal':     {name:'Fosforescência',       ico:'💡', desc:'Brilho que drena a vitalidade; quanto mais brilha, mais vida consome.'},
+  'luminoso+sombrio':    {name:'Eclipse',              ico:'🌑', desc:'Trevas absolutas seguidas de luz devastadora — paralisa e queima.'},
+  'mortal+voltaico':     {name:'Pulso Fúnebre',        ico:'💀', desc:'Descarga elétrica que faz o coração parar, os neurônios se apagam, mas o corpo permanece intacto.'},
+  'mortal+sombrio':      {name:'Espectro',             ico:'👻', desc:'Invoca uma entidade sombria persistente que drena a vitalidade dos inimigos.'},
+  'mortal+sonico':       {name:'Grito da Morte',       ico:'💀', desc:'Som que ressoa apenas para o alvo — silencioso externamente, letal internamente.'},
+  'mortal+temporal':     {name:'Fim dos Tempos',       ico:'⏳', desc:'Acelera o envelhecimento ou encerra ciclos instantaneamente; pode destruir eras inteiras.'},
+  'mortal+toxico':       {name:'Toxina Mortal',        ico:'☠️', desc:'Veneno letal fulminante; causa morte em segundos sem antídoto comum.'},
+  'mortal+vital':        {name:'Ciclo Eterno',         ico:'♾️', desc:'Equilíbrio supremo; pode ressuscitar aliados ou destruir inimigos conforme o uso.'},
+  'natural+terreo':      {name:'Barro Vermelho',       ico:'🟫', desc:'Cria golems de carne e terra com memória genética residual.'},
+  'natural+vital':       {name:'Sopro Vital',          ico:'🌬️',desc:'Vento revigorante que restaura a energia total e remove efeitos de exaustão.'},
+  'solido+solido':       {name:'Superliga',            ico:'🛡️', desc:'O metal definitivo: leve como o ar, porém impossível de amassar.'},
+  'solido+terreo':       {name:'Rocha Metamórfica',    ico:'🗿', desc:'Absorve impactos físicos e os devolve como ondas de choque.'},
+  'sonico+sombrio':      {name:'Neblina Sombria',      ico:'👤', desc:'Cortina de fumaça viva que permite teletransporte entre sombras.'},
+  'sonico+temporal':     {name:'Eco Temporal',         ico:'⏪', desc:'Gritos que ecoam pelo tempo, permitindo prever ataques ou alterar o passado.'},
+  'sonico+vacuo':        {name:'Silêncio Absoluto',    ico:'🔇', desc:'Remove o meio de propagação física; explosões e impactos tornam-se nulos.'},
+  'sombrio+vital':       {name:'Espelho de Sangue',  ico:'🩸', desc:'Poça de sangue que reflete sombras do passado, revelando segredos ou invocando formas do inconsciente.'},
+  'temporal+vacuo':      {name:'Apagamento',           ico:'⬛', desc:'Retira o alvo da linha do tempo, como se nunca tivesse existido.'},
+  'temporal+vital':      {name:'Sangue do Tempo',      ico:'🩸', desc:'Permite visualizar e acessar a memória genética de todas as eras.'},
+  'terreo+gasoso':       {name:'Terremoto',            ico:'🌍', desc:'Ondas sísmicas que se propagam pelo ar e pelo chão simultaneamente.'},
+  'terreo+igneo':        {name:'Cerâmica',             ico:'🏺', desc:'Cascas defensivas que endurecem sob calor extremo.'},
+  'terreo+vital':        {name:'Fertilidade',          ico:'🌱', desc:'Torna o solo fértil instantaneamente; faz plantas crescerem em segundos.'},
+  'toxico+vital':        {name:'Mutação',              ico:'🧬', desc:'Crescimento grotesco e acelerado; organismos tornam-se predadores imprevisíveis.'},
 
-  /* ══════════════════════════════════════
-     CÓSMICAS — Vácuo, Divino, Espiritual
-  ══════════════════════════════════════ */
-  'divino+sombrio':       {name:'Dharma das Trevas',     ico:'☯️', desc:'A lei cósmica corrói o que está fora de equilíbrio — dano proporcional ao karma.'},
-  'divino+vital':         {name:'Bênção Eterna',         ico:'🌸', desc:'Karma positivo manifesto — cura massiva e fortalece quem tem karma alto.'},
-  'divino+mortal':        {name:'Extinção Cármica',      ico:'☸️', desc:'Karma negativo acumulado destruído de uma vez — dano escalonado pelo karma do inimigo.'},
-  'arcano+divino':        {name:'Mandala Arcana',        ico:'✨', desc:'Magia estruturada pela lei cósmica — feitiço que não pode ser resistido nem esquivado.'},
-  'mortal+vacuo':         {name:'Nirvana',               ico:'🌌', desc:'Extinção absoluta — o alvo deixa de existir sem deixar rastro ou memória.'},
-  'vacuo+vital':          {name:'Vácuo Vital',           ico:'🌑', desc:'Drena a força vital ao criar vácuo interno — silencioso e inevitável.'},
-  'sombrio+vacuo':        {name:'Abismo',                ico:'⬛', desc:'Escuridão sem fundo que engole tudo — nenhuma luz, nenhuma magia persiste.'},
-  'arcano+vacuo':         {name:'Silêncio Arcano',       ico:'🔇', desc:'Dissolve magia no vácuo — anula escudos e feitiços instantaneamente.'},
-  'espiritual+mortal':    {name:'Colheita de Almas',     ico:'👻', desc:'Shinigami e Tânatos agem juntos — drena a alma sem tocar o corpo.'},
-  'espiritual+sombrio':   {name:'Possessão',             ico:'🌑', desc:'Espírito sombrio invade o alvo — causa confusão e dano contínuo por dentro.'},
-  'espiritual+vital':     {name:'Ressurreição',          ico:'💫', desc:'Alma e vida reunidas — cura drástica ou ressuscita aliados caídos.'},
-  'arcano+espiritual':    {name:'Invocação',             ico:'🔮', desc:'Ka e runas combinados — manifesta uma entidade que atua por 3 turnos.'},
-  'espiritual+luminoso':  {name:'Ascensão',              ico:'✨', desc:'Alma iluminada — purifica todos os debuffs e causa dano sagrado massivo.'},
+  // ═══ NOVAS FUSÕES ═══
+  // Tier 0 — Cósmicas
+  'escuro_cosmico+gravitacional': {name:'Singularidade',          ico:'🕳️', desc:'Colapso gravitacional infinito que apaga dimensões inteiras; nada — nem luz, nem conceito — escapa.'},
+  'espacial+vacuo':          {name:'Horizonte de Eventos',   ico:'🌌', desc:'Fronteira além da qual as leis da física deixam de existir; criaturas aprisionadas perdem toda forma e memória.'},
+  'caotico+gravitacional':   {name:'Vetor do Caos',          ico:'🌀', desc:'Distorce a força gravitacional de forma imprevisível, podendo inverter a atração de planetas ou fragmentar estrelas.'},
+  // Tier 1 — Energéticas
+  'eletrico+radioativo':     {name:'Pulsar',                 ico:'💫', desc:'Emissão rítmica de energia em ondas que destroem circuitos biológicos e tecnológicos em raio continental.'},
+  'gasoso+magmatico':        {name:'Névoa Ardente',          ico:'🌋', desc:'Cortina de gases superaquecidos que carbonizam pulmões; avança lentamente mas é impossível de conter.'},
+  'eletrico+igneo':          {name:'Coroa Solar',            ico:'☀️', desc:'Anel de plasma solar que incendeia a atmosfera local; tudo no raio se torna combustível.'},
+  'arcano+gasoso':           {name:'Vórtice Etéreo',         ico:'🌀', desc:'Redemoinho de energia pura que suga a vontade dos oponentes, dissolvendo magias e intenções antes de agir.'},
+  'radioativo+voltaico':     {name:'Tempestade Gamma',       ico:'⚡', desc:'Descarga ionizante que queima por dentro e por fora simultaneamente; tecidos e armaduras viram pó em segundos.'},
+  'eletrico+natural':        {name:'Espinho Solar',          ico:'🌵', desc:'Lanças de plasma vegetais que penetram qualquer escudo mágico; combinam o orgânico com o cósmico.'},
+  // Tier 2 — Corrupção e matéria
+  'corruptivo+gasoso':       {name:'Hálito Pútrido',         ico:'🌬️', desc:'Vento que carrega a decomposição — cada respiração avança a necrose nos tecidos vivos.'},
+  'gelido+sombrio':          {name:'Lâmina de Sombra',       ico:'🌑', desc:'Fragmentos de escuridão solidificada que cortam tanto a carne quanto o espírito projetado do alvo.'},
+  'necrotico+vital':         {name:'Coágulo Sombrio',        ico:'🩸', desc:'O sangue para de fluir e se solidifica em grumos que pressionam os órgãos por dentro.'},
+  'corruptivo+sonico':       {name:'Ecos da Podridão',       ico:'🔊', desc:'Frequência sônica que ressoa com tecidos em decomposição, acelerando a putrefação apenas ao ouvir.'},
+  'solido+sombrio':          {name:'Espelho Negro',          ico:'🪞', desc:'Superfície que absorve a identidade do alvo refletido; quem olha perde o senso de si mesmo progressivamente.'},
+  'corrosivo+gasoso':        {name:'Bruma Ácida',            ico:'☠️', desc:'Névoa invisível de partículas corrosivas que dissolve armaduras de dentro para fora sem contato direto.'},
+  'abrasivo+mortal':         {name:'Crisálide Mortal',       ico:'⏳', desc:'Areia que enterra o alvo vivo e drena sua força vital durante a asfixia, convertendo-a em energia.'},
+  'corrosivo+terreo':        {name:'Lodo Corrosivo',         ico:'🟫', desc:'Pasta viscosa ácida que gruda e corrói simultaneamente; impossível de remover sem piorar o dano.'},
+  'natural+sonico':          {name:'Grito da Floresta',      ico:'🌿', desc:'Resonância vegetal que libera esporos explosivos ao atingir frequência crítica — detonação orgânica em cadeia.'},
+  'nebuloso+toxico':         {name:'Nevoeiro Venenoso',      ico:'🐍', desc:'Névoa que entrega veneno diretamente pelo trato respiratório; difícil de detectar e impossível de evitar.'},
+  // Tier 3 — Híbridas
+  'osseo+sonico':            {name:'Ressonância Óssea',      ico:'💀', desc:'Vibração calibrada para a frequência dos ossos do alvo; fraturas internas sem nenhum contato físico visível.'},
+  'abrasivo+luminoso':       {name:'Vitral',                 ico:'🔮', desc:'Refração controlada que cria ilusões perfeitas e lasers de precisão cirúrgica a partir de qualquer fonte luminosa.'},
+  'igneo+mercurial':         {name:'Mercúrio Ardente',       ico:'🔥', desc:'Metal líquido em chamas que adere à pele e não pode ser apagado com água — expande ao tentar remover.'},
+  'eletrico+espumoso':       {name:'Espuma Elétrica',        ico:'⚡', desc:'Bolhas condutoras que explodem em descargas ao mínimo toque; cria campo minado eletrostático.'},
+  'arenoso+nebuloso':        {name:'Névoa de Areia',         ico:'🌫️', desc:'Partículas de areia suspensas em névoa que laceram internamente ao serem inaladas.'},
+  'gasoso+gelido':           {name:'Seda de Gelo',           ico:'❄️', desc:'Fumaça que congela instantaneamente em contato com o alvo, criando uma armadura de prisão de gelo.'},
+  'cinzas+gasoso':           {name:'Véu de Cinzas',          ico:'🌫️', desc:'Nuvem de cinzas suspensas que abafa fogo, bloqueia visão e sufoca — perfeita para emboscadas lentas.'},
+  'radicular+terreo':        {name:'Raiz de Pedra',          ico:'🌱', desc:'Raízes que perfuram e fragmentam rochas; podem minar fundações de castelos ou prender gigantes.'},
+  // Tier 4 — Materiais raros
+  'gasoso+solido':           {name:'Platina Espelhada',      ico:'✨', desc:'Névoa metálica que endurece ao contato com energia mágica, formando armaduras espontâneas.'},
+  'vulcanico+gasoso':        {name:'Obsidiana Fumacenta',    ico:'🌑', desc:'Fragmentos de vidro vulcânico suspensos em fumaça — uma nuvem de navalhas invisíveis.'},
+  'metalico+sombrio':        {name:'Aço Sombrio',            ico:'⚔️', desc:'Metal que absorve luz e ataques mágicos; torna armas feitas com ele imperceptíveis no escuro.'},
+  'radioativo+solido':       {name:'Âmbar Radioativo',       ico:'💎', desc:'Cristais translúcidos que emitem radiação focada; belas e mortais, usadas como prisões ou armadilhas.'},
+  'metalico+terreo':         {name:'Coluna de Titânio',      ico:'🏛️', desc:'Pilares de metal emergem do chão de forma instantânea; podem murar cidades ou esmagar alvos verticalmente.'},
+  'gelido+pedroso':          {name:'Mármore Gelado',         ico:'🪨', desc:'Superfície perfeitamente polida e congelante; propaga o frio por contato e reflete impactos com dureza máxima.'},
 
-  /* ══════════════════════════════════════
-     ENERGIA — Igneo, Igneo Eterno, Voltaico, Luminoso
-  ══════════════════════════════════════ */
-  'igneo+igneo_eterno':   {name:'Fogo do Averno',        ico:'🔴', desc:'Chama comum encontra fogo eterno do Tártaro — arde para sempre, não apaga.'},
-  'igneo+voltaico':       {name:'Tempestade de Fogo',    ico:'⛈️', desc:'Relâmpago e chamas — explosão termal devastadora que deixa queimaduras elétricas.'},
-  'igneo+luminoso':       {name:'Chama Solar',           ico:'☀️', desc:'Fogo de Rá — chamas sagradas que cegam e purificam simultaneamente.'},
-  'igneo+sombrio':        {name:'Chama Negra',           ico:'🖤', desc:'Fogo do Oni — não ilumina, consome alma e deixa o corpo intacto.'},
-  'aquatico+igneo':       {name:'Vapor Explosivo',       ico:'💥', desc:'Fogo e água — expansão violenta de vapor superaquecido em área.'},
-  'igneo+vital':          {name:'Fênix',                 ico:'🔥', desc:'Fogo e vida — chama que cura e queima; quem cai em batalha pode renascer.'},
-  'igneo+mortal':         {name:'Chama da Morte',        ico:'💀', desc:'Fogo infernal que mata alma e corpo — não deixa cinzas, nem memória.'},
-  'igneo+toxico':         {name:'Veneno Ardente',        ico:'☠️', desc:'Chama venenosa — queima por fora e apodrece por dentro simultaneamente.'},
-  'gelido+igneo':         {name:'Forja Polar',           ico:'🌋', desc:'Calor extremo encontra frio absoluto — explosão de cristais incandescentes.'},
-  'arcano+igneo':         {name:'Brasas Rúnicas',        ico:'🔴', desc:'Fogo gravado com runas nórdicas — queima que enfraquece defesas mágicas.'},
-  'igneo+terreo':         {name:'Magma',                 ico:'🌋', desc:'Rocha derretida emerge do chão — devorador lento e inevitável.'},
-  'gasoso+igneo':         {name:'Erupção',               ico:'🌋', desc:'Fogo e gás — nuvem flamejante que queima e asfixia ao mesmo tempo.'},
-  'igneo_eterno+sombrio': {name:'Fogo Sombrio',          ico:'🖤', desc:'Chama eterna do Diyu — queima o que não pode ser queimado: esperança e vontade.'},
-  'igneo_eterno+vital':   {name:'Vida Eterna',           ico:'🌺', desc:'Fogo que dá vida em vez de destruir — regenera massivamente aliados.'},
-  'igneo_eterno+mortal':  {name:'Purgatório',            ico:'🔴', desc:'Fogo eterno do Tártaro — condena o alvo a arder sem destruir, ciclo sem fim.'},
-  'aquatico+igneo_eterno':{name:'Dilúvio de Fogo',       ico:'🌊', desc:'Água e fogo eterno — vapor que escala e queima por dentro como lava líquida.'},
-  'igneo_eterno+voltaico':{name:'Zeus Desencadeado',     ico:'⚡', desc:'Trovão e fogo eterno — a ira máxima de Zeus manifesta em um único golpe.'},
-  'aquatico+voltaico':    {name:'Maré Elétrica',         ico:'⚡', desc:'Raio e água — condução total, atinge todos os alvos em contato com o líquido.'},
-  'gelido+voltaico':      {name:'Relâmpago Gélido',      ico:'❄️', desc:'Mjolnir encontra gelo — paralisa e queima ao mesmo tempo, sem escapatória.'},
-  'sombrio+voltaico':     {name:'Raio das Trevas',       ico:'🌑', desc:'Descarga elétrica invisível — atinge sem aviso, impossível de desviar.'},
-  'mortal+voltaico':      {name:'Pulso Fúnebre',         ico:'💀', desc:'Raio que para o coração — silencioso, limpo e absolutamente letal.'},
-  'toxico+voltaico':      {name:'Descarga Tóxica',       ico:'☠️', desc:'Relâmpago e veneno — envenena e paralisa simultaneamente.'},
-  'terreo+voltaico':      {name:'Faísca da Terra',       ico:'⚡', desc:'Corrente elétrica que percorre o solo — atinge todos que pisam no chão.'},
-  'arcano+voltaico':      {name:'Runa de Relâmpago',     ico:'⚡', desc:'Raio carregado de magia rúnica — ignora resistências e atinge alma e corpo.'},
-  'gasoso+voltaico':      {name:'Tempestade Estática',   ico:'⚡', desc:'Ar carregado que dispara descargas espontâneas a qualquer movimento.'},
-  'caotico+voltaico':     {name:'Caos Elétrico',         ico:'🌀', desc:'Eris e trovão — descarga sem padrão que salta entre alvos imprevisível.'},
-  'luminoso+sombrio':     {name:'Eclipse',               ico:'🌑', desc:'Luz e trevas em colapso — cegueira total seguida de explosão devastadora.'},
-  'luminoso+mortal':      {name:'Luz Mortal',            ico:'💡', desc:'Brilho que drena vitalidade — quanto mais ilumina, mais vida consome.'},
-  'luminoso+vital':       {name:'Cura Sagrada',          ico:'💛', desc:'Luz divina que restaura e protege — cura massiva, remove todos os debuffs.'},
-  'arcano+luminoso':      {name:'Luz Arcana',            ico:'✨', desc:'Éter irradiado — dissolve escudos mágicos e queima almas diretamente.'},
-  'luminoso+toxico':      {name:'Luz Corrosiva',         ico:'☠️', desc:'Sol de Rá combinado com veneno de Apófis — queima e apodrece ao mesmo tempo.'},
-  'gasoso+luminoso':      {name:'Nuvem Flamejante',      ico:'☀️', desc:'Luz concentrada aquece gás ao ponto de ignição — explosão de fotorradical.'},
-  'luminoso+terreo':      {name:'Cristalização Solar',   ico:'💎', desc:'Calor de Rá petrifica e cristaliza — transforma inimigos em estátuas de luz.'},
-
-  /* ══════════════════════════════════════
-     SOMBRA — Sombrio, Trevas, Corrupto
-  ══════════════════════════════════════ */
-  'mortal+sombrio':       {name:'Espectro',              ico:'👻', desc:'Sombra e morte — entidade invocada que drena vitalidade sem poder ser atacada.'},
-  'sombrio+toxico':       {name:'Veneno das Sombras',    ico:'🌑', desc:'Youki e cobra — veneno que viaja pelas sombras, imperceptível até agir.'},
-  'arcano+sombrio':       {name:'Trevas Arcanas',        ico:'🌒', desc:'Magia negra — corrói mente e corpo simultaneamente de dentro para fora.'},
-  'sombrio+vital':        {name:'Drenagem',              ico:'🩸', desc:'Sombra e sangue — vampiriza força vital transferindo ao conjurador.'},
-  'gelido+sombrio':       {name:'Lâmina de Sombra',      ico:'🌑', desc:'Escuridão solidificada — corta carne e espírito, ignorando armaduras.'},
-  'aquatico+sombrio':     {name:'Névoa Sombria',         ico:'🌫️', desc:'Qi negro e água — névoa escura que drena força e desorienta os sentidos.'},
-  'gasoso+sombrio':       {name:'Vento Maldito',         ico:'🌪️', desc:'Kuroi Kaze ampliado — vento que carrega maldições para onde sopra.'},
-  'sombrio+terreo':       {name:'Terra Corrompida',      ico:'🌑', desc:'Solo absorvido pelo qi sombrio — terreno que enfraquece quem pisa nele.'},
-  'caotico+sombrio':      {name:'Caos Sombrio',          ico:'🌒', desc:'Eris e youki — escuridão viva que consome tudo sem ordem ou propósito.'},
-  'corruptivo+sombrio':   {name:'Podridão das Trevas',   ico:'☠️', desc:'Karma negro e youki — corrupção que se espalha por qualquer sombra.'},
-  'corruptivo+vital':     {name:'Vida Corrompida',       ico:'🦠', desc:'Karma negativo corrói a força vital — quanto mais saudável, mais doloroso.'},
-  'arcano+corruptivo':    {name:'Magia Corrompida',      ico:'🌀', desc:'Runas e karma negro — feitiços do inimigo se voltam contra ele.'},
-  'corruptivo+mortal':    {name:'Maldição Terminal',     ico:'💀', desc:'Karma e morte — maldição que inevitavelmente mata, só o momento varia.'},
-
-  /* ══════════════════════════════════════
-     MORTE E VENENO
-  ══════════════════════════════════════ */
-  'mortal+toxico':        {name:'Toxina Mortal',         ico:'☠️', desc:'Shinigami e naga — veneno que mata em segundos, sem antídoto conhecido.'},
-  'arcano+mortal':        {name:'Toque da Morte',        ico:'💀', desc:'Feitiço que apaga a faísca vital — sem dano visível, sem rastro mágico.'},
-  'aquatico+mortal':      {name:'Águas do Estige',       ico:'💧', desc:'Morte e água — beber desta água paralisa alma e corpo por tempo indeterminado.'},
-  'mortal+terreo':        {name:'Sepultura',             ico:'⚰️', desc:'Terra e morte — o solo engole o alvo vivo, aprisionando até a extinção.'},
-  'gasoso+mortal':        {name:'Último Suspiro',        ico:'💨', desc:'O ar se torna veneno de Tânatos — cada respiração aproxima do fim.'},
-  'aquatico+toxico':      {name:'Veneno Líquido',        ico:'🐍', desc:'Naga e água — contamina qualquer líquido, paralisia instantânea ao contato.'},
-  'gasoso+toxico':        {name:'Epidemia',              ico:'🦠', desc:'Veneno de cobra se vaporiza — ar torna-se vetor de doença imparável.'},
-  'terreo+toxico':        {name:'Solo Envenenado',       ico:'🐍', desc:'Veneno que satura o chão — todo movimento expõe a novas doses de toxina.'},
-  'gelido+toxico':        {name:'Veneno Gélido',         ico:'❄️', desc:'Mizuchi e gelo — veneno que cristaliza o sangue, dor que aumenta com o frio.'},
-  'toxico+vital':         {name:'Mutação',               ico:'🧬', desc:'Veneno e vida — crescimento grotesco, o organismo torna-se predador imprevisível.'},
-  'arcano+toxico':        {name:'Veneno Arcano',         ico:'🐍', desc:'Heka e veneno — toxina que dissolve escudos mágicos antes de atacar o corpo.'},
-
-  /* ══════════════════════════════════════
-     ARCANO — Runas, Heka, Kekkai
-  ══════════════════════════════════════ */
-  'aquatico+arcano':      {name:'Água Arcana',           ico:'💧', desc:'Kekkai e água — barreira líquida que reflete magias e envenena quem as lança.'},
-  'arcano+gasoso':        {name:'Vórtice Etéreo',        ico:'🌀', desc:'Magia e ar — redemoinho que dissolve feitiços inimigos antes de atingir.'},
-  'arcano+vital':         {name:'Cura Rúnica',           ico:'🔵', desc:'Runas de cura — recuperação que escala com o nível de magia acumulada.'},
-  'arcano+terreo':        {name:'Pedra Rúnica',          ico:'🪨', desc:'Magia e terra — pilar de pedra gravado com runas emerge e esmaga o alvo.'},
-  'arcano+natural':       {name:'Floresta Encantada',    ico:'🌳', desc:'Yggdrasil e runas — árvore que cresce instantaneamente e prende o inimigo.'},
-
-  /* ══════════════════════════════════════
-     ELEMENTAIS — Terra, Água, Ar
-  ══════════════════════════════════════ */
-  'aquatico+terreo':      {name:'Lama Sufocante',        ico:'🌫️', desc:'Terra e água — massa viscosa que gruda, imobiliza e sufoca progressivamente.'},
-  'gasoso+terreo':        {name:'Terremoto',             ico:'🌍', desc:'Terra e ar — ondas sísmicas que se propagam pelo solo e pelo ar simultaneamente.'},
-  'gelido+terreo':        {name:'Tundra',                ico:'🧊', desc:'Terra e gelo de Nifleheim — solo que congela ao toque, campo de gelo em área.'},
-  'natural+terreo':       {name:'Floresta de Pedra',     ico:'🗿', desc:'Yggdrasil e terra — raízes de rocha que aprisionam e esmagam o alvo.'},
-  'abrasivo+terreo':      {name:'Tempestade de Areia',   ico:'🌪️', desc:'Terra e areia do Duat — tornado que desintegra armadura por atrito.'},
-  'caotico+terreo':       {name:'Caos Sísmico',          ico:'🌍', desc:'Terra e Eris — terremoto imprevisível que abre falhas sem padrão definido.'},
-  'aquatico+gasoso':      {name:'Vapor Letal',           ico:'♨️', desc:'Água e ar quente — névoa invisível que cozinha alvos por dentro.'},
-  'aquatico+gelido':      {name:'Gelo Vivo',             ico:'🧊', desc:'Água e gelo — congela ao toque, aprisionando o alvo sem matar imediatamente.'},
-  'aquatico+natural':     {name:'Seiva Vital',           ico:'🌿', desc:'Mizuchi e Yggdrasil — aura de regeneração acelerada, cura ferimentos graves.'},
-  'aquatico+solido':      {name:'Pedra Submersa',        ico:'🪨', desc:'Pedra de Medusa e água — petrifica por dentro, começando pelo sangue.'},
-  'gasoso+gelido':        {name:'Blizzard',              ico:'❄️', desc:'Vento glacial de Nifleheim — tempestade de gelo que cega e congela em área.'},
-  'gasoso+natural':       {name:'Esporos Letais',        ico:'🍄', desc:'Ar e Yggdrasil — esporos explosivos que explodem ao contato, infectam pulmões.'},
-  'caotico+gasoso':       {name:'Tornado do Caos',       ico:'🌪️', desc:'Vento e Eris — tempestade que não tem centro nem direção, devasta aleatoriamente.'},
-  'abrasivo+gasoso':      {name:'Nuvem Cortante',        ico:'💨', desc:'Ar e areia do Duat — névoa de partículas que lacera pulmões e olhos.'},
-
-  /* ══════════════════════════════════════
-     MATERIAIS — Metalico, Solido, Cristalino
-  ══════════════════════════════════════ */
-  'igneo+metalico':       {name:'Metal Incandescente',   ico:'🔥', desc:'Ferro e fogo — metal fundido que adere à pele, impossível de remover.'},
-  'igneo_eterno+metalico':{name:'Aço Eterno',            ico:'⚔️', desc:'Kusanagi e fogo eterno — lâmina que arde para sempre e não quebra.'},
-  'metalico+sombrio':     {name:'Aço Sombrio',           ico:'⚔️', desc:'Correntes e youki — metal que absorve luz e magia, imperceptível no escuro.'},
-  'metalico+voltaico':    {name:'Liga Elétrica',         ico:'⚡', desc:'Mjolnir e ferro — metal condutor que transmite descarga ao toque.'},
-  'gelido+metalico':      {name:'Ferro Congelado',       ico:'❄️', desc:'Ferro de Nifleheim e gelo — metal que congela ao toque, prende o alvo.'},
-  'arcano+metalico':      {name:'Correntes Rúnicas',     ico:'⛓️', desc:'Correntes e runas — grilhões mágicos que não podem ser quebrados por força.'},
-  'metalico+terreo':      {name:'Pilar de Ferro',        ico:'🏛️', desc:'Ferro e terra — pilar emerge do solo instantaneamente, esmaga ou muralha.'},
-  'metalico+mortal':      {name:'Lâmina da Morte',       ico:'⚰️', desc:'Kusanagi e Shinigami — espada que corta destino além de carne e osso.'},
-  'igneo+solido':         {name:'Pedra Incandescente',   ico:'🌋', desc:'Pedra de Medusa e fogo — rocha fundida que petrifica e queima ao mesmo tempo.'},
-  'mortal+solido':        {name:'Petrificação Fatal',    ico:'🪨', desc:'Pedra de Medusa e morte — olhar que mata e petrifica instantaneamente.'},
-  'arcano+solido':        {name:'Runa de Pedra',         ico:'🪨', desc:'Pedra e magia — muro mágico que reflete projéteis e absorve impactos.'},
-  'solido+terreo':        {name:'Rocha Metamórfica',     ico:'🗿', desc:'Pedra e terra — absorve impactos físicos e os devolve em ondas de choque.'},
-  'cristalino+luminoso':  {name:'Prisma Solar',          ico:'💎', desc:'Jade e sol de Rá — refrata luz em lasers focados, atravessa qualquer material.'},
-  'cristalino+gelido':    {name:'Cristal de Gelo',       ico:'🧊', desc:'Jade e gelo — estrutura que amplifica frio e propaga congelamento em área.'},
-  'arcano+cristalino':    {name:'Amplificador Arcano',   ico:'🔷', desc:'Jade imperial e runas — amplifica qualquer feitiço ao triplo do poder normal.'},
-  'cristalino+sombrio':   {name:'Cristal Negro',         ico:'🔮', desc:'Jade e youki — cristal que absorve e redireciona magia sombria ao atacante.'},
-  'cristalino+vital':     {name:'Cristal da Vida',       ico:'🔷', desc:'Jade e Ka — amplifica energia vital para cura massiva ou dano devastador.'},
-  'cristalino+toxico':    {name:'Jade Envenenado',       ico:'💎', desc:'Jade e naga — fragmentos que liberam veneno ao partir, armadilha perfeita.'},
-
-  /* ══════════════════════════════════════
-     NATUREZA — Natural, Gelido, Abrasivo
-  ══════════════════════════════════════ */
-  'natural+vital':        {name:'Sopro da Vida',         ico:'🌬️', desc:'Yggdrasil e vida — vento que restaura energia total e remove todos os debuffs.'},
-  'natural+sombrio':      {name:'Floresta das Trevas',   ico:'🌑', desc:'Yggdrasil e trevas nórdicas — árvore que cresce no escuro e suga energia vital.'},
-  'natural+toxico':       {name:'Veneno da Floresta',    ico:'🌿', desc:'Yggdrasil e veneno de cobra — toxina orgânica que dissolve o organismo lentamente.'},
-  'mortal+natural':       {name:'Raiz da Morte',         ico:'🌿', desc:'Árvore do Mundo toca o inimigo — raízes que drenam a alma enquanto prendem.'},
-  'gelido+natural':       {name:'Floresta Congelada',    ico:'🌳', desc:'Yggdrasil e gelo de Nifleheim — árvore que cresce e imediatamente congela o alvo.'},
-  'caotico+natural':      {name:'Floresta Caótica',      ico:'🌳', desc:'Eris e Yggdrasil — árvore que cresce em padrão aleatório, imprevisível e letal.'},
-  'gelido+mortal':        {name:'Frio da Morte',         ico:'❄️', desc:'Gelo de Nifleheim e morte — congela a alma antes do corpo, morte instantânea.'},
-  'gelido+vital':         {name:'Criogenia',             ico:'💙', desc:'Gelo e vida — suspende o alvo em animação, preserva ou mata conforme o uso.'},
-  'arcano+gelido':        {name:'Feitiço Rúnico de Gelo',ico:'❄️', desc:'Runas nórdicas e gelo — congelamento que escala com o poder mágico disponível.'},
-  'abrasivo+igneo':       {name:'Cinzas Ardentes',       ico:'🌋', desc:'Areia e fogo — partículas incandescentes que penetram qualquer proteção.'},
-  'abrasivo+sombrio':     {name:'Areia das Sombras',     ico:'🌑', desc:'Areia do Duat e youki — partículas invisíveis que corroem de dentro para fora.'},
-  'abrasivo+mortal':      {name:'Tempestade Mortal',     ico:'💀', desc:'Areia e morte — tornado que enterra vivo e drena força vital durante a asfixia.'},
-  'abrasivo+toxico':      {name:'Névoa Ácida',           ico:'☠️', desc:'Areia e veneno — micropartículas tóxicas que envenenam ao respirar.'},
-  'abrasivo+aquatico':    {name:'Pasta Corrosiva',       ico:'🏖️', desc:'Areia e água — pasta que penetra armaduras e irrita tecidos profundamente.'},
-
-  /* ══════════════════════════════════════
-     CAOS — Eris
-  ══════════════════════════════════════ */
-  'caotico+vital':        {name:'Caos Vital',            ico:'💚', desc:'Eris e vida — cura e corrompe ao acaso; pode salvar ou destruir instantaneamente.'},
-  'arcano+caotico':       {name:'Magia do Caos',         ico:'✨', desc:'Eris e Heka — feitiços que se transformam em outros ao serem conjurados.'},
-  'caotico+mortal':       {name:'Morte Caótica',         ico:'⬛', desc:'Eris e Yama — a morte vem sem aviso, sem ordem, sem lógica — imparável.'},
-  'caotico+gelido':       {name:'Caos Glacial',          ico:'🌪️', desc:'Eris e gelo — blizzard sem direção que pode congelar aliados ou inimigos igualmente.'},
-  'caotico+toxico':       {name:'Praga Caótica',         ico:'🦠', desc:'Eris e veneno — doença que muta constantemente, impossível de curar ou prever.'},
-  'caotico+luminoso':     {name:'Luz Caótica',           ico:'💥', desc:'Eris e luz — flashes imprevisíveis que podem cegar inimigos ou revelar fraquezas.'},
+  'vacuo+vital':         {name:'Vácuo Vital',          ico:'🌑', desc:'Drena a força vital ao criar vácuo interno nos tecidos do alvo.'},
+  'sombrio+sombrio':      {name:'Abismo Sombrio',        ico:'🌑', desc:'Cria uma região de escuridão absoluta onde as sombras se tornam entidades hostis, drenando vida e causando medo.'},
 }
 
 function tryFuse(id1, id2){
@@ -1224,189 +1110,41 @@ function fuseElements(fusionId, origin='picker'){
 
 /* ═══ EVENTS ═══ */
 const EVENTS=[
-  // ══ EVENTOS UNIVERSAIS (todos os andares) ══
-  {id:'camp',type:'rest',title:'Abrigo entre os Mundos',ico:'🏕️',
-   body:'Um recanto silencioso no limbo entre os reinos. Uma chama persistente aquece o vazio.',narr_key:'',
-   choices:[
-     {txt:'Descansar e recuperar forças',hint:'Recupera HP e MP',fn:'rest_camp',hintcls:'ok'},
-     {txt:'Vasculhar o abrigo',hint:'Pode conter algo útil',fn:'search_camp'},
-     {txt:'Seguir em frente',hint:'',fn:'pass'},
-   ]},
-  {id:'merchant',type:'shop',title:'Mercador das Almas',ico:'🧳',
-   body:'Uma figura encurvada surge da névoa. Seus olhos brilham com conhecimento antigo. <b>"Troco artefatos por ouro, alma."</b>',narr_key:'buy',
-   choices:[
-     {txt:'Comprar poção (15💰)',hint:'',fn:'buy_pot',cost:{gold:15}},
-     {txt:'Comprar equipamento (30💰)',hint:'Item aleatório por raridade',fn:'buy_gear',cost:{gold:30}},
-     {txt:'Comprar item raro (50💰)',hint:'Garantido Raro+',fn:'buy_rare',cost:{gold:50}},
-     {txt:'Negociar (sorte)',hint:'Pode sair de graça ou mal',fn:'haggle'},
-     {txt:'Dispensar',hint:'',fn:'pass'},
-   ]},
-  {id:'chest',type:'explore',title:'Cofre Sagrado',ico:'📦',
-   body:'Um cofre ornamentado com símbolos de várias mitologias. Pulsa com energia contida.',narr_key:'greed',
-   choices:[
-     {txt:'Abrir o cofre',hint:'Escolha com sabedoria',fn:'chest_game'},
-     {txt:'Deixar para trás',hint:'',fn:'pass'},
-   ]},
-  {id:'altar',type:'story',title:'Altar dos Mortos',ico:'🕯️',
-   body:'Um altar coberto de símbolos das 6 mitologias. Pulsa com energia entre a vida e a morte.',narr_key:'curse',
-   choices:[
-     {txt:'Fazer uma oferenda de HP (-15 HP, +5 ATK)',hint:'Sacrifício por poder',fn:'dark_pact',hintcls:'warn'},
-     {txt:'Destruir o altar',hint:'Chance de recompensa',fn:'smash_altar'},
-     {txt:'Recuar',hint:'',fn:'pass'},
-   ]},
-  {id:'trap',type:'explore',title:'Passagem Perigosa',ico:'⚠️',
-   body:'Glifos brilham no chão. Alguém colocou armadilhas aqui.',narr_key:'',
-   choices:[
-     {txt:'Avançar com cautela (DEF)',hint:'Teste de defesa',fn:'trap_def'},
-     {txt:'Correr para o outro lado (VEL)',hint:'Teste de velocidade',fn:'trap_spd'},
-     {txt:'Dar a volta',hint:'',fn:'pass'},
-   ]},
-  {id:'library',type:'story',title:'Biblioteca Etérea',ico:'📚',
-   body:'Tomos flutuam em espiral. Um volume brilha com energia elemental concentrada.',narr_key:'',
-   choices:[
-     {txt:'Estudar o tomo brilhante',hint:'Chance de aprender um elemento',fn:'read_tome'},
-     {txt:'Coletar vários tomos',hint:'Podem ter valor',fn:'collect_tomes'},
-     {txt:'Seguir em frente',hint:'',fn:'pass'},
-   ]},
-  {id:'wounded',type:'story',title:'Alma Perdida',ico:'👻',
-   body:'Uma alma translúcida bloqueia o caminho, ferida. <b>"Você consegue me ver? Ajude-me."</b>',narr_key:'',
-   choices:[
-     {txt:'Usar poção para ajudar',hint:'Gasta 1 poção',fn:'save_him',cost:{item:'potion'},hintcls:'warn'},
-     {txt:'Compartilhar ouro (20💰)',hint:'',fn:'give_gold',cost:{gold:20}},
-     {txt:'Ignorar e seguir',hint:'Penalidade no karma',fn:'abandon'},
-   ]},
-  {id:'gamble',type:'story',title:'O Demônio Apostador',ico:'🎲',
-   body:'Um demônio de olhos de brasa ri. <b>"Toda alma tem um preço. O teu... dobro ou nada."</b>',narr_key:'greed',
-   choices:[
-     {txt:'Apostar 20 moedas',hint:'50% duplicar ou perder',fn:'gamble',hintcls:'warn'},
-     {txt:'Apostar tudo',hint:'All in!',fn:'gamble_all',hintcls:'warn'},
-     {txt:'Recusar',hint:'',fn:'pass'},
-   ]},
-  {id:'book',type:'story',title:'Tomo Elemental',ico:'📚',
+  {id:'camp',type:'explore',title:'Acampamento Abandonado',ico:'🏕️',body:'Uma fogueira ainda quente. Mochila rasgada ao lado.',narr_key:'',
+   choices:[{txt:'Verificar a mochila',hint:'Pode conter itens',fn:'search_camp'},{txt:'Descansar na fogueira',hint:'Recupera HP e MP',fn:'rest_camp',hintcls:'ok'},{txt:'Seguir em frente',hint:'',fn:'pass'}]},
+  {id:'shrine',type:'explore',title:'Santuário Antigo',ico:'⛩️',body:'Runas brilhantes num altar de pedra. Uma oferenda pode agradar — ou irritar.',narr_key:'',
+   choices:[{txt:'Oferecer 10 moedas',hint:'Custo: 10 💰',fn:'shrine_offer',cost:{gold:10},hintcls:'warn'},{txt:'Sacrificar 15 HP por +4 ATK',hint:'Troca HP por poder',fn:'shrine_sacrifice',hintcls:'warn'},{txt:'Rezar sem oferecer',hint:'Bênção ou maldição',fn:'shrine_pray'},{txt:'Ignorar',hint:'',fn:'pass'}]},
+  {id:'merchant',type:'shop',title:'Mercador Errante',ico:'🧳',body:'Um comerciante surge do nada, sorrindo com dentes de ouro.',narr_key:'buy',
+   choices:[{txt:'Comprar poção (15💰)',hint:'',fn:'buy_pot',cost:{gold:15}},{txt:'Comprar equipamento (30💰)',hint:'Item aleatório por raridade',fn:'buy_gear',cost:{gold:30}},{txt:'Comprar item raro (50💰)',hint:'Garantido Raro+',fn:'buy_rare',cost:{gold:50}},{txt:'Negociar (sorte)',hint:'Pode sair de graça ou mal',fn:'haggle'},{txt:'Dispensar',hint:'',fn:'pass'}]},
+  {id:'chest',type:'explore',title:'Baú Misterioso',ico:'📦',body:'Três baús diante de você. Um contém um tesouro raro. Os outros... surpresas.',narr_key:'greed',
+   choices:[{txt:'Abrir um baú (mini-game)',hint:'Escolha com sabedoria',fn:'chest_game'},{txt:'Não tocar — pode ser armadilha',hint:'',fn:'pass'}]},
+  {id:'dungeon',type:'explore',title:'Entrada da Masmorra',ico:'🚪',body:'Uma porta de pedra com crânios esculpidos. Há tesouros dentro — e perigos.',narr_key:'',
+   choices:[{txt:'Entrar com cuidado',hint:'Explorar com cuidado',fn:'dungeon_safe'},{txt:'Invadir com força',hint:'Mais risco, mais recompensa',fn:'dungeon_charge'},{txt:'Continuar o caminho',hint:'',fn:'pass'}]},
+  {id:'wounded',type:'story',title:'Guerreiro Ferido',ico:'🤕',body:'Um aventureiro caído, ferido gravemente. <b>"Por favor... não me deixe aqui."</b>',narr_key:'',
+   choices:[{txt:'Usar poção para salvá-lo',hint:'Gasta 1 poção',fn:'save_him',cost:{item:'potion'},hintcls:'warn'},{txt:'Dar metade das moedas',hint:'',fn:'give_gold'},{txt:'Deixá-lo para trás',hint:'',fn:'abandon'}]},
+  {id:'library',type:'story',title:'Biblioteca Esquecida',ico:'📚',body:'Tomos antigos em ruínas. Um brilha com luz azul.',narr_key:'',
+   choices:[{txt:'Estudar o tomo brilhante',hint:'Chance de ganhar XP',fn:'read_tome'},{txt:'Pegar vários tomos',hint:'Podem ter valor',fn:'collect_tomes'},{txt:'Seguir em frente',hint:'',fn:'pass'}]},
+  {id:'fountain',type:'rest',title:'Fonte Mágica',ico:'⛲',body:'Água cristalina emite luz suave e restauradora.',narr_key:'',
+   choices:[{txt:'Beber da fonte',hint:'Recupera HP e MP',fn:'drink',hintcls:'ok'},{txt:'Encher um frasco',hint:'Ganha Água Benta',fn:'fill_flask'},{txt:'Não arriscar',hint:'',fn:'pass'}]},
+  {id:'trap',type:'explore',title:'Corredor Suspeito',ico:'⚠️',body:'Chão solto com marcas de armadilhas. Um brilho no fim do corredor.',narr_key:'',
+   choices:[{txt:'Avançar com cuidado (DEF)',hint:'Teste de defesa',fn:'trap_def'},{txt:'Correr para o tesouro (VEL)',hint:'Teste de velocidade',fn:'trap_spd'},{txt:'Dar a volta',hint:'',fn:'pass'}]},
+  {id:'gamble',type:'story',title:'O Apostador',ico:'🎲',body:'<b>"Dobro ou nada. Simples assim."</b>',narr_key:'greed',
+   choices:[{txt:'Apostar 20 moedas',hint:'50% duplicar ou perder',fn:'gamble',hintcls:'warn'},{txt:'Apostar tudo',hint:'All in! Muito risco',fn:'gamble_all',hintcls:'warn'},{txt:'Recusar',hint:'',fn:'pass'}]},
+  {id:'ambush',type:'combat',title:'Emboscada!',ico:'👥',body:'<b>"Dinheiro ou vida."</b> Bandidos surgem das sombras.',narr_key:'',
+   choices:[{txt:'Lutar! (em desvantagem)',hint:'Pego de surpresa',fn:'fight_ambush',hintcls:'warn'},{txt:'Entregar 15 moedas',hint:'Eles te deixam passar',fn:'pay_bandits',cost:{gold:15}},{txt:'Fugir (VEL)',hint:'',fn:'flee_ambush'}]},
+  {id:'altar',type:'story',title:'Altar Sombrio',ico:'🕯️',body:'Um altar escuro pulsa com energia estranha. Glifos em sangue cobrem o chão.',narr_key:'curse',
+   choices:[{txt:'Absorver a energia (-15 HP MAX, +5 ATK)',hint:'Troca vida por poder',fn:'dark_pact',hintcls:'warn'},{txt:'Destruir o altar',hint:'Chance de recompensa',fn:'smash_altar'},{txt:'Recuar',hint:'',fn:'pass'}]},
+  {id:'survivor',type:'story',title:'Sobrevivente',ico:'🧑',body:'Uma pessoa assustada com um item nas mãos.',narr_key:'',
+   choices:[{txt:'Ajudar e receber gratidão',hint:'',fn:'help_survivor'},{txt:'Pegar o item à força',hint:'',fn:'steal_survivor'},{txt:'Ignorar',hint:'',fn:'pass'}]},
+   {id:'book',type:'story',title:'Tomo Elemental',ico:'📚',
    body:'Um livro antigo pulsa com energia arcana. Três tomos flutuam diante de você.',narr_key:'',
-   choices:[
-     {txt:'Estudar os tomos',hint:'Aprenda um novo elemento',fn:'book_event'},
-     {txt:'Ignorar',hint:'',fn:'pass'},
-   ]},
-
-  // ══ TÁRTARO — ANDAR 1 (Grego) ══
-  {id:'hades_encounter',type:'story',title:'A Sombra de Hades',ico:'💀',
-   body:'O Senhor do Submundo aparece. <b>"Uma alma não registrada. O que me ofereces em troca de passagem?"</b>',narr_key:'boss',
-   choices:[
-     {txt:'Oferecer 30 moedas',hint:'Hades aceita ouro',fn:'hades_gold',cost:{gold:30},hintcls:'warn'},
-     {txt:'Desafiar seu julgamento',hint:'Risco e recompensa altos',fn:'hades_defy'},
-     {txt:'Inclinar a cabeça (+2 karma)',hint:'Humildade tem valor',fn:'hades_bow'},
-   ]},
-  {id:'elysium_fragment',type:'rest',title:'Fragmento do Elísio',ico:'🌟',
-   body:'Uma clareira dourada no Tártaro. A luz de almas abençoadas aquece o ar.',narr_key:'',
-   choices:[
-     {txt:'Absorver a luz (+HP, +MP, +1 karma)',hint:'',fn:'elysium_absorb',hintcls:'ok'},
-     {txt:'Observar e seguir',hint:'',fn:'pass'},
-   ]},
-  {id:'styx_crossing',type:'explore',title:'As Margens do Estige',ico:'⛵',
-   body:'O rio negro separa você do próximo caminho. Há uma barca abandonada.',narr_key:'',
-   choices:[
-     {txt:'Atravessar sozinho',hint:'Pode encontrar algo nas águas',fn:'styx_alone'},
-     {txt:'Pagar um espírito local (10💰)',hint:'Travessia segura',fn:'styx_pay',cost:{gold:10}},
-     {txt:'Buscar outra passagem',hint:'',fn:'pass'},
-   ]},
-
-  // ══ NIFLEHEIM — ANDAR 2 (Nórdico) ══
-  {id:'odin_wisdom',type:'story',title:'O Olho de Odin',ico:'👁️',
-   body:'Um corvo pousa no ombro. A presença do Allfather. <b>"Conhecimento tem preço. O que sacrificas?"</b>',narr_key:'',
-   choices:[
-     {txt:'Sacrificar HP (-20 HP, +2 karma)',hint:'Dói, mas vale',fn:'odin_sacrifice',hintcls:'warn'},
-     {txt:'Oferecer ouro (25💰)',hint:'Odin aceita',fn:'odin_gold',cost:{gold:25}},
-     {txt:'Recusar',hint:'',fn:'pass'},
-   ]},
-  {id:'nornas',type:'story',title:'As Nornas',ico:'🕸️',
-   body:'Três figuras tecem o destino. Uma levanta os olhos. <b>"Cada fio tem peso. Escolhe qual cortar."</b>',narr_key:'',
-   choices:[
-     {txt:'O fio da força (+6 ATK, -10 HP MAX)',hint:'Poder ao custo de resistência',fn:'norna_strength',hintcls:'warn'},
-     {txt:'O fio da proteção (+6 DEF, -1 VEL)',hint:'Defesa ao custo de velocidade',fn:'norna_defense',hintcls:'warn'},
-     {txt:'O fio do destino (efeito aleatório)',hint:'Imprevisível',fn:'norna_fate'},
-   ]},
-  {id:'yggdrasil',type:'rest',title:'Raiz de Yggdrasil',ico:'🌳',
-   body:'Uma raiz da Árvore do Mundo emerge do gelo. Pulsa com vida primordial.',narr_key:'',
-   choices:[
-     {txt:'Tocar a raiz (HP e MP cheios)',hint:'',fn:'yggdrasil_touch',hintcls:'ok'},
-     {txt:'Absorver energia (+15 HP MAX permanente)',hint:'',fn:'yggdrasil_absorb'},
-     {txt:'Observar e seguir',hint:'',fn:'pass'},
-   ]},
-
-  // ══ DUAT — ANDAR 3 (Egípcio) ══
-  {id:'anubis_scale',type:'story',title:'A Balança de Anúbis',ico:'⚖️',
-   body:'Anúbis pesa o coração. <b>"Cada escolha que fez tem peso. Deixa eu ver o que carregaste."</b>',narr_key:'boss',
-   choices:[
-     {txt:'Apresentar o coração com honestidade',hint:'Karma alto = recompensa',fn:'anubis_honest'},
-     {txt:'Tentar enganar a balança',hint:'Risco — pode falhar',fn:'anubis_cheat'},
-     {txt:'Recusar o julgamento',hint:'Consequências',fn:'anubis_refuse'},
-   ]},
-  {id:'ra_blessing',type:'rest',title:'Bênção de Rá',ico:'☀️',
-   body:'Um raio de sol atravessa o Duat — impossível, mas real. O calor de Rá aquece a alma.',narr_key:'',
-   choices:[
-     {txt:'Absorver a luz (purifica e cura)',hint:'+HP, remove veneno/maldição',fn:'ra_absorb',hintcls:'ok'},
-     {txt:'Capturar em cristal (item)',hint:'Guarda a luz para depois',fn:'ra_capture'},
-     {txt:'Observar e seguir',hint:'',fn:'pass'},
-   ]},
-  {id:'sphinx_riddle',type:'story',title:'A Esfinge Fala',ico:'🦁',
-   body:'A Esfinge bloqueia o caminho. <b>"Responde ao meu enigma e passa. Falha e carregues minha maldição."</b>',narr_key:'',
-   choices:[
-     {txt:'Responder com confiança',hint:'50% passar, 50% maldição',fn:'sphinx_answer'},
-     {txt:'Oferecer combate',hint:'Luta difícil — alto risco e recompensa',fn:'sphinx_fight'},
-     {txt:'Desviar pelo caminho longo',hint:'Sem risco',fn:'sphinx_avoid'},
-   ]},
-
-  // ══ DIYU — ANDAR 4 (Chinês) ══
-  {id:'yanluo_judgment',type:'story',title:'O Livro de Yanluo Wang',ico:'📖',
-   body:'O Rei do Inferno Chinês consulta seu livro. <b>"Teus pecados estão aqui registrados. Explica-te."</b>',narr_key:'boss',
-   choices:[
-     {txt:'Confessar e aceitar punição',hint:'Karma aumenta — punição leve',fn:'yanluo_confess'},
-     {txt:'Argumentar em sua defesa',hint:'Pode convencê-lo',fn:'yanluo_argue'},
-     {txt:'Oferecer tributo (40💰)',hint:'O Rei aceita ouro',fn:'yanluo_bribe',cost:{gold:40}},
-   ]},
-  {id:'jade_emperor',type:'rest',title:'Fragmento do Jade Imperial',ico:'🐲',
-   body:'Um pedaço de jade celestial caiu do Palácio Celestial. Brilha com poder divino.',narr_key:'',
-   choices:[
-     {txt:'Absorver o poder (+8 MAG, +10 MP MAX)',hint:'',fn:'jade_absorb',hintcls:'ok'},
-     {txt:'Guardar como artefato',hint:'Item de uso único',fn:'jade_keep'},
-     {txt:'Deixar para trás',hint:'',fn:'pass'},
-   ]},
-
-  // ══ YOMI — ANDAR 5 (Japonês) ══
-  {id:'izanami_whisper',type:'story',title:'O Sussurro de Izanami',ico:'🌑',
-   body:'A voz da Deusa da Morte ecoa. <b>"Você não deveria estar aqui ainda. Prova que mereces existir."</b>',narr_key:'boss',
-   choices:[
-     {txt:'Demonstrar força (combate com fantasma)',hint:'Risco — alta recompensa',fn:'izanami_fight'},
-     {txt:'Demonstrar sabedoria (usa karma)',hint:'Karma 5+ → bônus',fn:'izanami_wisdom'},
-     {txt:'Silenciar a mente e avançar',hint:'',fn:'pass'},
-   ]},
-  {id:'torii_gate',type:'rest',title:'O Portão Torii',ico:'⛩️',
-   body:'Um portão vermelho brilhante. Do outro lado, paz e clareza momentâneas.',narr_key:'',
-   choices:[
-     {txt:'Atravessar o portão (purificação total)',hint:'HP, MP cheios + remove debuffs',fn:'torii_cross',hintcls:'ok'},
-     {txt:'Observar do lado de fora',hint:'',fn:'pass'},
-   ]},
-
-  // ══ NARAKA — ANDAR 6 (Tailandês/Budista) ══
-  {id:'yama_preparation',type:'story',title:'A Ante-Sala de Yama',ico:'⚖️',
-   body:'Você está quase lá. Guardas observam em silêncio. Um pergaminho flutua — um resumo de sua jornada.',narr_key:'boss',
-   choices:[
-     {txt:'Meditar e preparar a mente (+2 karma, +20 HP)',hint:'',fn:'yama_meditate'},
-     {txt:'Rever as escolhas feitas',hint:'Revela seu karma total',fn:'yama_review'},
-     {txt:'Avançar sem hesitar',hint:'',fn:'pass'},
-   ]},
-  {id:'lotus_shrine',type:'rest',title:'Santuário do Lótus',ico:'🪷',
-   body:'Um lótus floresce em água impossível no Naraka. Pureza no lugar mais impuro.',narr_key:'',
-   choices:[
-     {txt:'Tocar o lótus (HP cheio e +3 karma)',hint:'',fn:'lotus_touch',hintcls:'ok'},
-     {txt:'Colher uma pétala (item sagrado)',hint:'Obtém Pétala do Lótus',fn:'lotus_petal'},
-     {txt:'Observar e seguir',hint:'',fn:'pass'},
-   ]},
-
+ choices:[
+   {txt:'Estudar os tomos',hint:'Aprenda um novo elemento',fn:'book_event'},
+   {txt:'Ignorar',hint:'',fn:'pass'},
+ ]},
   // ══ FERREIRO ══
   {id:'blacksmith',type:'shop',title:'Ferreiro Errante',ico:'⚒️',
-   body:'Um ferreiro enorme ocupa um canto. <b>"Trago o ofício comigo. Ouro aceito, reclamação não."</b>',narr_key:'',
+   body:'Um ferreiro enorme ocupa um canto da masmorra, bigorna e forja improvisadas. <b>"Trago o ofício comigo. Ouro aceito, reclamação não."</b>',narr_key:'',
    choices:[
      {txt:'Melhorar item equipado',hint:'Fortifica um slot equipado',fn:'smith_upgrade'},
      {txt:'Fundir dois itens',hint:'Combina stats — custa 80💰',fn:'smith_fuse',cost:{gold:80}},
@@ -1415,28 +1153,30 @@ const EVENTS=[
      {txt:'Comprar/Vender itens',hint:'Troca de mercadorias',fn:'smith_trade'},
      {txt:'Dispensar',hint:'',fn:'pass'},
    ]},
-
   // ══ EVENTOS EM CADEIA ══
-  {id:'chain_oracle',type:'story',title:'A Oráculo das Ruínas',ico:'🔮',chain:true,
-   body:'Uma figura encurvada bloqueia a passagem. Olhos brancos e vazios. <b>"Eu vejo o que você esconde."</b>',narr_key:'',
+  {id:'chain_oracle',type:'story',title:'A Oráculo das Ruínas',ico:'🔮',
+   body:'Uma figura encurvada bloqueia a passagem. Olhos brancos e vazios. <b>"Eu vejo o que você esconde, viajante."</b> Ela ergue uma mão — à esquerda, névoa; à direita, chamas.',narr_key:'',
+   chain:true,
    choices:[
      {txt:'Encarar seus olhos',hint:'Ato de coragem',fn:'chain_oracle_brave'},
-     {txt:'Oferecer ouro (20💰)',hint:'',fn:'chain_oracle_gold',cost:{gold:20}},
+     {txt:'Oferecer ouro (20💰)',hint:'Custo: 20💰',fn:'chain_oracle_gold',cost:{gold:20}},
      {txt:'Dar as costas e fugir',hint:'Pode haver consequências',fn:'chain_oracle_flee'},
    ]},
-  {id:'chain_ruins',type:'explore',title:'Ruínas Submersas',ico:'🏛️',chain:true,
-   body:'Uma estrutura antiga emerge da neblina. Dois caminhos se abrem.',narr_key:'',
+  {id:'chain_ruins',type:'explore',title:'Ruínas Submersas',ico:'🏛️',
+   body:'Uma estrutura antiga emerge da neblina. Paredes cobertas de musgo brilhante. Dois caminhos se abrem: uma sala com água estagnada e uma escada estreita levando a cima.',narr_key:'',
+   chain:true,
    choices:[
      {txt:'Mergulhar na sala alagada',hint:'Algo brilha lá dentro',fn:'chain_ruins_dive'},
      {txt:'Subir a escada estreita',hint:'Risco de desabamento',fn:'chain_ruins_climb'},
      {txt:'Examinar as paredes',hint:'Pode revelar segredos',fn:'chain_ruins_read'},
    ]},
-  {id:'chain_prisoner',type:'story',title:'O Prisioneiro Esquecido',ico:'⛓️',chain:true,
-   body:'Uma cela na rocha viva. <b>"Me solte. Tenho informações sobre o que espera à frente."</b>',narr_key:'',
+  {id:'chain_prisoner',type:'story',title:'O Prisioneiro Esquecido',ico:'⛓️',
+   body:'Uma cela entalhada na rocha viva. Dentro, um homem de meia-idade com vestes de mago. <b>"Me solte. Eu tenho informações... sobre o que espera mais à frente."</b>',narr_key:'',
+   chain:true,
    choices:[
      {txt:'Abrir a cela (força)',hint:'Teste de ATK',fn:'chain_prisoner_force'},
-     {txt:'Buscar uma chave nos arredores',hint:'Mais seguro',fn:'chain_prisoner_search'},
-     {txt:'Ignorá-lo',hint:'Talvez seja armadilha',fn:'chain_prisoner_ignore'},
+     {txt:'Buscar uma chave nos arredores',hint:'Perde tempo, mas é mais seguro',fn:'chain_prisoner_search'},
+     {txt:'Ignorá-lo',hint:'Talvez seja uma armadilha',fn:'chain_prisoner_ignore'},
    ]},
 ];
 
@@ -1911,26 +1651,45 @@ function pulseEnemyIco(){
 /* ═══ HUD ═══ */
 function upd(){
   if(!G)return;
-  if(G.tmpBuffs){G.tmpBuffs=G.tmpBuffs.filter(b=>{if(b.rooms<=0){G[b.stat]-=b.val;return false;}b.rooms--;return true;});}
-  let ico=G.cls.ico;
-  if(G.equip.weapon)ico=G.equip.weapon.ico.split('')[0]||G.cls.ico;
-  $('hud-ava').textContent=ico;
-  const floorLabel=G.floor>3?`∞ ${G.floor}`:`${G.floor}`;
-  if($('hud-name')) $('hud-name').textContent=G.soulName||'Herói';
-  $('hud-cls').textContent=(G.cls?.name||'Alma')+(G.subclass?' · '+G.subclass.name:'')+' — Andar '+floorLabel;
-  $('vhp').style.width=pct(G.hp,G.hpMax);$('vmp').style.width=pct(G.mp,G.mpMax);
-  $('nhp').textContent=G.hp+'/'+G.hpMax;$('nmp').textContent=G.mp+'/'+G.mpMax;
-  $('hlv').textContent='Nv.'+G.level;$('xpf').style.width=pct(G.xp,G.xpNext);
-  $('hgold').textContent='💰'+G.gold;
-  const subBadge=G.subclass?`<span class="sub-badge">${G.subclass.name}</span>`:'';
-  $('hstats').innerHTML=
-    `<div class="schip"><span class="l">ATK</span><span class="v">${G.atk}</span></div>
-    <div class="schip"><span class="l">DEF</span><span class="v">${G.def}</span></div>
-    <div class="schip"><span class="l">MAG</span><span class="v">${G.mag}</span></div>
-    <div class="schip"><span class="l">CRIT</span><span class="v">${Math.round(G.crit*100)}%</span></div>
-    <div class="schip"><span class="l">ESQ</span><span class="v">${Math.round(G.dodge*100)}%</span></div>
-    <div class="schip"><span class="l">MP/sala</span><span class="v">${G.mpRegen}</span></div>
-    ${subBadge}<div class="fbadge">Sala ${G.room}/${G.maxRooms}</div>`;
+  // Limpa buffs temporários expirados
+  if(G.tmpBuffs){
+    G.tmpBuffs=G.tmpBuffs.filter(b=>{
+      if(b.rooms<=0){G[b.stat]=Math.max(0,(G[b.stat]||0)-b.val);return false;}
+      b.rooms--;return true;
+    });
+  }
+  // Ícone do avatar — usa primeira parte do emoji da arma se equipado
+  let ico = G.cls?.ico || '👻';
+  if(G.equip?.weapon?.ico){
+    const parts = [...G.equip.weapon.ico];
+    if(parts.length) ico = parts[0];
+  }
+  // Atualiza elementos — com guard para cada um evitar erros silenciosos
+  const set = (id, val) => { const el=$(id); if(el) el.textContent = val; };
+  const setW = (id, val) => { const el=$(id); if(el) el.style.width = val; };
+  const floorLabel = G.floor > 3 ? `∞ ${G.floor}` : `${G.floor}`;
+  set('hud-ava', ico);
+  set('hud-name', G.soulName || 'Herói');
+  set('hud-cls', (G.cls?.name||'Alma') + (G.subclass ? ' · '+G.subclass.name : '') + ' — Andar ' + floorLabel);
+  setW('vhp', pct(G.hp, G.hpMax));
+  setW('vmp', pct(G.mp, G.mpMax));
+  set('nhp', G.hp + '/' + G.hpMax);
+  set('nmp', G.mp + '/' + G.mpMax);
+  set('hlv', 'Nv.' + G.level);
+  setW('xpf', pct(G.xp, G.xpNext));
+  set('hgold', '💰' + G.gold);
+  const hstats = $('hstats');
+  if(hstats){
+    const subBadge = G.subclass ? `<span class="sub-badge">${G.subclass.name}</span>` : '';
+    hstats.innerHTML =
+      `<div class="schip"><span class="l">ATK</span><span class="v">${G.atk}</span></div>
+      <div class="schip"><span class="l">DEF</span><span class="v">${G.def}</span></div>
+      <div class="schip"><span class="l">MAG</span><span class="v">${G.mag}</span></div>
+      <div class="schip"><span class="l">CRIT</span><span class="v">${Math.round(G.crit*100)}%</span></div>
+      <div class="schip"><span class="l">ESQ</span><span class="v">${Math.round(G.dodge*100)}%</span></div>
+      <div class="schip"><span class="l">MP/sala</span><span class="v">${G.mpRegen}</span></div>
+      ${subBadge}<div class="fbadge">Sala ${G.room}/${G.maxRooms}</div>`;
+  }
 }
 
 /* ═══ XP / LEVEL ═══ */
@@ -2058,17 +1817,40 @@ function goTitle(){
 }
 
 /* ═══ SAFE RENDER ═══ */
-function safeRender(fn,...args){try{fn(...args);}catch(e){console.error(e);toast('Erro na interface.',3000);if(G&&!G.inCombat)setTimeout(()=>navTo('explore'),300);}}
+function safeRender(fn,...args){
+  try{
+    fn(...args);
+  } catch(e){
+    console.error('[Cronista] Erro em render:', fn?.name || '?', e);
+    const sc = $('scroll');
+    if(sc){
+      // Mostra mensagem de erro inline em vez de tela em branco
+      sc.innerHTML=`<div class="card ee" style="text-align:center;padding:20px;">
+        <div style="font-size:32px;margin-bottom:10px;">⚠️</div>
+        <div style="font-family:var(--cinzel);font-size:11px;color:var(--acc);margin-bottom:8px;">Erro de interface</div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:14px;font-style:italic;">Algo deu errado. Tente continuar.</div>
+        <button class="btn-next" onclick="nextRoom()">Continuar →</button>
+      </div>`;
+    }
+    if(G && !G.inCombat) setTimeout(()=>{ if(G&&!G.inCombat) navTo('explore'); },1500);
+  }
+}
 
 /* ═══ NAV ═══ */
 function navTo(v) {
   sfx('click');
   const sc = $("scroll");
-  // Conteúdo longo (combate, inv, skills, stats) = alinha ao topo
-  const longViews = ["inv","skills","stats"];
-  sc.classList.toggle("has-combat", v !== "explore" || G.inCombat);
-  ["explore","inv","skills","stats"].forEach(n => $("nb-"+n).classList.toggle("active", n === v));
-  if (G.inCombat && v === "explore") { renderCombat(sc); return; }
+  if(!sc) return;
+  // Views com conteúdo longo sempre alinham ao topo
+  // Views de exploração/evento centralizam quando conteúdo é curto
+  const longViews = ["inv","skills","stats","combat"];
+  const isLong = longViews.includes(v) || G.inCombat;
+  sc.classList.toggle("has-combat", isLong);
+  ["explore","inv","skills","stats"].forEach(n => {
+    const btn = $("nb-"+n);
+    if(btn) btn.classList.toggle("active", n === v);
+  });
+  if (G.inCombat && v === "explore") { safeRender(renderCombat, sc); return; }
   const views = { inv: renderInv, skills: renderSkills, stats: renderStats };
   if (v === "explore") {
     if (G.currentEvent) showEvent(G.currentEvent, sc);
@@ -2080,28 +1862,29 @@ function navTo(v) {
 
 /* ═══ EXPLORE ═══ */
 function renderExplore(sc){
+  if(!sc||!G)return;
   sc.innerHTML='';
-  if(G.passives.includes('regen'))G.hp=Math.min(G.hpMax,G.hp+3);
-  if(G.passives.includes('regen_strong'))G.hp=Math.min(G.hpMax,G.hp+8);
+  // Regeneração passiva por sala
+  if(G.passives.includes('regen'))   G.hp=Math.min(G.hpMax,G.hp+3);
+  if(G.passives.includes('regen_strong')) G.hp=Math.min(G.hpMax,G.hp+8);
   G.mp=Math.min(G.mpMax,G.mp+G.mpRegen);
   upd();
   if(pendingSubclass){pendingSubclass=false;renderSubclass(sc);return;}
-  if(pendingLevelUp){pendingLevelUp=false;renderLevelUp(sc);return;}
+  if(pendingLevelUp) {pendingLevelUp=false; renderLevelUp(sc);return;}
   G.room++;G.events++;
-  G._mNoDmg=true; // reset por sala; vira false se levar dano
+  G._mNoDmg=true;
   if(G.room>G.maxRooms){G.room=G.maxRooms;startBoss(sc);return;}
 
-  // ── Sala de Desafio — aparece na sala 5 de cada andar (se não feita ainda) ──
+  // Sala de Desafio — sala 5 de cada andar
   if(G.room===5&&!G.challengeRoomDoneThisFloor){
     showChallengeRoomOffer(sc);return;
   }
-
-  // ── Mercador Especial — andar 3+, sala 4, só uma vez por run ──
+  // Mercador Especial — andar 3+, sala 4
   if(G.floor>=3&&G.room===4&&!G.specialMerchantSeen){
     showSpecialMerchant(sc);return;
   }
 
-  // Bússola Mágica — força tipo de sala
+  // Determina tipo de sala
   let chosen='explore';
   if(G.compassNextRoom){
     chosen=G.compassNextRoom;G.compassNextRoom=null;
@@ -2110,36 +1893,41 @@ function renderExplore(sc){
     const w=G.floor>=3?[58,18,10,9,5]:G.floor>=2?[50,24,12,9,5]:[40,30,15,10,5];
     const types=['combat','explore','story','shop','rest'];
     const total=w.reduce((a,b)=>a+b,0);
-    let rn=r(total);
+    let rn=Math.floor(Math.random()*total)+1;
     for(let i=0;i<types.length;i++){rn-=w[i];if(rn<=0){chosen=types[i];break;}}
   }
 
-  // Eventos em cadeia têm chance de aparecer em vez de eventos normais de story/explore
+  // Eventos em cadeia
   if((chosen==='story'||chosen==='explore')&&Math.random()<0.35){
     const chainEvs=EVENTS.filter(e=>e.chain&&e.type===chosen);
     if(chainEvs.length){showEvent(pick(chainEvs),sc);return;}
   }
 
   if(chosen==='combat'){
-    let enemy;
-    if(Math.random()<.12){
-      enemy=genElite(G.floor);
-    } else {
-      enemy=genEnemy(G.floor);
-    }
+    const enemy = Math.random()<.12 ? genElite(G.floor) : genEnemy(G.floor);
     startCombat(enemy,sc);
   } else {
-    // Ferreiro: 20% de chance em eventos shop, a partir do andar 2
+    // Ferreiro em eventos shop
     if(chosen==='shop'&&G.floor>=2&&Math.random()<.20){
-      showEvent(EVENTS.find(e=>e.id==='blacksmith'),sc);return;
+      const smithEv=EVENTS.find(e=>e.id==='blacksmith');
+      if(smithEv){showEvent(smithEv,sc);return;}
     }
-    // Mapa do Tesouro — força evento de baú
+    // Mapa do Tesouro
     if(G.passives.includes('treasure_map')&&chosen==='explore'){
       const idx=G.passives.indexOf('treasure_map');G.passives.splice(idx,1);
       showChestGame(sc,true);return;
     }
-    const evPool=EVENTS.filter(e=>!e.chain&&(e.type===chosen||(chosen==='explore'&&['explore','chest'].includes(e.type))));
-    showEvent(pick(evPool.length?evPool:EVENTS.filter(e=>!e.chain)),sc);
+    const evPool=EVENTS.filter(e=>!e.chain&&(
+      e.type===chosen||(chosen==='explore'&&['explore','chest'].includes(e.type))
+    ));
+    // Fallback garantido — nunca mostra tela em branco
+    const pool = evPool.length ? evPool : EVENTS.filter(e=>!e.chain);
+    if(!pool.length){
+      // Último recurso: sala de descanso simples
+      outcome(sc,'neutral','🚶','Corredor Vazio','Nada de insolite aqui. Você segue.',[]);
+      return;
+    }
+    showEvent(pick(pool),sc);
   }
 }
 
@@ -2227,19 +2015,26 @@ function grantChallengeReward(){
 
 /* ═══ EVENT ═══ */
 function showEvent(ev,sc){
+  // Guard: ev inválido → fallback para explorar
+  if(!ev||!sc){
+    if(sc) sc.innerHTML='';
+    if(G && !G.inCombat) setTimeout(()=>renderExplore($('scroll')),100);
+    return;
+  }
   G.currentEvent=ev;
-  if(ev && ev.id && ev.title) tomoRecordEvent(ev.id, ev.title, ev.ico||'🗺️'); // Tomo: registra evento
+  if(ev.id && ev.title) tomoRecordEvent(ev.id, ev.title, ev.ico||'🗺️');
   sc.innerHTML='';
-  const card=mkCard(ev.type);
+  const card=mkCard(ev.type||'explore');
   card.innerHTML=`
     <div class="ctag"><div class="ctag-dot"></div><span class="ctag-txt">${tagLbl(ev.type)}</span></div>
-    <div class="ctitle">${ev.title}</div>
-    <div class="cillo">${ev.ico}</div>
-    <div class="cbody">${ev.body}</div>
+    <div class="ctitle">${ev.title||'Evento'}</div>
+    <div class="cillo">${ev.ico||'❓'}</div>
+    <div class="cbody">${ev.body||''}</div>
     <div class="choices" id="ev-choices"></div>`;
   sc.appendChild(card);
   const cw=card.querySelector('#ev-choices');
-  // Tomo: adicionar opção secreta se evento visitado 2+ vezes
+  if(!cw){scrollBot(sc);return;}
+  // Opção secreta do Tomo
   const tomoSecrets={
     camp:     {txt:'Vasculhar com experiência',hint:'✦ Cronista — +25 HP e item garantido',fn:'tomo_camp_expert'},
     shrine:   {txt:'Invocar pela memória',hint:'✦ Cronista — bênção poderosa garantida',fn:'tomo_shrine_memory'},
@@ -2248,22 +2043,32 @@ function showEvent(ev,sc){
     library:  {txt:'Ler na língua original',hint:'✦ Cronista — aprende elemento raro',fn:'tomo_library_read'},
     fountain: {txt:'Potencializar a fonte',hint:'✦ Cronista — cura total HP e MP',fn:'tomo_fountain_full'},
   };
-  const evChoices = [...ev.choices];
+  const evChoices = [...(ev.choices||[])];
   if(tomoEventUnlocked(ev.id) && tomoSecrets[ev.id]){
     evChoices.splice(evChoices.length-1, 0, tomoSecrets[ev.id]);
+  }
+  // Garante que sempre há pelo menos um botão
+  if(!evChoices.length){
+    evChoices.push({txt:'Continuar',hint:'',fn:'pass'});
   }
   evChoices.forEach((ch,i)=>{
     const isTomo=ch.fn&&ch.fn.startsWith('tomo_');
     const canDo=isTomo||!ch.cost||canAfford(ch.cost);
-    const btn=document.createElement('button');btn.className='chbtn';btn.disabled=!canDo;
+    const btn=document.createElement('button');
+    btn.className='chbtn';
+    btn.disabled=!canDo;
     btn.innerHTML=`<span class="chkey">${i+1}</span>
       <div class="chinner"><span class="chtxt">${ch.txt}</span>
       ${ch.hint?`<span class="chhint ${ch.hintcls||''}">${ch.hint}</span>`:''}</div>`;
     btn.onclick=()=>{
-      // Ferreiro: não trava os outros botões — permite navegar livremente entre serviços
       if(ev.id!=='blacksmith'){
-        card.querySelectorAll('.chbtn').forEach(b=>{b.disabled=true;b.style.opacity=b===btn?'1':'0.25';b.style.transform='none';});
-        btn.style.borderColor='rgba(200,168,75,.6)';btn.style.background='rgba(200,168,75,.08)';
+        card.querySelectorAll('.chbtn').forEach(b=>{
+          b.disabled=true;
+          b.style.opacity=b===btn?'1':'0.25';
+          b.style.transform='none';
+        });
+        btn.style.borderColor='rgba(200,168,75,.6)';
+        btn.style.background='rgba(200,168,75,.08)';
       }
       doChoice(ev,ch,sc);
     };
@@ -2285,19 +2090,27 @@ function payCost(cost){
 
 /* ═══ OUTCOME ═══ */
 function outcome(sc,type,ico,lbl,txt,tags,narrKey){
+  if(!sc) return;
   upd();
-  if(G.hp<=0){setTimeout(()=>showDeath('Caiu em evento.'),400);return;}
-  const el=document.createElement('div');el.className='outcome';
+  if(G && G.hp<=0){setTimeout(()=>showDeath('Caiu em evento.'),400);return;}
+  const el=document.createElement('div');
+  el.className='outcome';
   const tc={win:'win',lose:'lose',crit:'crit',neutral:'neutral'}[type]||'neutral';
+  const safeIco = ico||'📜';
+  const safeLbl = (lbl||'').toUpperCase();
+  const safeTxt = txt||'';
+  const safeTags = Array.isArray(tags) ? tags : [];
   el.innerHTML=`
-    <div class="ohead"><span class="oico">${ico}</span><span class="olbl ${tc}">${lbl.toUpperCase()}</span></div>
-    <div class="obody">${txt}</div>
-    ${tags.length?`<div class="tags">${tags.map(t=>`<span class="tag ${t.c}">${t.t}</span>`).join('')}</div>`:''}
+    <div class="ohead"><span class="oico">${safeIco}</span><span class="olbl ${tc}">${safeLbl}</span></div>
+    <div class="obody">${safeTxt}</div>
+    ${safeTags.length?`<div class="tags">${safeTags.map(t=>`<span class="tag ${t.c||''}">${t.t||''}</span>`).join('')}</div>`:''}
     ${narrKey?`<div class="narrator">"${narr(narrKey)}"</div>`:''}
     <button class="btn-next" onclick="nextRoom()">Próxima Sala →</button>`;
-  sc.appendChild(el);scrollBot(sc);
+  sc.appendChild(el);
+  // Scroll para o botão com pequeno delay para garantir render
+  setTimeout(()=>scrollBot(sc), 50);
 }
-const nextRoom = () => { G.currentEvent = null; navTo('explore'); };
+const nextRoom = () => { if(G) G.currentEvent = null; navTo('explore'); };
 
 /* ═══ CHOICE HANDLERS ═══ */
 function doChoice(ev,ch,sc){
@@ -2305,59 +2118,6 @@ function doChoice(ev,ch,sc){
   const oc=(type,ico,lbl,txt,tags,nk='')=>outcome(sc,type,ico,lbl,txt,tags,nk);
   const F={
     pass:()=>oc('neutral','🚶','Passou','Você segue em frente sem se envolver.',[],ev.narr_key),
-
-    // ── Tártaro ──
-    hades_gold:()=>{G.karma=(G.karma||0)+1;oc('win','💀','Pacto com Hades','O deus aceita o ouro sem expressão. Uma passagem é garantida.',[{c:'gold',t:'-30💰'},{c:'xp',t:'+1 karma'}]);},
-    hades_defy:()=>{if(Math.random()<.45){const b=r(20)+15;addGold(b);G.atk+=3;oc('crit','💀','Hades Recua','Incomum. O deus se retira — não por medo, mas por interesse.',[{c:'gold',t:'+'+b+'💰'},{c:'xp',t:'+3 ATK'}]);}else{const d=r(20)+15;G.hp=Math.max(1,G.hp-d);screenShake();oc('lose','💀','Ira de Hades','O deus não aprecia a afronta.',[{c:'dmg',t:'-'+d+' HP'}],'curse');}},
-    hades_bow:()=>{G.karma=(G.karma||0)+2;oc('win','💀','Respeito Reconhecido','Hades observa a humildade. Não é o que esperava.',[{c:'xp',t:'+2 karma'}]);},
-    elysium_absorb:()=>{const h=r(20)+20;G.hp=Math.min(G.hpMax,G.hp+h);G.mp=Math.min(G.mpMax,G.mp+20);G.karma=(G.karma||0)+1;oc('win','🌟','Luz do Elísio','A luz das almas abençoadas restaura e purifica.',[{c:'heal',t:'+'+h+' HP'},{c:'mp',t:'+20 MP'},{c:'xp',t:'+1 karma'}]);},
-    styx_alone:()=>{if(Math.random()<.5){const it=randItemByRarity('rare+');addItemToInv(it);oc('crit','⛵','Achado no Estige','As águas escondem o que os mortos deixaram para trás.',[{c:'item '+it.rarity,t:it.ico+' '+it.name}]);}else{const d=r(15)+10;G.hp=Math.max(1,G.hp-d);screenShake();oc('lose','⛵','Algo nas Águas','Uma presença nas águas te machuca ao passar.',[{c:'dmg',t:'-'+d+' HP'}]);} },
-    styx_pay:()=>{oc('win','⛵','Travessia Segura','O espírito conduz em silêncio. A passagem é tranquila.',[{c:'gold',t:'-10💰'}],'buy');},
-
-    // ── Nifleheim ──
-    odin_sacrifice:()=>{const d=20;G.hp=Math.max(1,G.hp-d);G.karma=(G.karma||0)+2;oc('crit','👁️','Sacrifício Aceito','Odin observa o pagamento. O conhecimento flui.',[{c:'dmg',t:'-'+d+' HP'},{c:'xp',t:'+2 karma'}]);},
-    odin_gold:()=>{oc('win','👁️','Odin Aceita','O Allfather guarda o ouro sem comentar. Uma bênção sutil segue.',[{c:'gold',t:'-25💰'}]);G.def+=2;},
-    norna_strength:()=>{G.atk+=6;G.hpMax=Math.max(20,G.hpMax-10);G.hp=Math.min(G.hp,G.hpMax);oc('warn','🕸️','Fio da Força','As Nornas cortam. A força cresce, a resistência diminui.',[{c:'xp',t:'+6 ATK'},{c:'dmg',t:'-10 HP MAX'}],'curse');},
-    norna_defense:()=>{G.def+=6;G.spd=Math.max(1,G.spd-1);oc('warn','🕸️','Fio da Proteção','A armadura se espessa. O passo fica mais lento.',[{c:'xp',t:'+6 DEF'},{c:'dmg',t:'-1 VEL'}]);},
-    norna_fate:()=>{const roll=Math.random();if(roll<.33){G.hpMax+=20;G.hp=Math.min(G.hpMax,G.hp+20);oc('crit','🕸️','Destino Benevolente','As Nornas sorriem — raramente.',[{c:'heal',t:'+20 HP MAX'}]);}else if(roll<.66){G.atk+=4;G.mag+=4;oc('win','🕸️','Destino Equilibrado','A balança pende para o bem, desta vez.',[{c:'xp',t:'+4 ATK +4 MAG'}]);}else{const d=r(15)+10;G.hp=Math.max(1,G.hp-d);G.karma=(G.karma||0)-1;screenShake();oc('lose','🕸️','Destino Cruel','O fio cortou fundo.',[{c:'dmg',t:'-'+d+' HP'},{c:'dmg',t:'-1 karma'}],'curse');}},
-    yggdrasil_touch:()=>{G.hp=G.hpMax;G.mp=G.mpMax;oc('crit','🌳','Yggdrasil Restaura','A Árvore do Mundo reconhece a necessidade. Tudo é restaurado.',[{c:'heal',t:'HP Cheio'},{c:'mp',t:'MP Cheio'}]);},
-    yggdrasil_absorb:()=>{G.hpMax+=15;G.hp=Math.min(G.hpMax,G.hp+15);oc('win','🌳','Energia Primordial','A raiz da árvore eterna transfere um fragmento de sua força.',[{c:'heal',t:'+15 HP MAX'}]);},
-
-    // ── Duat ──
-    anubis_honest:()=>{const k=G.karma||0;if(k>=5){const g=r(30)+20;addGold(g);G.hp=Math.min(G.hpMax,G.hp+30);oc('crit','⚖️','Coração Leve','Anúbis aprova. O karma fala mais alto que as palavras.',[{c:'gold',t:'+'+g+'💰'},{c:'heal',t:'+30 HP'}]);}else{oc('neutral','⚖️','Coração Pesado','Anúbis anota. Não condena — mas não recompensa.',[]);} },
-    anubis_cheat:()=>{if(Math.random()<.3){const g=r(40)+30;addGold(g);oc('crit','⚖️','Engano Bem-Sucedido','Anúbis não detectou. Desta vez.',[{c:'gold',t:'+'+g+'💰'}]);}else{const d=r(25)+20;G.hp=Math.max(1,G.hp-d);G.karma=(G.karma||0)-2;screenShake();oc('lose','⚖️','Anúbis Detecta','O deus do julgamento não é enganado facilmente.',[{c:'dmg',t:'-'+d+' HP'},{c:'dmg',t:'-2 karma'}],'curse');}},
-    anubis_refuse:()=>{const d=r(20)+15;G.hp=Math.max(1,G.hp-d);G.karma=(G.karma||0)-1;screenShake();oc('lose','⚖️','Ira de Anúbis','Recusar o julgamento tem um custo.',[{c:'dmg',t:'-'+d+' HP'},{c:'dmg',t:'-1 karma'}],'curse');},
-    ra_absorb:()=>{const h=r(25)+20;G.hp=Math.min(G.hpMax,G.hp+h);G.poisonTurns=0;G.curseTurns=0;G.karma=(G.karma||0)+1;oc('win','☀️','Bênção de Rá','A luz sagrada cura e purifica.',[{c:'heal',t:'+'+h+' HP'},{c:'xp',t:'Debuffs removidos'}]);},
-    ra_capture:()=>{const it={id:'ra_light_'+r(9999),name:'Luz de Rá',ico:'☀️',rarity:'epic',uses:1,slot:null,desc:'Cura 40 HP e remove todos os debuffs.',fn:G=>{G.hp=Math.min(G.hpMax,G.hp+40);G.poisonTurns=0;G.curseTurns=0;toast('☀️ Luz de Rá — purificado!');}};addItemToInv(it);oc('win','☀️','Luz Capturada','A luz de Rá aguarda o momento certo.',[{c:'item epic',t:'☀️ Luz de Rá'}]);},
-    sphinx_answer:()=>{if(Math.random()<.5){const g=r(30)+20;addGold(g);G.karma=(G.karma||0)+1;oc('crit','🦁','Correto!','A Esfinge se inclina. A passagem é livre.',[{c:'gold',t:'+'+g+'💰'},{c:'xp',t:'+1 karma'}]);}else{G.passives.push('cursed');const d=r(15)+10;G.hp=Math.max(1,G.hp-d);screenShake();oc('lose','🦁','Errado!','A maldição da Esfinge cai sobre você.',[{c:'dmg',t:'-'+d+' HP'},{c:'dmg',t:'Maldição'}],'curse');}},
-    sphinx_fight:()=>{const enemy={...ENEMIES.find(e=>e.id==='esfinge')||{name:'Esfinge',ico:'🦁',hp:90,atk:14,def:12,xp:45,gold:[14,24],badges:['Armadura'],type:'construct'},hpCur:90};startCombat(enemy,$('scroll'));},
-    sphinx_avoid:()=>{G.room++;oc('neutral','🦁','Desvio Longo','O caminho mais longo... mas sem a maldição.',[]);},
-
-    // ── Diyu ──
-    yanluo_confess:()=>{const d=r(10)+5;G.hp=Math.max(1,G.hp-d);G.karma=(G.karma||0)+3;oc('win','📖','Confissão Aceita','Yanluo Wang aprecia a honestidade. A punição é leve.',[{c:'dmg',t:'-'+d+' HP'},{c:'xp',t:'+3 karma'}]);},
-    yanluo_argue:()=>{if(Math.random()<.4){const g=r(30)+20;addGold(g);G.karma=(G.karma||0)+1;oc('crit','📖','Convencido!','O Rei dos Mortos aceita os argumentos, surpreendentemente.',[{c:'gold',t:'+'+g+'💰'},{c:'xp',t:'+1 karma'}]);}else{const d=r(20)+10;G.hp=Math.max(1,G.hp-d);oc('lose','📖','Argumento Rejeitado','Yanluo Wang não aprecia a contestação.',[{c:'dmg',t:'-'+d+' HP'}],'curse');}},
-    yanluo_bribe:()=>{G.karma=(G.karma||0)-1;oc('neutral','📖','Suborno Aceito','Yanluo Wang guarda o ouro sem expressão. A corrupção tem sabor familiar aqui.',[{c:'gold',t:'-40💰'},{c:'dmg',t:'-1 karma'}]);},
-    jade_absorb:()=>{G.mag+=8;G.mpMax+=10;G.mp=Math.min(G.mpMax,G.mp+10);oc('crit','🐲','Poder Imperial','O jade celestial transfere poder arcano antiquíssimo.',[{c:'xp',t:'+8 MAG'},{c:'mp',t:'+10 MP MAX'}]);},
-    jade_keep:()=>{const it={id:'jade_'+r(9999),name:'Jade Imperial',ico:'🐲',rarity:'legendary',uses:1,slot:null,desc:'+12 MAG e +25 MP.',fn:G=>{G.mag+=12;G.mpMax+=25;G.mp=Math.min(G.mpMax,G.mp+25);toast('🐲 Poder do Jade Imperial!');}};addItemToInv(it);oc('win','🐲','Jade Guardado','O poder aguarda o momento certo.',[{c:'item legendary',t:'🐲 Jade Imperial'}]);},
-
-    // ── Yomi ──
-    izanami_fight:()=>{const enemy={name:'Espírito de Izanami',ico:'🌑',hp:80,atk:20,def:8,xp:60,gold:[20,35],hpCur:80,badges:['Maldição','Morto-vivo'],type:'undead'};startCombat(enemy,$('scroll'));},
-    izanami_wisdom:()=>{const k=G.karma||0;if(k>=5){G.mag+=5;G.mp=Math.min(G.mpMax,G.mp+30);G.karma+=1;oc('crit','🌑','Sabedoria Reconhecida','Izanami se retira. O karma fala mais alto que qualquer arma.',[{c:'xp',t:'+5 MAG'},{c:'mp',t:'+30 MP'},{c:'xp',t:'+1 karma'}]);}else{oc('neutral','🌑','Insuficiente','O karma ainda é leve demais. Izanami observa e se afasta em silêncio.',[]);} },
-    torii_cross:()=>{G.hp=G.hpMax;G.mp=G.mpMax;G.poisonTurns=0;G.curseTurns=0;G.karma=(G.karma||0)+1;oc('crit','⛩️','Purificação Total','O portão sagrado apaga toda impureza.',[{c:'heal',t:'HP Cheio'},{c:'mp',t:'MP Cheio'},{c:'xp',t:'Debuffs removidos'}]);},
-
-    // ── Naraka ──
-    yama_meditate:()=>{G.hp=Math.min(G.hpMax,G.hp+20);G.karma=(G.karma||0)+2;oc('win','⚖️','Mente Preparada','A meditação prepara a alma para o julgamento final.',[{c:'heal',t:'+20 HP'},{c:'xp',t:'+2 karma'}]);},
-    yama_review:()=>{const k=G.karma||0;const klbl=k>=8?'Alma virtuosa':k>=5?'Alma equilibrada':'Alma a ser julgada';toast('⚖️ Karma total: '+k+' — '+klbl,3000);oc('neutral','⚖️','Jornada Revisada','Seu karma total é '+k+'. Yama já sabe o que decidir.',[{c:k>=5?'xp':'dmg',t:'Karma: '+k}]);},
-    lotus_touch:()=>{G.hp=G.hpMax;G.karma=(G.karma||0)+3;oc('crit','🪷','Bênção do Lótus','A flor sagrada do Naraka purifica e ilumina a alma.',[{c:'heal',t:'HP Cheio'},{c:'xp',t:'+3 karma'}]);},
-    lotus_petal:()=>{const it={id:'lotus_'+r(9999),name:'Pétala do Lótus',ico:'🪷',rarity:'legendary',uses:1,slot:null,desc:'Cura completamente HP e concede +5 karma.',fn:G=>{G.hp=G.hpMax;G.karma=(G.karma||0)+5;toast('🪷 Pétala do Lótus — purificação completa!');}};addItemToInv(it);oc('win','🪷','Pétala Colhida','A pétala sagrada guarda seu poder para quando mais precisar.',[{c:'item legendary',t:'🪷 Pétala do Lótus'}]);},
-
-    // ── Opções secretas do Tomo ──
-    tomo_camp_expert:()=>{const h=25;G.hp=Math.min(G.hpMax,G.hp+h);const it=randItemByRarity('rare+');addItemToInv(it);oc('crit','📖','Memória do Cronista','Seu conhecimento guia cada movimento neste lugar familiar.',[{c:'heal',t:'+'+h+' HP'},{c:'item '+it.rarity,t:it.ico+' '+it.name}]);},
-    tomo_shrine_memory:()=>{const h=r(40)+30;G.hp=Math.min(G.hpMax,G.hp+h);G.mp=Math.min(G.mpMax,G.mp+30);G.atk+=2;oc('crit','📖','Memória do Cronista','Os espíritos reconhecem o Cronista. A bênção é total.',[{c:'heal',t:'+'+h+' HP'},{c:'mp',t:'+30 MP'},{c:'xp',t:'+2 ATK'}]);},
-    tomo_merchant_expert:()=>{const it=randItemByRarity('rare+');addItemToInv(it);oc('crit','📖','Memória do Cronista','O mercador respeita quem conhece o valor das coisas.',[{c:'item '+it.rarity,t:it.ico+' '+it.name}],'buy');},
-    tomo_dungeon_map:()=>{const it=randItemByRarity('rare+');addItemToInv(it);const g=r(25)+20;addGold(g);oc('crit','📖','Memória do Cronista','Você navega como se tivesse nascido aqui.',[{c:'item '+it.rarity,t:it.ico+' '+it.name},{c:'gold',t:'+'+g+'💰'}]);},
-    tomo_library_read:()=>{const eligible=ELEMENTS.filter(e=>e.tier<=2&&!G.elements.some(x=>x.id===e.id));if(eligible.length){const el=pick(eligible);G.elements.push({...el});toast(`${el.ico} ${el.name} aprendido!`);oc('crit','📖','Memória do Cronista','As palavras antigas revelam seus segredos.',[{c:'xp',t:el.ico+' '+el.name+' aprendido'}]);}else{const xp=r(40)+30;G.xp+=xp;oc('win','📖','Memória do Cronista','Todo conhecimento tem valor.',[{c:'xp',t:'+'+xp+' XP'}]);}},
-    tomo_fountain_full:()=>{G.hp=G.hpMax;G.mp=G.mpMax;oc('crit','📖','Memória do Cronista','Você canaliza toda a energia. Cura completa.',[{c:'heal',t:'HP Cheio'},{c:'mp',t:'MP Cheio'}]);},
     // ── Opções secretas do Tomo ──
     tomo_camp_expert:()=>{const h=25;G.hp=Math.min(G.hpMax,G.hp+h);const it=randItemByRarity('rare+');addItemToInv(it);oc('crit','📖','Memória do Cronista','Seu conhecimento guia cada movimento neste lugar familiar.',[{c:'heal',t:'+'+h+' HP'},{c:'item '+it.rarity,t:it.ico+' '+it.name}]);},
     tomo_shrine_memory:()=>{const h=r(40)+30;G.hp=Math.min(G.hpMax,G.hp+h);G.mp=Math.min(G.mpMax,G.mp+30);G.atk+=2;oc('crit','📖','Memória do Cronista','Os espíritos reconhecem o Cronista. A bênção é total.',[{c:'heal',t:'+'+h+' HP'},{c:'mp',t:'+30 MP'},{c:'xp',t:'+2 ATK'}]);},
@@ -3142,8 +2902,9 @@ function buySpecialItem(i){
 
 /* ═══ SUBCLASS ═══ */
 function renderSubclass(sc){
-  // No novo sistema, subclasse = ganhar uma Memória Épica ou Rara exclusiva
+  if(!sc)return;
   sc.innerHTML='';
+  sc.classList.add('has-combat');
   const card=mkCard('explore');
   card.innerHTML=`
     <div class="ctag"><div class="ctag-dot" style="background:#9b59b6"></div><span class="ctag-txt" style="color:#9b59b6">MEMÓRIA DESPERTA</span></div>
@@ -3174,7 +2935,11 @@ function renderSubclass(sc){
 
 /* ═══ LEVEL UP ═══ */
 function renderLevelUp(sc){
-  sc.innerHTML='';lvFlash();
+  if(!sc)return;
+  sc.innerHTML='';
+  // Level up sempre alinha ao topo — tem conteúdo suficiente
+  sc.classList.add('has-combat');
+  lvFlash();
   const card=mkCard('explore');
   const bonus=G.bonusUpgrades||0;
   const count=3+bonus;
@@ -4040,9 +3805,9 @@ function enemyTurn(){
 }
 
 function checkEnd(){
-  if(!CE)return;
+  if(!CE || !G) return;
   // Phoenix — revive com 30% HP uma vez
-  if(G.hp<=0&&G.passives.includes('phoenix')&&!G.phoenixUsed){
+  if(G.hp<=0 && G.passives.includes('phoenix') && !G.phoenixUsed){
     G.phoenixUsed=true;
     const idx=G.passives.indexOf('phoenix');if(idx>=0)G.passives.splice(idx,1);
     G.hp=Math.round(G.hpMax*.3);
@@ -4057,38 +3822,44 @@ function checkEnd(){
       clog(`💣 EXPLOSÃO! -${exd} HP!`,'le');screenShake();
       if(G.hp<=0){
         if(G.passives.includes('phoenix')&&!G.phoenixUsed){
-          G.phoenixUsed=true;const idx=G.passives.indexOf('phoenix');if(idx>=0)G.passives.splice(idx,1);
+          G.phoenixUsed=true;
+          const idx=G.passives.indexOf('phoenix');if(idx>=0)G.passives.splice(idx,1);
           G.hp=Math.round(G.hpMax*.3);clog('🪶 Pena da Fênix! Revive!','lc');
         } else {showDeath('Morreu na explosão do goblin bomba.');return;}
       }
     }
     G.kills++;
-  if(CE) tomoRecordKill(CE); // Tomo: registra inimigo morto
-    if(CE.elite)G._mElites=(G._mElites||0)+1;
-    // limpa status do jogador ao vencer
+    if(CE) tomoRecordKill(CE);
+    if(CE.elite) G._mElites=(G._mElites||0)+1;
     clearCombatStatus(G);
-    // Arcana cooldown tracking
+    // Arcana cooldown
     if(G.passives.includes('arcana_explosion')){
       if(!G.arcanaReady){
         G.arcanaCombatsSince=(G.arcanaCombatsSince||0)+1;
         if(G.arcanaCombatsSince>=3){G.arcanaReady=true;G.arcanaCombatsSince=0;toast('💜 Explosão Arcana recarregada!',2000);}
       }
     }
-    // Post-combat regen (Totem)
+    // Post-combat regen
     if(G.passives.includes('post_combat_regen')){
       const heal=Math.round(G.hpMax*.10);G.hp=Math.min(G.hpMax,G.hp+heal);
       clog(`🪆 Totem: +${heal} HP restaurado.`,'ls');
     }
-    const xg=CE.xp,gg=r(CE.gold[1]-CE.gold[0]+1)+CE.gold[0];
-    const wasElite=CE.elite,ceName=CE.name,ceIco=CE.ico,isBoss=CE.boss;
+    // Captura dados antes de limpar CE
+    const xg=CE.xp||10;
+    const goldRange=CE.gold||[1,5];
+    const gg=r(goldRange[1]-goldRange[0]+1)+goldRange[0];
+    const wasElite=CE.elite, ceName=CE.name||'Inimigo', ceIco=CE.ico||'👹', isBoss=CE.boss;
     addXP(xg);addGold(gg);
     if(isBoss){logRun('💀',`Chefe derrotado: ${ceIco} ${ceName}`,'crit');sfx('boss_die');screenShake();}
-    else if(wasElite)logRun('⭐',`Elite eliminado: ${ceIco} ${ceName}`,'win');
-    if(G.passives.includes('med'))G.mp=Math.min(G.mpMax,G.mp+8);
+    else if(wasElite) logRun('⭐',`Elite eliminado: ${ceIco} ${ceName}`,'win');
+    if(G.passives.includes('med')) G.mp=Math.min(G.mpMax,G.mp+8);
     checkMissions();grantChallengeReward();
-    clog(`${ceName} derrotado! +${xg}XP +${gg}💰`,'ls');updateCombatUI();
-    const wasBoss=isBoss,fl=G.floor;G.inCombat=false;CE=null;
+    clog(`${ceName} derrotado! +${xg}XP +${gg}💰`,'ls');
+    updateCombatUI();
+    const wasBoss=isBoss, fl=G.floor;
+    G.inCombat=false;CE=null;
     setTimeout(()=>{
+      if(!G) return; // guard contra G ter sido resetado
       if(wasBoss&&fl===3){showVictory();return;}
       if(wasBoss){
         const prevFloor=G.floor;
@@ -4096,7 +3867,6 @@ function checkEnd(){
         logRun('🏰',`Avançou para o Andar ${G.floor}`,'win');
         generateMissions();
         if(prevFloor>=3){
-          // Andares 4+: transição narrativa direta, sem tela de vitória
           const depthMsgs=[
             'As trevas se aprofundam. O silêncio pesa mais do que qualquer armadura.',
             'Você desce. A luz some. Algo lá embaixo te observa há muito tempo.',
@@ -4105,8 +3875,7 @@ function checkEnd(){
             'Não há glória aqui. Apenas sobrevivência. E você ainda está de pé.',
           ];
           toast(`🏰 Andar ${G.floor} — ${pick(depthMsgs)}`,3500);
-          const sc2=$('scroll');if(sc2)nextRoom();
-          return;
+          nextRoom();return;
         }
       }
       showCombatVictory(wasBoss,xg,gg);
@@ -4871,15 +4640,17 @@ function continueInfinite(){
 
 /* ═══ SISTEMA DE TEMAS ═══ */
 const THEMES = {
-  tartaro:   { label:'Tártaro',     desc:'Pedra negra & chamas violeta — reino de Hades' },
-  nifleheim: { label:'Nifleheim',   desc:'Gelo eterno & névoa azul — reino de Hel' },
-  duat:      { label:'Duat',        desc:'Areia dourada & lapislázuli — reino de Anúbis' },
-  diyu:      { label:'Diyu',        desc:'Vermelho imperial & jade — reino de Yanluo Wang' },
-  yomi:      { label:'Yomi',        desc:'Roxo sombrio & cerejeira — reino de Izanami' },
-  naraka:    { label:'Naraka',      desc:'Turquesa sagrada & ouro — reino de Yama' },
+  grimorio: { label:'Grimório',        desc:'Âmbar & sombras clássicas' },
+  ice:      { label:'Cripta de Gelo',  desc:'Azul cristalino & frio' },
+  inferno:  { label:'Forja Infernal',  desc:'Fogo, laranja & caos' },
+  void:     { label:'Vazio Arcano',    desc:'Roxo profundo & névoa' },
+  nature:   { label:'Floresta Antiga', desc:'Verde vivo & serenidade' },
+  blood:    { label:'Pacto de Sangue', desc:'Carmesim & trevas' },
+  abyss:    { label:'Abismo Profundo', desc:'Preto, roxo & marinho' },
+  dawn:     { label:'Alvorada Celeste',desc:'Branco, dourado & azul bebê' },
 };
 
-let _currentTheme = localStorage.getItem('cronista_theme') || 'tartaro';
+let _currentTheme = localStorage.getItem('cronista_theme') || 'grimorio';
 let _is16Bit = localStorage.getItem('cronista_16bit') === '1';
 
 function applyTheme(id) {
@@ -4887,7 +4658,7 @@ function applyTheme(id) {
   localStorage.setItem('cronista_theme', id);
   const root = document.documentElement;
   Object.keys(THEMES).forEach(t => root.removeAttribute('data-theme'));
-  root.setAttribute('data-theme', id);
+  if (id !== 'grimorio') root.setAttribute('data-theme', id);
   document.querySelectorAll('.theme-card').forEach(c => {
     c.classList.toggle('active', c.dataset.t === id);
   });
