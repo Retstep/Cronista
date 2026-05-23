@@ -32,11 +32,12 @@ function tomoRecordFusion(f){
   tomoSave(t);
 }
 
-// Registra inimigo morto
+// Registra inimigo morto — usa name+type como chave para inimigos procedurais
 function tomoRecordKill(enemy){
   const t = tomoGet();
-  const key = enemy.id || enemy.name;
-  if(!t.enemies[key]) t.enemies[key] = { name:enemy.name, ico:enemy.ico, sub:enemy.sub||'', kills:0 };
+  // Inimigos procedurais têm id único por run; usar name+type para acumular corretamente
+  const key = enemy.proc ? (enemy.name.replace(/[^a-zA-ZÀ-ÿ0-9]/g,'_') + '_' + (enemy.type||'normal')) : (enemy.id || enemy.name);
+  if(!t.enemies[key]) t.enemies[key] = { name:enemy.name, ico:enemy.ico.slice(0,4), sub:enemy.sub||'', kills:0 };
   t.enemies[key].kills++;
   tomoSave(t);
 }
@@ -552,12 +553,16 @@ const ITEMS_POOL=[
     fn:G=>{G.passives.push('post_combat_regen');toast('🪆 Totem equipado!');}},
   {id:'magic_compass', name:'Bússola Mágica',      ico:'🧭',rarity:'rare',   uses:1,slot:null,desc:'Escolhe o tipo da próxima sala.',
     fn:G=>{openCompassMenu();}},
-  {id:'blank_grimoire',name:'Grimório em Branco',  ico:'📕',rarity:'legendary',uses:1,slot:null,desc:'Aprende a skill2 da sua classe.',
+  {id:'blank_grimoire',name:'Grimório em Branco',  ico:'📕',rarity:'legendary',uses:1,slot:null,desc:'Aprende a skill2 da sua classe (substitui o slot 2 se já existir).',
     fn:G=>{
       const sk2=G.cls.skill2;
       if(!sk2){toast('Sua classe não tem skill extra!');return;}
       if(G.skills.some(s=>s.type===sk2.type)){toast('Skill já conhecida!');return;}
-      G.skills.push({...sk2});toast(`📕 ${sk2.name} aprendida!`);
+      // Substitui o slot 2 se existir; caso contrário adiciona (máx 2 skills visíveis)
+      if(G.skills.length>=2) G.skills[1]={...sk2};
+      else G.skills.push({...sk2});
+      G.memories=G.skills; // mantém sincronizado
+      toast(`📕 ${sk2.name} aprendida no slot 2!`);
     }},
   {id:'lucky_coin',    name:'Moeda da Sorte',      ico:'🪙',rarity:'uncommon',uses:1,slot:null,desc:'50% dobrar ouro atual, 50% perder 30%.',
     fn:G=>{if(Math.random()<.5){const g=G.gold;addGold(g);toast(`🪙 Sorte! +${g}💰`);}else{const l=Math.round(G.gold*.3);G.gold=Math.max(0,G.gold-l);upd();toast(`🪙 Azar! -${l}💰`);}}},
@@ -584,7 +589,7 @@ const ITEMS_POOL=[
   {id:'mage_robe',     cls:'mage',  name:'Manto Arcano',        ico:'🥻',  rarity:'common', uses:null,slot:'chest', bonus:{mag:4,mp:10},             desc:'+4 MAG +10 MP'},
   {id:'lich_crown',    cls:'mage',  name:'Coroa da Lich',       ico:'💀👑',rarity:'legendary',uses:null,slot:'head',bonus:{mag:14,mp:40,hp:-20},    desc:'+14 MAG +40 MP -20 HP'},
   {id:'mana_boots',    cls:'mage',  name:'Botas da Concentração',ico:'👟💙',rarity:'rare',  uses:null,slot:'feet',  bonus:{mag:4,spd:1},             desc:'+4 MAG +1 VEL'},
-  {id:'spell_scroll',  cls:'mage',  name:'Pergaminho de Feitiço',ico:'📜🔮',rarity:'rare',  uses:1,   slot:null,    desc:'Dano mágico imediato (40-60)',fn:(G,ctx)=>{if(!ctx?.combat){toast('Só em combate!');return;}const d=r(20)+40;ctx.E.hpCur=Math.max(0,ctx.E.hpCur-d);toast(`📜 -${d} HP mágico!`);updateCombatUI();}},
+  {id:'spell_scroll',  cls:'mage',  name:'Pergaminho de Feitiço',ico:'📜🔮',rarity:'rare',  uses:1,   slot:null,    desc:'Dano mágico imediato (40-60)',fn:(G,ctx)=>{if(!ctx?.combat||!ctx?.E){toast('Só em combate!');return;}const d=r(20)+40;ctx.E.hpCur=Math.max(0,ctx.E.hpCur-d);toast(`📜 -${d} HP mágico!`);updateCombatUI();}},
   {id:'mage_ring',     cls:'mage',  name:'Anel do Arcano',      ico:'💍🔮',rarity:'epic',   uses:null,slot:null,   bonus:{mag:8,mp:20},              desc:'+8 MAG +20 MP'},
 
   // ── Ladino/Assassino (rogue) ──
@@ -592,7 +597,7 @@ const ITEMS_POOL=[
   {id:'rogue_armor',   cls:'rogue', name:'Armadura do Ladrão',  ico:'🥷🎭',rarity:'rare',   uses:null,slot:'chest', bonus:{def:5,dodge:.06},          desc:'+5 DEF +6% ESQUIVA'},
   {id:'assassin_mask', cls:'rogue', name:'Máscara do Assassino',ico:'🎭🌑',rarity:'epic',   uses:null,slot:'head',  bonus:{crit:.12,dodge:.05},       desc:'+12% CRIT +5% ESQUIVA'},
   {id:'swift_boots',   cls:'rogue', name:'Botas Velozes',       ico:'👟💨',rarity:'common', uses:null,slot:'feet',  bonus:{spd:4,dodge:.03},          desc:'+4 VEL +3% ESQUIVA'},
-  {id:'poison_vial',   cls:'rogue', name:'Ampola de Veneno',    ico:'🐍💉',rarity:'epic',   uses:1,   slot:null,    desc:'Veneno forte (6dmg/turno, 5t)',fn:(G,ctx)=>{if(!ctx?.combat){toast('Só em combate!');return;}ctx.E.poisonDmg=6;ctx.E.poisonTurns=5;toast('🐍 Veneno forte aplicado!');}},
+  {id:'poison_vial',   cls:'rogue', name:'Ampola de Veneno',    ico:'🐍💉',rarity:'epic',   uses:1,   slot:null,    desc:'Veneno forte (6dmg/turno, 5t)',fn:(G,ctx)=>{if(!ctx?.combat||!ctx?.E){toast('Só em combate!');return;}ctx.E.poisonDmg=6;ctx.E.poisonTurns=5;toast('🐍 Veneno forte aplicado!');}},
   {id:'rogue_ring',    cls:'rogue', name:'Anel do Ladrão',      ico:'💍🗡️',rarity:'epic',   uses:null,slot:null,   bonus:{atk:4,crit:.08,spd:2},     desc:'+4 ATK +8% CRIT +2 VEL'},
 
   // ── Druida ──
@@ -610,7 +615,7 @@ const ITEMS_POOL=[
   {id:'hunter_vest',   cls:'hunter',name:'Colete do Caçador',   ico:'🎯🥋',rarity:'rare',   uses:null,slot:'chest', bonus:{def:4,dodge:.05,spd:1},   desc:'+4 DEF +5% ESQUIVA +1 VEL'},
   {id:'tracker_helm',  cls:'hunter',name:'Elmo do Rastreador',  ico:'🎯⛑️',rarity:'rare',   uses:null,slot:'head',  bonus:{crit:.07,spd:2},          desc:'+7% CRIT +2 VEL'},
   {id:'ranger_boots',  cls:'hunter',name:'Botas do Ranger',     ico:'🥾🏹',rarity:'common', uses:null,slot:'feet',  bonus:{spd:4,dodge:.02},          desc:'+4 VEL +2% ESQUIVA'},
-  {id:'beast_trap',    cls:'hunter',name:'Armadilha de Fera',   ico:'🪤',  rarity:'epic',   uses:1,   slot:null,    desc:'Imobiliza inimigo por 2 turnos',fn:(G,ctx)=>{if(!ctx?.combat){toast('Só em combate!');return;}ctx.E.freezeTurns=(ctx.E.freezeTurns||0)+2;toast('🪤 Inimigo imobilizado!');}},
+  {id:'beast_trap',    cls:'hunter',name:'Armadilha de Fera',   ico:'🪤',  rarity:'epic',   uses:1,   slot:null,    desc:'Imobiliza inimigo por 2 turnos',fn:(G,ctx)=>{if(!ctx?.combat||!ctx?.E){toast('Só em combate!');return;}ctx.E.freezeTurns=(ctx.E.freezeTurns||0)+2;toast('🪤 Inimigo imobilizado!');}},
   {id:'hunter_ring',   cls:'hunter',name:'Anel da Presa',       ico:'💍🏹',rarity:'epic',   uses:null,slot:null,   bonus:{atk:5,crit:.07,spd:1},     desc:'+5 ATK +7% CRIT +1 VEL'},
 
   // ── Feiticeiro ──
@@ -636,7 +641,7 @@ const ITEMS_POOL=[
   {id:'shadow_cloak',  cls:'assassin_cls',name:'Manto das Sombras',ico:'🌑🥷',rarity:'epic', uses:null,slot:'chest', bonus:{dodge:.1,spd:2},           desc:'+10% ESQUIVA +2 VEL'},
   {id:'death_hood',    cls:'assassin_cls',name:'Capuz da Morte',  ico:'💀🎭',rarity:'epic',  uses:null,slot:'head',  bonus:{crit:.13,dodge:.04},       desc:'+13% CRIT +4% ESQUIVA'},
   {id:'shadow_boots',  cls:'assassin_cls',name:'Botas Silenciosas',ico:'👟🌑',rarity:'common',uses:null,slot:'feet', bonus:{spd:4,dodge:.04},           desc:'+4 VEL +4% ESQUIVA'},
-  {id:'smoke_bomb',    cls:'assassin_cls',name:'Bomba de Névoa',  ico:'💨🌑',rarity:'rare',  uses:1,   slot:null,    desc:'30% chance inimigo errar por 3t',fn:(G,ctx)=>{if(!ctx?.combat){toast('Só em combate!');return;}ctx.E._foggedTurns=3;toast('💨 Névoa das sombras!');}},
+  {id:'smoke_bomb',    cls:'assassin_cls',name:'Bomba de Névoa',  ico:'💨🌑',rarity:'rare',  uses:1,   slot:null,    desc:'30% chance inimigo errar por 3t',fn:(G,ctx)=>{if(!ctx?.combat||!ctx?.E){toast('Só em combate!');return;}ctx.E._foggedTurns=3;toast('💨 Névoa das sombras!');}},
   {id:'assassin_ring', cls:'assassin_cls',name:'Anel do Assassino',ico:'💍🌑',rarity:'epic', uses:null,slot:null,   bonus:{crit:.1,spd:3,atk:3},       desc:'+10% CRIT +3 VEL +3 ATK'},
 
   // ═══ SETS DE ARMADURA ═══
@@ -1382,13 +1387,21 @@ function evaluateSets(){
 }
 
 function reverseSetBonus(setId,tier){
-  // Reverte passivos de set ao desequipar peça
-  if(setId==='hunter'&&tier===2)G.crit=Math.max(0,G.crit-.10);
-  if(setId==='hunter'&&tier===3){const i=G.passives.indexOf('sure_hit');if(i>=0)G.passives.splice(i,1);}
+  // Reverte passivos/bônus de set ao desequipar peça
+  // Math.max garante que nenhum stat fique negativo
+  if(setId==='hunter'&&tier===2)  G.crit=Math.max(0,+(G.crit-.10).toFixed(4));
+  if(setId==='hunter'&&tier===3){ const i=G.passives.indexOf('sure_hit');if(i>=0)G.passives.splice(i,1);}
   if(setId==='mage_anc'&&tier===2)G.mpDiscount=Math.max(0,(G.mpDiscount||0)-2);
   if(setId==='mage_anc'&&tier===3){const i=G.passives.indexOf('arcana_explosion');if(i>=0)G.passives.splice(i,1);}
   if(setId==='berserker'&&tier===2){const i=G.passives.lastIndexOf('dbl');if(i>=0)G.passives.splice(i,1);}
   if(setId==='berserker'&&tier===3){const i=G.passives.indexOf('bsk_set');if(i>=0)G.passives.splice(i,1);}
+  // Garante que stats base nunca fiquem negativos após reversão
+  G.crit   =Math.max(0,   G.crit||0);
+  G.dodge  =Math.max(0,   G.dodge||0);
+  G.atk    =Math.max(1,   G.atk||1);
+  G.def    =Math.max(0,   G.def||0);
+  G.mag    =Math.max(1,   G.mag||1);
+  G.mpDiscount=Math.max(0,G.mpDiscount||0);
 }
 
 /* ═══ MENUS ESPECIAIS ═══ */
@@ -1651,51 +1664,33 @@ function pulseEnemyIco(){
 /* ═══ HUD ═══ */
 function upd(){
   if(!G)return;
-  // Limpa buffs temporários expirados
-  if(G.tmpBuffs){
-    G.tmpBuffs=G.tmpBuffs.filter(b=>{
-      if(b.rooms<=0){G[b.stat]=Math.max(0,(G[b.stat]||0)-b.val);return false;}
-      b.rooms--;return true;
-    });
-  }
-  // Ícone do avatar — usa primeira parte do emoji da arma se equipado
-  let ico = G.cls?.ico || '👻';
-  if(G.equip?.weapon?.ico){
-    const parts = [...G.equip.weapon.ico];
-    if(parts.length) ico = parts[0];
-  }
-  // Atualiza elementos — com guard para cada um evitar erros silenciosos
-  const set = (id, val) => { const el=$(id); if(el) el.textContent = val; };
-  const setW = (id, val) => { const el=$(id); if(el) el.style.width = val; };
-  const floorLabel = G.floor > 3 ? `∞ ${G.floor}` : `${G.floor}`;
-  set('hud-ava', ico);
-  set('hud-name', G.soulName || 'Herói');
-  set('hud-cls', (G.cls?.name||'Alma') + (G.subclass ? ' · '+G.subclass.name : '') + ' — Andar ' + floorLabel);
-  setW('vhp', pct(G.hp, G.hpMax));
-  setW('vmp', pct(G.mp, G.mpMax));
-  set('nhp', G.hp + '/' + G.hpMax);
-  set('nmp', G.mp + '/' + G.mpMax);
-  set('hlv', 'Nv.' + G.level);
-  setW('xpf', pct(G.xp, G.xpNext));
-  set('hgold', '💰' + G.gold);
-  const hstats = $('hstats');
-  if(hstats){
-    const subBadge = G.subclass ? `<span class="sub-badge">${G.subclass.name}</span>` : '';
-    hstats.innerHTML =
-      `<div class="schip"><span class="l">ATK</span><span class="v">${G.atk}</span></div>
-      <div class="schip"><span class="l">DEF</span><span class="v">${G.def}</span></div>
-      <div class="schip"><span class="l">MAG</span><span class="v">${G.mag}</span></div>
-      <div class="schip"><span class="l">CRIT</span><span class="v">${Math.round(G.crit*100)}%</span></div>
-      <div class="schip"><span class="l">ESQ</span><span class="v">${Math.round(G.dodge*100)}%</span></div>
-      <div class="schip"><span class="l">MP/sala</span><span class="v">${G.mpRegen}</span></div>
-      ${subBadge}<div class="fbadge">Sala ${G.room}/${G.maxRooms}</div>`;
-  }
+  if(G.tmpBuffs){G.tmpBuffs=G.tmpBuffs.filter(b=>{if(b.rooms<=0){G[b.stat]-=b.val;return false;}b.rooms--;return true;});}
+  let ico=G.cls.ico;
+  if(G.equip.weapon)ico=G.equip.weapon.ico.split('')[0]||G.cls.ico;
+  $('hud-ava').textContent=ico;
+  const floorLabel=G.floor>3?`∞ ${G.floor}`:`${G.floor}`;
+  if($('hud-name')) $('hud-name').textContent=G.soulName||'Herói';
+  $('hud-cls').textContent=(G.cls?.name||'Alma')+(G.subclass?' · '+G.subclass.name:'')+' — Andar '+floorLabel;
+  $('vhp').style.width=pct(G.hp,G.hpMax);$('vmp').style.width=pct(G.mp,G.mpMax);
+  $('nhp').textContent=G.hp+'/'+G.hpMax;$('nmp').textContent=G.mp+'/'+G.mpMax;
+  $('hlv').textContent='Nv.'+G.level;$('xpf').style.width=pct(G.xp,G.xpNext);
+  $('hgold').textContent='💰'+G.gold;
+  const subBadge=G.subclass?`<span class="sub-badge">${G.subclass.name}</span>`:'';
+  $('hstats').innerHTML=
+    `<div class="schip"><span class="l">ATK</span><span class="v">${G.atk}</span></div>
+    <div class="schip"><span class="l">DEF</span><span class="v">${G.def}</span></div>
+    <div class="schip"><span class="l">MAG</span><span class="v">${G.mag}</span></div>
+    <div class="schip"><span class="l">CRIT</span><span class="v">${Math.round(G.crit*100)}%</span></div>
+    <div class="schip"><span class="l">ESQ</span><span class="v">${Math.round(G.dodge*100)}%</span></div>
+    <div class="schip"><span class="l">MP/sala</span><span class="v">${G.mpRegen}</span></div>
+    ${subBadge}<div class="fbadge">Sala ${G.room}/${G.maxRooms}</div>`;
 }
 
 /* ═══ XP / LEVEL ═══ */
 function logRun(ico,txt,type='neutral'){
   if(!G||!G.runLog)return;
   G.runLog.push({ico,txt,type,floor:G.floor,room:G.room,level:G.level});
+  if(G.runLog.length>200) G.runLog.shift();
 }
 
 function addXP(n){
@@ -1817,40 +1812,17 @@ function goTitle(){
 }
 
 /* ═══ SAFE RENDER ═══ */
-function safeRender(fn,...args){
-  try{
-    fn(...args);
-  } catch(e){
-    console.error('[Cronista] Erro em render:', fn?.name || '?', e);
-    const sc = $('scroll');
-    if(sc){
-      // Mostra mensagem de erro inline em vez de tela em branco
-      sc.innerHTML=`<div class="card ee" style="text-align:center;padding:20px;">
-        <div style="font-size:32px;margin-bottom:10px;">⚠️</div>
-        <div style="font-family:var(--cinzel);font-size:11px;color:var(--acc);margin-bottom:8px;">Erro de interface</div>
-        <div style="font-size:12px;color:var(--txt2);margin-bottom:14px;font-style:italic;">Algo deu errado. Tente continuar.</div>
-        <button class="btn-next" onclick="nextRoom()">Continuar →</button>
-      </div>`;
-    }
-    if(G && !G.inCombat) setTimeout(()=>{ if(G&&!G.inCombat) navTo('explore'); },1500);
-  }
-}
+function safeRender(fn,...args){try{fn(...args);}catch(e){console.error(e);toast('Erro na interface.',3000);if(G&&!G.inCombat)setTimeout(()=>navTo('explore'),300);}}
 
 /* ═══ NAV ═══ */
 function navTo(v) {
   sfx('click');
   const sc = $("scroll");
-  if(!sc) return;
-  // Views com conteúdo longo sempre alinham ao topo
-  // Views de exploração/evento centralizam quando conteúdo é curto
-  const longViews = ["inv","skills","stats","combat"];
-  const isLong = longViews.includes(v) || G.inCombat;
-  sc.classList.toggle("has-combat", isLong);
-  ["explore","inv","skills","stats"].forEach(n => {
-    const btn = $("nb-"+n);
-    if(btn) btn.classList.toggle("active", n === v);
-  });
-  if (G.inCombat && v === "explore") { safeRender(renderCombat, sc); return; }
+  // Conteúdo longo (combate, inv, skills, stats) = alinha ao topo
+  const longViews = ["inv","skills","stats"];
+  sc.classList.toggle("has-combat", v !== "explore" || G.inCombat);
+  ["explore","inv","skills","stats"].forEach(n => $("nb-"+n).classList.toggle("active", n === v));
+  if (G.inCombat && v === "explore") { renderCombat(sc); return; }
   const views = { inv: renderInv, skills: renderSkills, stats: renderStats };
   if (v === "explore") {
     if (G.currentEvent) showEvent(G.currentEvent, sc);
@@ -1862,29 +1834,28 @@ function navTo(v) {
 
 /* ═══ EXPLORE ═══ */
 function renderExplore(sc){
-  if(!sc||!G)return;
   sc.innerHTML='';
-  // Regeneração passiva por sala
-  if(G.passives.includes('regen'))   G.hp=Math.min(G.hpMax,G.hp+3);
-  if(G.passives.includes('regen_strong')) G.hp=Math.min(G.hpMax,G.hp+8);
+  if(G.passives.includes('regen'))G.hp=Math.min(G.hpMax,G.hp+3);
+  if(G.passives.includes('regen_strong'))G.hp=Math.min(G.hpMax,G.hp+8);
   G.mp=Math.min(G.mpMax,G.mp+G.mpRegen);
   upd();
   if(pendingSubclass){pendingSubclass=false;renderSubclass(sc);return;}
-  if(pendingLevelUp) {pendingLevelUp=false; renderLevelUp(sc);return;}
+  if(pendingLevelUp){pendingLevelUp=false;renderLevelUp(sc);return;}
   G.room++;G.events++;
-  G._mNoDmg=true;
+  G._mNoDmg=true; // reset por sala; vira false se levar dano
   if(G.room>G.maxRooms){G.room=G.maxRooms;startBoss(sc);return;}
 
-  // Sala de Desafio — sala 5 de cada andar
+  // ── Sala de Desafio — aparece na sala 5 de cada andar (se não feita ainda) ──
   if(G.room===5&&!G.challengeRoomDoneThisFloor){
     showChallengeRoomOffer(sc);return;
   }
-  // Mercador Especial — andar 3+, sala 4
+
+  // ── Mercador Especial — andar 3+, sala 4, só uma vez por run ──
   if(G.floor>=3&&G.room===4&&!G.specialMerchantSeen){
     showSpecialMerchant(sc);return;
   }
 
-  // Determina tipo de sala
+  // Bússola Mágica — força tipo de sala
   let chosen='explore';
   if(G.compassNextRoom){
     chosen=G.compassNextRoom;G.compassNextRoom=null;
@@ -1893,41 +1864,36 @@ function renderExplore(sc){
     const w=G.floor>=3?[58,18,10,9,5]:G.floor>=2?[50,24,12,9,5]:[40,30,15,10,5];
     const types=['combat','explore','story','shop','rest'];
     const total=w.reduce((a,b)=>a+b,0);
-    let rn=Math.floor(Math.random()*total)+1;
+    let rn=r(total);
     for(let i=0;i<types.length;i++){rn-=w[i];if(rn<=0){chosen=types[i];break;}}
   }
 
-  // Eventos em cadeia
+  // Eventos em cadeia têm chance de aparecer em vez de eventos normais de story/explore
   if((chosen==='story'||chosen==='explore')&&Math.random()<0.35){
     const chainEvs=EVENTS.filter(e=>e.chain&&e.type===chosen);
     if(chainEvs.length){showEvent(pick(chainEvs),sc);return;}
   }
 
   if(chosen==='combat'){
-    const enemy = Math.random()<.12 ? genElite(G.floor) : genEnemy(G.floor);
+    let enemy;
+    if(Math.random()<.12){
+      enemy=genElite(G.floor);
+    } else {
+      enemy=genEnemy(G.floor);
+    }
     startCombat(enemy,sc);
   } else {
-    // Ferreiro em eventos shop
+    // Ferreiro: 20% de chance em eventos shop, a partir do andar 2
     if(chosen==='shop'&&G.floor>=2&&Math.random()<.20){
-      const smithEv=EVENTS.find(e=>e.id==='blacksmith');
-      if(smithEv){showEvent(smithEv,sc);return;}
+      showEvent(EVENTS.find(e=>e.id==='blacksmith'),sc);return;
     }
-    // Mapa do Tesouro
+    // Mapa do Tesouro — força evento de baú
     if(G.passives.includes('treasure_map')&&chosen==='explore'){
       const idx=G.passives.indexOf('treasure_map');G.passives.splice(idx,1);
       showChestGame(sc,true);return;
     }
-    const evPool=EVENTS.filter(e=>!e.chain&&(
-      e.type===chosen||(chosen==='explore'&&['explore','chest'].includes(e.type))
-    ));
-    // Fallback garantido — nunca mostra tela em branco
-    const pool = evPool.length ? evPool : EVENTS.filter(e=>!e.chain);
-    if(!pool.length){
-      // Último recurso: sala de descanso simples
-      outcome(sc,'neutral','🚶','Corredor Vazio','Nada de insolite aqui. Você segue.',[]);
-      return;
-    }
-    showEvent(pick(pool),sc);
+    const evPool=EVENTS.filter(e=>!e.chain&&(e.type===chosen||(chosen==='explore'&&['explore','chest'].includes(e.type))));
+    showEvent(pick(evPool.length?evPool:EVENTS.filter(e=>!e.chain)),sc);
   }
 }
 
@@ -2015,26 +1981,19 @@ function grantChallengeReward(){
 
 /* ═══ EVENT ═══ */
 function showEvent(ev,sc){
-  // Guard: ev inválido → fallback para explorar
-  if(!ev||!sc){
-    if(sc) sc.innerHTML='';
-    if(G && !G.inCombat) setTimeout(()=>renderExplore($('scroll')),100);
-    return;
-  }
   G.currentEvent=ev;
-  if(ev.id && ev.title) tomoRecordEvent(ev.id, ev.title, ev.ico||'🗺️');
+  if(ev && ev.id && ev.title) tomoRecordEvent(ev.id, ev.title, ev.ico||'🗺️'); // Tomo: registra evento
   sc.innerHTML='';
-  const card=mkCard(ev.type||'explore');
+  const card=mkCard(ev.type);
   card.innerHTML=`
     <div class="ctag"><div class="ctag-dot"></div><span class="ctag-txt">${tagLbl(ev.type)}</span></div>
-    <div class="ctitle">${ev.title||'Evento'}</div>
-    <div class="cillo">${ev.ico||'❓'}</div>
-    <div class="cbody">${ev.body||''}</div>
+    <div class="ctitle">${ev.title}</div>
+    <div class="cillo">${ev.ico}</div>
+    <div class="cbody">${ev.body}</div>
     <div class="choices" id="ev-choices"></div>`;
   sc.appendChild(card);
   const cw=card.querySelector('#ev-choices');
-  if(!cw){scrollBot(sc);return;}
-  // Opção secreta do Tomo
+  // Tomo: adicionar opção secreta se evento visitado 2+ vezes
   const tomoSecrets={
     camp:     {txt:'Vasculhar com experiência',hint:'✦ Cronista — +25 HP e item garantido',fn:'tomo_camp_expert'},
     shrine:   {txt:'Invocar pela memória',hint:'✦ Cronista — bênção poderosa garantida',fn:'tomo_shrine_memory'},
@@ -2043,32 +2002,22 @@ function showEvent(ev,sc){
     library:  {txt:'Ler na língua original',hint:'✦ Cronista — aprende elemento raro',fn:'tomo_library_read'},
     fountain: {txt:'Potencializar a fonte',hint:'✦ Cronista — cura total HP e MP',fn:'tomo_fountain_full'},
   };
-  const evChoices = [...(ev.choices||[])];
+  const evChoices = [...ev.choices];
   if(tomoEventUnlocked(ev.id) && tomoSecrets[ev.id]){
     evChoices.splice(evChoices.length-1, 0, tomoSecrets[ev.id]);
-  }
-  // Garante que sempre há pelo menos um botão
-  if(!evChoices.length){
-    evChoices.push({txt:'Continuar',hint:'',fn:'pass'});
   }
   evChoices.forEach((ch,i)=>{
     const isTomo=ch.fn&&ch.fn.startsWith('tomo_');
     const canDo=isTomo||!ch.cost||canAfford(ch.cost);
-    const btn=document.createElement('button');
-    btn.className='chbtn';
-    btn.disabled=!canDo;
+    const btn=document.createElement('button');btn.className='chbtn';btn.disabled=!canDo;
     btn.innerHTML=`<span class="chkey">${i+1}</span>
       <div class="chinner"><span class="chtxt">${ch.txt}</span>
       ${ch.hint?`<span class="chhint ${ch.hintcls||''}">${ch.hint}</span>`:''}</div>`;
     btn.onclick=()=>{
+      // Ferreiro: não trava os outros botões — permite navegar livremente entre serviços
       if(ev.id!=='blacksmith'){
-        card.querySelectorAll('.chbtn').forEach(b=>{
-          b.disabled=true;
-          b.style.opacity=b===btn?'1':'0.25';
-          b.style.transform='none';
-        });
-        btn.style.borderColor='rgba(200,168,75,.6)';
-        btn.style.background='rgba(200,168,75,.08)';
+        card.querySelectorAll('.chbtn').forEach(b=>{b.disabled=true;b.style.opacity=b===btn?'1':'0.25';b.style.transform='none';});
+        btn.style.borderColor='rgba(200,168,75,.6)';btn.style.background='rgba(200,168,75,.08)';
       }
       doChoice(ev,ch,sc);
     };
@@ -2090,27 +2039,19 @@ function payCost(cost){
 
 /* ═══ OUTCOME ═══ */
 function outcome(sc,type,ico,lbl,txt,tags,narrKey){
-  if(!sc) return;
   upd();
-  if(G && G.hp<=0){setTimeout(()=>showDeath('Caiu em evento.'),400);return;}
-  const el=document.createElement('div');
-  el.className='outcome';
+  if(G.hp<=0){setTimeout(()=>showDeath('Caiu em evento.'),400);return;}
+  const el=document.createElement('div');el.className='outcome';
   const tc={win:'win',lose:'lose',crit:'crit',neutral:'neutral'}[type]||'neutral';
-  const safeIco = ico||'📜';
-  const safeLbl = (lbl||'').toUpperCase();
-  const safeTxt = txt||'';
-  const safeTags = Array.isArray(tags) ? tags : [];
   el.innerHTML=`
-    <div class="ohead"><span class="oico">${safeIco}</span><span class="olbl ${tc}">${safeLbl}</span></div>
-    <div class="obody">${safeTxt}</div>
-    ${safeTags.length?`<div class="tags">${safeTags.map(t=>`<span class="tag ${t.c||''}">${t.t||''}</span>`).join('')}</div>`:''}
+    <div class="ohead"><span class="oico">${ico}</span><span class="olbl ${tc}">${lbl.toUpperCase()}</span></div>
+    <div class="obody">${txt}</div>
+    ${tags.length?`<div class="tags">${tags.map(t=>`<span class="tag ${t.c}">${t.t}</span>`).join('')}</div>`:''}
     ${narrKey?`<div class="narrator">"${narr(narrKey)}"</div>`:''}
     <button class="btn-next" onclick="nextRoom()">Próxima Sala →</button>`;
-  sc.appendChild(el);
-  // Scroll para o botão com pequeno delay para garantir render
-  setTimeout(()=>scrollBot(sc), 50);
+  sc.appendChild(el);scrollBot(sc);
 }
-const nextRoom = () => { if(G) G.currentEvent = null; navTo('explore'); };
+const nextRoom = () => { G.currentEvent = null; navTo('explore'); };
 
 /* ═══ CHOICE HANDLERS ═══ */
 function doChoice(ev,ch,sc){
@@ -2902,9 +2843,8 @@ function buySpecialItem(i){
 
 /* ═══ SUBCLASS ═══ */
 function renderSubclass(sc){
-  if(!sc)return;
+  // No novo sistema, subclasse = ganhar uma Memória Épica ou Rara exclusiva
   sc.innerHTML='';
-  sc.classList.add('has-combat');
   const card=mkCard('explore');
   card.innerHTML=`
     <div class="ctag"><div class="ctag-dot" style="background:#9b59b6"></div><span class="ctag-txt" style="color:#9b59b6">MEMÓRIA DESPERTA</span></div>
@@ -2935,11 +2875,7 @@ function renderSubclass(sc){
 
 /* ═══ LEVEL UP ═══ */
 function renderLevelUp(sc){
-  if(!sc)return;
-  sc.innerHTML='';
-  // Level up sempre alinha ao topo — tem conteúdo suficiente
-  sc.classList.add('has-combat');
-  lvFlash();
+  sc.innerHTML='';lvFlash();
   const card=mkCard('explore');
   const bonus=G.bonusUpgrades||0;
   const count=3+bonus;
@@ -3001,18 +2937,23 @@ function tickStatus(target, isPlayer=false){
 
   // Veneno
   if(target.poisonTurns>0){
-    const d=target.poisonDmg||(isPlayer?3:0);
+    let d=target.poisonDmg||(isPlayer?3:0);
+    // Resistência do Tomo — reduz dano de veneno em 40%
+    if(isPlayer && G.passives.includes('tomo_res_poison')) d=Math.max(1,Math.round(d*0.6));
     target[hpKey]=Math.max(0,target[hpKey]-d);
     target.poisonTurns--;
     clog(`🐍 Veneno: -${d} HP em ${label}. (${target.poisonTurns} rest.)`,
       target[hpKey]<=0?'ls':logLvl);
     if(target[hpKey]<=0) died=true;
   }
-  // Queimadura (não expira por turno — só ao fim do combate)
+  // Queimadura — decrementa por turno (máx 5 turnos por aplicação)
   if(!died&&target.burnTurns>0){
-    const d=target.burnDmg||(isPlayer?4:0);
+    let d=target.burnDmg||(isPlayer?4:0);
+    // Resistência do Tomo — reduz dano de queimadura em 40%
+    if(isPlayer && G.passives.includes('tomo_res_burn')) d=Math.max(1,Math.round(d*0.6));
     target[hpKey]=Math.max(0,target[hpKey]-d);
-    clog(`🔥 Queimadura: -${d} HP em ${label}.`,
+    target.burnTurns--;
+    clog(`🔥 Queimadura: -${d} HP em ${label}. (${target.burnTurns} rest.)`,
       target[hpKey]<=0?'ls':logLvl);
     if(target[hpKey]<=0) died=true;
   }
@@ -3039,7 +2980,7 @@ function buildStatusBadges(target, isPlayer=false){
   if((target.poisonTurns||0)>0)
     html+=`<span class="status-badge poison">🐍${target.poisonTurns}t</span>`;
   if((target.burnTurns||0)>0)
-    html+=`<span class="status-badge burn">🔥∞</span>`;
+    html+=`<span class="status-badge burn">🔥${target.burnTurns}t</span>`;
   if((target.freezeTurns||0)>0)
     html+=`<span class="status-badge freeze">❄️${target.freezeTurns}t</span>`;
   return html;
@@ -3054,8 +2995,8 @@ const READY_ATTACKS={
   // Definidos por id do inimigo ou tipo
   boss1:{name:'Invocar Mortos',ico:'💀',status:'poison',statusTurns:3,statusDmg:5,
     desc:'Invoca uma horda! Aplica Veneno.',dmgMult:1.8},
-  boss2:{name:'Sopro de Fogo',ico:'🔥',status:'burn',statusTurns:0,statusDmg:8,
-    desc:'Fogo devastador! Aplica Queimadura permanente.',dmgMult:2.2},
+  boss2:{name:'Sopro de Fogo',ico:'🔥',status:'burn',statusTurns:5,statusDmg:8,
+    desc:'Fogo devastador! Aplica Queimadura por 5 turnos.',dmgMult:2.2},
   boss3:{name:'Maldição da Morte',ico:'☠️',status:'freeze',statusTurns:2,statusDmg:0,
     desc:'O tempo congela. Aplica Congelamento.',dmgMult:2.0},
   elite:{name:'Golpe Devastador',ico:'⚡',status:null,statusTurns:0,statusDmg:0,
@@ -3117,20 +3058,25 @@ function fireReadyAttack(){
 
 // Reduz barra de prontidão quando jogador causa dano
 function dentReadyBar(dmg){
-  if(!CE||CE.readyMax===undefined)return;
-  // Dano equivale a ~2% da HP do inimigo = 1 tick de redução
-  const threshold=Math.round(CE.hp*0.08);
-  if(dmg>=threshold&&CE.readyCur>0){
-    CE.readyCur=Math.max(0,CE.readyCur-1);
-    clog('⚡ Barra de prontidão interrompida!','ls');
+  if(!CE||CE.readyMax===undefined||CE.readyCur<=0)return;
+  // Baseado no HP atual — mais interativo para danos variados
+  const hpAtual=Math.max(1,CE.hpCur);
+  const pct=dmg/hpAtual;
+  let reducao=0;
+  if(pct>=0.25) reducao=2;       // dano >= 25% HP atual → reduz 2 ticks
+  else if(pct>=0.10) reducao=1;  // dano >= 10% HP atual → reduz 1 tick
+  if(reducao>0){
+    CE.readyCur=Math.max(0,CE.readyCur-reducao);
+    clog(`⚡ Barra de prontidão interrompida${reducao>1?' (forte)':''}!`,'ls');
   }
 }
 
 /* ═══ COMBAT ═══ */
 function startCombat(enemy,sc,disadv=false){
   G.inCombat=true;
-  G._shadowUsed=false; // Assassino: reseta primeiro golpe a cada combate
-  G.divineShield=false; // Paladino: reseta escudo
+  G._shadowUsed=false;       // Assassino: reseta primeiro golpe a cada combate
+  G.divineShield=false;      // Paladino: reseta escudo
+  G._itemUsedThisCombat=false; // Missão noitem: reseta uso de item por combate
   CE={...enemy,hpCur:enemy.hp,stunned:false,poisonTurns:0,burnTurns:0,freezeTurns:0,_marked:false,_markedTurns:0,_foggedTurns:0,_roaredTurns:0,_roaredAtk:0};
   combatLog=[];
   initReadyBar(CE);
@@ -3278,14 +3224,14 @@ function renderCombat(sc){
   sc.appendChild(card);scrollBot(sc);lockBtns(250);
 }
 
-const clog=(t,c='li')=>combatLog.push({t,c});
+const clog=(t,c='li')=>{combatLog.push({t,c});if(combatLog.length>100)combatLog.shift();};
 
 function buildPlayerStatusHtml(){
   const hasAny=(G.poisonTurns||0)>0||(G.burnTurns||0)>0||(G.freezeTurns||0)>0;
   if(!hasAny)return'';
   let badges='';
   if((G.poisonTurns||0)>0)badges+=`<span class="status-badge poison">🐍 Veneno ${G.poisonTurns}t</span>`;
-  if((G.burnTurns||0)>0)badges+=`<span class="status-badge burn">🔥 Queimadura ∞</span>`;
+  if((G.burnTurns||0)>0)badges+=`<span class="status-badge burn">🔥 Queimadura ${G.burnTurns}t</span>`;
   if((G.freezeTurns||0)>0)badges+=`<span class="status-badge freeze">❄️ Gelo ${G.freezeTurns}t</span>`;
   return`<div class="player-status-row" id="pstatus">${badges}</div>`;
 }
@@ -3295,6 +3241,18 @@ function updateCombatUI(){
   if(f)f.style.width=pct(CE.hpCur,CE.hp);
   if(t)t.textContent=CE.hpCur+'/'+CE.hp+' HP';
   if(l){l.innerHTML=combatLog.slice(-6).map(x=>`<div class="${x.c}">${x.t}</div>`).join('');l.scrollTop=l.scrollHeight;}
+  // ── Atualiza indicador de carga elemental sem re-render completo ──
+  const skBtn=$('cb-sk');
+  if(skBtn&&G.activeElement&&G.cls.id==='mage'){
+    const cc=G._elChargeCount||0;
+    const pips=`<span class="charge-pips">${[1,2,3].map(i=>`<span class="cpip${cc>=i?' active':''}${cc>=3?' full':''}"></span>`).join('')}</span>`;
+    const lbl=skBtn.querySelector('.cbtn-lbl');
+    if(lbl){
+      const sk=G.skills[0];
+      lbl.innerHTML=(sk?sk.name:'Magia')+pips;
+    }
+    skBtn.classList.toggle('charged', cc>=3);
+  }
   // Atualiza barra de prontidão sem re-render completo
   const rdyf=$('rdyf');
   if(rdyf&&CE&&CE.readyMax!==undefined){
@@ -3764,12 +3722,12 @@ function enemyTurn(){
   // ── 9. Escudo Divino — bloqueia ataque ──
   if(G.divineShield){
     G.divineShield=false;
+    // Não decrementa _divineShieldTurns aqui — o step 1 do próximo
+    // turno cuida do decay quando divineShield já está false.
     clog('🛡️ Escudo Divino bloqueou o ataque de '+CE.name+'!','ls');
     floatDmg('🛡️ BLOQUEADO','#f1c40f',40,40);
-    sfx('block');
+    sfx('block'||'open');
     updateCombatUI();
-    // Ainda decai o turno do escudo
-    if(G._divineShieldTurns!==undefined){G._divineShieldTurns--;if(G._divineShieldTurns<=0){G.def-=4;clog('🛡️ Bônus de DEF do Escudo Divino expirou.','li');}}
     return;
   }
   // Névoa tóxica — reduz precisão do inimigo
@@ -3805,9 +3763,9 @@ function enemyTurn(){
 }
 
 function checkEnd(){
-  if(!CE || !G) return;
+  if(!CE)return;
   // Phoenix — revive com 30% HP uma vez
-  if(G.hp<=0 && G.passives.includes('phoenix') && !G.phoenixUsed){
+  if(G.hp<=0&&G.passives.includes('phoenix')&&!G.phoenixUsed){
     G.phoenixUsed=true;
     const idx=G.passives.indexOf('phoenix');if(idx>=0)G.passives.splice(idx,1);
     G.hp=Math.round(G.hpMax*.3);
@@ -3822,44 +3780,40 @@ function checkEnd(){
       clog(`💣 EXPLOSÃO! -${exd} HP!`,'le');screenShake();
       if(G.hp<=0){
         if(G.passives.includes('phoenix')&&!G.phoenixUsed){
-          G.phoenixUsed=true;
-          const idx=G.passives.indexOf('phoenix');if(idx>=0)G.passives.splice(idx,1);
+          G.phoenixUsed=true;const idx=G.passives.indexOf('phoenix');if(idx>=0)G.passives.splice(idx,1);
           G.hp=Math.round(G.hpMax*.3);clog('🪶 Pena da Fênix! Revive!','lc');
         } else {showDeath('Morreu na explosão do goblin bomba.');return;}
       }
     }
     G.kills++;
-    if(CE) tomoRecordKill(CE);
-    if(CE.elite) G._mElites=(G._mElites||0)+1;
+  if(CE) tomoRecordKill(CE); // Tomo: registra inimigo morto
+    if(CE.elite)G._mElites=(G._mElites||0)+1;
+    // Missão noitem — incrementa se venceu sem usar item neste combate
+    if(!G._itemUsedThisCombat) G._mNoItem=(G._mNoItem||0)+1;
+    // limpa status do jogador ao vencer
     clearCombatStatus(G);
-    // Arcana cooldown
+    // Arcana cooldown tracking
     if(G.passives.includes('arcana_explosion')){
       if(!G.arcanaReady){
         G.arcanaCombatsSince=(G.arcanaCombatsSince||0)+1;
         if(G.arcanaCombatsSince>=3){G.arcanaReady=true;G.arcanaCombatsSince=0;toast('💜 Explosão Arcana recarregada!',2000);}
       }
     }
-    // Post-combat regen
+    // Post-combat regen (Totem)
     if(G.passives.includes('post_combat_regen')){
       const heal=Math.round(G.hpMax*.10);G.hp=Math.min(G.hpMax,G.hp+heal);
       clog(`🪆 Totem: +${heal} HP restaurado.`,'ls');
     }
-    // Captura dados antes de limpar CE
-    const xg=CE.xp||10;
-    const goldRange=CE.gold||[1,5];
-    const gg=r(goldRange[1]-goldRange[0]+1)+goldRange[0];
-    const wasElite=CE.elite, ceName=CE.name||'Inimigo', ceIco=CE.ico||'👹', isBoss=CE.boss;
+    const xg=CE.xp,gg=r(CE.gold[1]-CE.gold[0]+1)+CE.gold[0];
+    const wasElite=CE.elite,ceName=CE.name,ceIco=CE.ico,isBoss=CE.boss;
     addXP(xg);addGold(gg);
     if(isBoss){logRun('💀',`Chefe derrotado: ${ceIco} ${ceName}`,'crit');sfx('boss_die');screenShake();}
-    else if(wasElite) logRun('⭐',`Elite eliminado: ${ceIco} ${ceName}`,'win');
-    if(G.passives.includes('med')) G.mp=Math.min(G.mpMax,G.mp+8);
+    else if(wasElite)logRun('⭐',`Elite eliminado: ${ceIco} ${ceName}`,'win');
+    if(G.passives.includes('med'))G.mp=Math.min(G.mpMax,G.mp+8);
     checkMissions();grantChallengeReward();
-    clog(`${ceName} derrotado! +${xg}XP +${gg}💰`,'ls');
-    updateCombatUI();
-    const wasBoss=isBoss, fl=G.floor;
-    G.inCombat=false;CE=null;
+    clog(`${ceName} derrotado! +${xg}XP +${gg}💰`,'ls');updateCombatUI();
+    const wasBoss=isBoss,fl=G.floor;G.inCombat=false;CE=null;
     setTimeout(()=>{
-      if(!G) return; // guard contra G ter sido resetado
       if(wasBoss&&fl===3){showVictory();return;}
       if(wasBoss){
         const prevFloor=G.floor;
@@ -3867,6 +3821,7 @@ function checkEnd(){
         logRun('🏰',`Avançou para o Andar ${G.floor}`,'win');
         generateMissions();
         if(prevFloor>=3){
+          // Andares 4+: transição narrativa direta, sem tela de vitória
           const depthMsgs=[
             'As trevas se aprofundam. O silêncio pesa mais do que qualquer armadura.',
             'Você desce. A luz some. Algo lá embaixo te observa há muito tempo.',
@@ -3875,7 +3830,8 @@ function checkEnd(){
             'Não há glória aqui. Apenas sobrevivência. E você ainda está de pé.',
           ];
           toast(`🏰 Andar ${G.floor} — ${pick(depthMsgs)}`,3500);
-          nextRoom();return;
+          const sc2=$('scroll');if(sc2)nextRoom();
+          return;
         }
       }
       showCombatVictory(wasBoss,xg,gg);
@@ -4107,6 +4063,12 @@ function openEquipComparator(newItem){
       </div>
     </div>`;
   document.body.appendChild(ov);
+
+  // Fechar com ESC ou clique no backdrop (fora do cmp-sheet)
+  const closeCmp=()=>{const o=$('equip-cmp-ov');if(o)o.remove();lockBtns(0);};
+  ov.addEventListener('click',e=>{if(e.target===ov)closeCmp();});
+  const escHandler=e=>{if(e.key==='Escape'){closeCmp();document.removeEventListener('keydown',escHandler);}};
+  document.addEventListener('keydown',escHandler);
 }
 
 function doEquipFromComparator(itemId){
@@ -4331,7 +4293,7 @@ function openCheatMenu(){
   const ov=document.createElement('div');ov.id='cheat-overlay';
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9500;display:flex;align-items:flex-end;padding:12px;';
   const allItems=[...ITEMS_POOL];
-  const allElements=[...ELEMENTS,...getAllFusions()];
+  const allElements=[...ELEMENTS,...FUSIONS];
   ov.innerHTML=`
     <div class="cheat-sheet">
       <div class="cheat-header">
@@ -4375,7 +4337,7 @@ function renderCheatItems(){
 function renderCheatElements(){
   const q=($('cheat-el-search')?.value||'').toLowerCase();
   const list=$('cheat-el-list');if(!list)return;
-  const all=[...ELEMENTS,...getAllFusions()];
+  const all=[...ELEMENTS,...FUSIONS];
   const filtered=all.filter(e=>e.name.toLowerCase().includes(q)||e.desc.toLowerCase().includes(q));
   list.innerHTML=filtered.slice(0,20).map(e=>`
     <button class="cheat-btn" style="justify-content:flex-start;gap:8px;text-align:left;" onclick="cheatAddElement('${e.id}')">
@@ -4407,6 +4369,7 @@ function openItemOverlay(items,inCombat){
     btn.innerHTML=`<span class="isheet-ico">${it.ico}</span><div class="isheet-info"><div class="isheet-name ${it.rarity||'common'}">${it.name}</div><div class="isheet-desc">${it.desc||''}</div></div>`;
     btn.onclick=()=>{
       closeItemOverlay();
+      if(inCombat) G._itemUsedThisCombat=true; // Missão noitem: registra uso
       if(it.fn)it.fn(G,inCombat?{E:CE,combat:true,flee:(forced)=>{if(forced){G.inCombat=false;CE=null;combatLog=[];}}}:{});
       it.uses--;if(it.uses<=0)G.inv.splice(G.inv.indexOf(it),1);
       upd();
@@ -4615,11 +4578,13 @@ function showVictory(){
 
 function startNG(){
   const ng=(G.ngPlus||0)+1;
-  const cls=G.cls;
+  // Preserva o build da alma e o nome para reutilizar no NG+
+  const prevBuild = G.soulBuild || {vigor:2,forca:3,arcano:3,espirito:2};
+  const prevName  = G.soulName  || 'Alma Sem Nome';
   hide('s-win');
-  newG(cls);
-  G.ngPlus=ng;
-  G.ngMult=1+ng*0.3;
+  newG({ name: prevName, ...prevBuild });
+  G.ngPlus = ng;
+  G.ngMult = 1 + ng * 0.3;
   show('s-game');
   upd();
   toast(`⚔️ NG+${ng} iniciado! Inimigos ${Math.round(ng*30)}% mais fortes.`,2500);
