@@ -1,13 +1,5 @@
 'use strict';
 
-/* ═══ TOMO DO CRONISTA — Persistência entre runs ═══ */
-// Estrutura: {
-//   fusions: { [fusionId]: { name, ico, count, discovered } }
-//   enemies: { [enemyId]: { name, ico, kills } }
-//   events:  { [eventId]: { title, ico, count } }
-//   deaths:  { [causeType]: { label, count } }  causeType: combat/poison/boss/event/etc
-// }
-
 function tomoLoad(){
   try {
     return JSON.parse(localStorage.getItem('cronista_tomo')||'{}');
@@ -24,7 +16,6 @@ function tomoGet(){
   return t;
 }
 
-// Registra fusão usada em combate
 function tomoRecordFusion(f){
   const t = tomoGet();
   if(!t.fusions[f.id]) t.fusions[f.id] = { name:f.name, ico:f.ico, tier:f.tier, count:0 };
@@ -32,17 +23,14 @@ function tomoRecordFusion(f){
   tomoSave(t);
 }
 
-// Registra inimigo morto — usa name+type como chave para inimigos procedurais
 function tomoRecordKill(enemy){
   const t = tomoGet();
-  // Inimigos procedurais têm id único por run; usar name+type para acumular corretamente
   const key = enemy.proc ? (enemy.name.replace(/[^a-zA-ZÀ-ÿ0-9]/g,'_') + '_' + (enemy.type||'normal')) : (enemy.id || enemy.name);
   if(!t.enemies[key]) t.enemies[key] = { name:enemy.name, ico:enemy.ico.slice(0,4), sub:enemy.sub||'', kills:0 };
   t.enemies[key].kills++;
   tomoSave(t);
 }
 
-// Registra evento vivido
 function tomoRecordEvent(evId, evTitle, evIco){
   const t = tomoGet();
   if(!t.events[evId]) t.events[evId] = { title:evTitle, ico:evIco, count:0 };
@@ -50,7 +38,6 @@ function tomoRecordEvent(evId, evTitle, evIco){
   tomoSave(t);
 }
 
-// Registra morte e causa
 function tomoRecordDeath(causeType, label){
   const t = tomoGet();
   if(!t.deaths[causeType]) t.deaths[causeType] = { label, count:0 };
@@ -58,14 +45,11 @@ function tomoRecordDeath(causeType, label){
   tomoSave(t);
 }
 
-// Bônus do Tomo aplicados ao iniciar run
 function tomoApplyBonuses(){
   if(!G) return;
   const t = tomoGet();
-  // Fusões dominadas (5+ usos): -5 MP por fusão dominada, máx -30
   const dominatedFusions = Object.values(t.fusions).filter(f=>f.count>=5).length;
   G.mpDiscount = (G.mpDiscount||0) + Math.min(30, dominatedFusions * 5);
-  // Mortes por tipo: resistência acumulada
   Object.entries(t.deaths).forEach(([type, d])=>{
     if(d.count >= 2){
       if(type==='poison' && !G.passives.includes('tomo_res_poison')){ G.passives.push('tomo_res_poison'); }
@@ -76,19 +60,16 @@ function tomoApplyBonuses(){
   });
 }
 
-// Verifica se inimigo está "estudado" (3+ kills)
 function tomoIsEnemyStudied(enemyId){
   const t = tomoGet();
   return (t.enemies[enemyId]?.kills||0) >= 3;
 }
 
-// Verifica se evento tem opção extra desbloqueada (2+ visitas)
 function tomoEventUnlocked(evId){
   const t = tomoGet();
   return (t.events[evId]?.count||0) >= 2;
 }
 
-// Raridade da entrada no Tomo
 function tomoRarity(count, type){
   if(type==='fusion'){
     if(count>=20) return 'legendary';
@@ -111,29 +92,23 @@ function tomoRarity(count, type){
   return 'common';
 }
 
-/* ─── Tela do Tomo ─── */
 function showTomoScreen(){
   const t = tomoGet();
   const rarityColor = { common:'var(--txt2)', rare:'var(--blu)', epic:'var(--purple,#9b59b6)', legendary:'var(--gold)' };
   const rarityLabel = { common:'Comum', rare:'Raro', epic:'Épico', legendary:'Lendário' };
-
   const fusionEntries = Object.values(t.fusions).sort((a,b)=>b.count-a.count);
   const enemyEntries  = Object.values(t.enemies).sort((a,b)=>b.kills-a.kills);
   const eventEntries  = Object.values(t.events).sort((a,b)=>b.count-a.count);
   const deathEntries  = Object.entries(t.deaths).map(([k,v])=>({...v,key:k})).sort((a,b)=>b.count-a.count);
-
   const totalEntries = fusionEntries.length + enemyEntries.length + eventEntries.length + deathEntries.length;
-
   const dominated = fusionEntries.filter(f=>f.count>=5).length;
   const mpDisc = Math.min(30, dominated*5);
-
   const section = (title, ico, items, emptyTxt) => `
     <div class="tomo-section">
       <div class="tomo-section-title">${ico} ${title}</div>
       ${items.length ? items.map(i=>i).join('') : `<div class="tomo-empty">${emptyTxt}</div>`}
     </div>`;
-
-  const fusionRows = fusionEntries.map(f=>{
+    const fusionRows = fusionEntries.map(f=>{
     const rar = tomoRarity(f.count,'fusion');
     const dominated = f.count>=5;
     return `<div class="tomo-entry">
@@ -145,7 +120,6 @@ function showTomoScreen(){
       <span class="tomo-badge" style="color:${rarityColor[rar]}">${rarityLabel[rar]}</span>
     </div>`;
   });
-
   const enemyRows = enemyEntries.map(e=>{
     const rar = tomoRarity(e.kills,'enemy');
     const studied = e.kills>=3;
@@ -158,7 +132,6 @@ function showTomoScreen(){
       <span class="tomo-badge" style="color:${rarityColor[rar]}">${rarityLabel[rar]}</span>
     </div>`;
   });
-
   const eventRows = eventEntries.map(e=>{
     const rar = tomoRarity(e.count,'event');
     const unlocked = e.count>=2;
@@ -171,7 +144,6 @@ function showTomoScreen(){
       <span class="tomo-badge" style="color:${rarityColor[rar]}">${rarityLabel[rar]}</span>
     </div>`;
   });
-
   const deathRows = deathEntries.map(d=>{
     const rar = tomoRarity(d.count,'death');
     const resisted = d.count>=2;
@@ -184,7 +156,6 @@ function showTomoScreen(){
       <span class="tomo-badge" style="color:${rarityColor[rar]}">${rarityLabel[rar]}</span>
     </div>`;
   });
-
   const tomoEl = document.getElementById('tomo-screen');
   tomoEl.innerHTML = `
     <div class="tomo-wrap">
@@ -199,8 +170,7 @@ function showTomoScreen(){
       ${section('Causas de Morte','💀', deathRows, 'Nenhuma morte registrada ainda.')}
       <button class="tomo-close-btn" onclick="hideTomoScreen()">← Voltar</button>
     </div>`;
-
-  document.getElementById('tomo-screen').classList.remove('off');
+    document.getElementById('tomo-screen').classList.remove('off');
   document.getElementById('s-title').classList.add('off');
 }
 
@@ -208,34 +178,23 @@ function hideTomoScreen(){
   document.getElementById('tomo-screen').classList.add('off');
   document.getElementById('s-title').classList.remove('off');
 }
-
-
-
-/* ═══ MEMÓRIAS — fragmentos de vidas passadas ═══ */
 const MEMORIES = [
-  // Afinidade: forca
   {id:'mem_warrior',  name:'Memória do Guerreiro',   ico:'⚔️', mp:10, desc:'Golpe físico pesado. Dano baseado em ATK.',      type:'mem_warrior',   affinity:'forca',   rarity:'common'},
   {id:'mem_berserker',name:'Memória do Berserker',   ico:'🪓', mp:14, desc:'Ataque duplo. Consome 10% do HP próprio.',       type:'mem_berserker', affinity:'forca',   rarity:'rare'},
   {id:'mem_knight',   name:'Memória do Cavaleiro',   ico:'🛡️',mp:8,  desc:'Bloqueia próximo ataque. +3 DEF por 2 turnos.', type:'mem_knight',    affinity:'forca',   rarity:'common'},
-  // Afinidade: arcano
   {id:'mem_mage',     name:'Memória do Mago',        ico:'🔥', mp:18, desc:'Dano mágico massivo baseado em MAG.',            type:'mem_mage',      affinity:'arcano',  rarity:'common'},
   {id:'mem_shaman',   name:'Memória do Xamã',        ico:'🌀', mp:22, desc:'Invoca o elemento ativo.',                       type:'elemental',     affinity:'arcano',  rarity:'common'},
   {id:'mem_oracle',   name:'Memória da Oráculo',     ico:'🔮', mp:16, desc:'Drena MP do inimigo e cura HP.',                type:'mem_oracle',    affinity:'arcano',  rarity:'rare'},
   {id:'mem_necro',    name:'Memória do Necromante',  ico:'💀', mp:20, desc:'Enfraquece inimigo: -4 ATK por 3 turnos.',      type:'mem_necro',     affinity:'arcano',  rarity:'rare'},
-  // Afinidade: espirito
   {id:'mem_healer',   name:'Memória do Curandeiro',  ico:'💚', mp:14, desc:'Cura HP baseada em MAG.',                       type:'mem_healer',    affinity:'espirito',rarity:'common'},
   {id:'mem_assassin', name:'Memória do Assassino',   ico:'🌑', mp:12, desc:'Dano crítico garantido.',                       type:'sneak',         affinity:'espirito',rarity:'common'},
   {id:'mem_bard',     name:'Memória do Trovador',    ico:'🎵', mp:10, desc:'+4 ATK e +4 DEF por 3 turnos.',                type:'mem_bard',      affinity:'espirito',rarity:'rare'},
-  // Afinidade: vigor
   {id:'mem_titan',    name:'Memória do Titã',        ico:'💪', mp:16, desc:'Ataque pesado. Cura 10 HP por golpe.',          type:'mem_titan',     affinity:'vigor',   rarity:'rare'},
   {id:'mem_monk',     name:'Memória do Monge',       ico:'🥋', mp:8,  desc:'Ataque rápido 3x consecutivo.',                type:'mem_monk',      affinity:'vigor',   rarity:'common'},
-  // Memórias épicas — andar 3+
   {id:'mem_dragonborn',name:'Memória do Dragão',     ico:'🐉', mp:30, desc:'Sopro elemental devastador. Ignora DEF.',       type:'mem_dragon',    affinity:'arcano',  rarity:'epic'},
   {id:'mem_valkyrie', name:'Memória da Valquíria',   ico:'⚡', mp:25, desc:'Ataque relâmpago + ressuscita com 30 HP uma vez.',type:'mem_valkyrie', affinity:'forca',  rarity:'epic'},
   {id:'mem_anubis',   name:'Memória de Anúbis',      ico:'⚖️', mp:28, desc:'Julga o inimigo: dano = karma acumulado × 3.', type:'mem_anubis',    affinity:'espirito',rarity:'epic'},
 ];
-
-/* ═══ NARRADOR ═══ */
 const NARR={
   buy:["O ouro muda de mãos. O destino, quem sabe.","Transações honestas são raras nessas terras."],
   win_combat:["Mais um obstáculo removido do seu caminho.","A vitória tem um sabor amargo quando se sabe o que vem a seguir.","Eles caíram. Você permanece. Por ora."],
@@ -253,8 +212,6 @@ const NARR={
   elite:["Brilha diferente. Mata diferente. Cuidado.","Um guerreiro comum... com algo a mais. Muito a mais."],
 };
 const narr=key=>{const a=NARR[key]||NARR.win_combat;return a[Math.floor(Math.random()*a.length)];};
-
-/* ═══ CLASSES ═══ */
 const CLASSES=[
   {id:'warrior',name:'Paladino',ico:'🛡️',flavor:'Guardião sagrado — protege, pune e persiste.',
    hp:120,mp:40,atk:13,def:10,mag:4,spd:5,crit:.09,dodge:.05,lifesteal:0,bars:{atk:82,def:72,mag:22},
@@ -329,8 +286,6 @@ const CLASSES=[
      {id:'venomancer',key:'arc',name:'Envenenador',ico:'🐍🌑',desc:'Venenos em cadeia — múltiplos inimigos envenenados.',bonus:'Veneno em área, MAG+4',fn:G=>{G.mag+=4;G.passives.push('chain_poison');}},
    ]},
 ];
-
-/* ═══ ENEMIES ═══ */
 const ENEMIES=[
   {id:'rat',   name:'Rato Gigante',    ico:'🐀',sub:'Verme comum',     hp:18, atk:4, def:1, xp:8,  gold:[1,4],  floor:1,badges:[],               boss:false,type:'normal'},
   {id:'skel',  name:'Esqueleto',       ico:'💀',sub:'Morto-vivo',      hp:30, atk:7, def:2, xp:14, gold:[2,6],  floor:1,badges:['Morto-vivo'],    boss:false,type:'undead'},
@@ -347,7 +302,6 @@ const ENEMIES=[
   {id:'boss1', name:'Necromante Sombrio',ico:'🦇',sub:'⚠ CHEFE — Andar 1',hp:120,atk:12,def:6, xp:90, gold:[22,38], floor:1,badges:['Chefe','Invoca mortos'],boss:true,type:'undead'},
   {id:'boss2', name:'Dragão das Cinzas', ico:'🐉',sub:'⚠ CHEFE — Andar 2',hp:220,atk:22,def:11,xp:155,gold:[45,70], floor:2,badges:['Chefe','Sopro de fogo'],boss:true,type:'demon'},
   {id:'boss3', name:'Rei Lich',          ico:'👑',sub:'⚠ CHEFE FINAL',   hp:320,atk:26,def:16,xp:260,gold:[85,130],floor:3,badges:['Chefe','Maldição','Imortal'],boss:true,type:'undead'},
-  // Andares 4+
 {name:'Arauto do Vazio',     ico:'👁️', floor:4,hp:90, atk:22,def:8, xp:55,gold:[18,30],badges:['Drena MP']},
 {name:'Colosso de Obsidiana',ico:'🗿', floor:4,hp:130,atk:18,def:16,xp:60,gold:[20,35],badges:['Regeneração']},
 {name:'Lich Menor',          ico:'💀', floor:5,hp:100,atk:25,def:10,xp:70,gold:[22,38],badges:['Maldição','Drena MP']},
@@ -358,12 +312,6 @@ const ENEMIES=[
 {name:'Arquilich',           ico:'💀', floor:5,hp:250,atk:35,def:18,xp:180,gold:[75,110],badges:['Maldição','Drena MP','Explosão'],boss:true},
 {name:'Deus do Vazio',       ico:'🌑', floor:6,hp:300,atk:40,def:20,xp:220,gold:[90,130],badges:['Regeneração','Fúria','Dreno de vida','Explosão'],boss:true},
 ];
-
-
-/* ═══════════════════════════════════════════════════════
-   GERADOR PROCEDURAL DE INIMIGOS
-═══════════════════════════════════════════════════════ */
-
 const PROC_ARCHETYPES = [
   {name:'Goblin',      ico:'👺',type:'normal', hp:20,atk:6, def:2, badges:[]},
   {name:'Esqueleto',   ico:'💀',type:'undead', hp:22,atk:7, def:2, badges:['Morto-vivo']},
@@ -386,7 +334,6 @@ const PROC_ARCHETYPES = [
   {name:'Nécromante',  ico:'🪄',type:'magic',  hp:26,atk:10,def:3, badges:['Invoca mortos']},
   {name:'Colosso',     ico:'⛏️',type:'construct',hp:60,atk:11,def:12,badges:['Armadura']},
 ];
-
 const PROC_MODIFIERS = [
   {prefix:'Veloz',     ico:'💨',hpM:.8, atkM:1.2,defM:.9, badges:['Certeiro'],    xpM:1.1},
   {prefix:'Blindado',  ico:'🛡️',hpM:1.2,atkM:.9, defM:1.5, badges:['Armadura'],   xpM:1.2},
@@ -404,9 +351,7 @@ const PROC_MODIFIERS = [
   {prefix:'Corrompido',ico:'🌀',hpM:1.1,atkM:1.3,defM:.9, badges:['Maldição'],  xpM:1.2},
   {prefix:'Furioso',   ico:'😤',hpM:.9, atkM:1.4,defM:.8, badges:['Fúria'],      xpM:1.2},
 ];
-
 const ELITE_PREFIXES = ['Campeão','Ancião','Corrompido','Lorde','Guardião','Arauto','Executioner','Tirano'];
-
 const BOSS_NAMES = [
   ['Senhor','das Sombras'],['Devorador','de Almas'],['Arauto','do Vazio'],
   ['Tirano','Eterno'],['Arquimago','das Trevas'],['Colosso','Primordial'],
@@ -414,9 +359,7 @@ const BOSS_NAMES = [
   ['Lorde','da Perdição'],['Entidade','Cósmica'],['Deus','do Esquecimento'],
   ['Juiz','das Eras'],['Destruidor','de Mundos'],['Oráculo','da Morte'],
 ];
-
 const BOSS_ICOS = ['👁️','🌑','💀','🐉','👑','🌌','😈','🦇','⚡','🔱','🌀','☠️','🗿','🧿','🔥'];
-
 const BOSS_BADGES_POOL = [
   ['Chefe','Fúria'],['Chefe','Maldição'],['Chefe','Dreno de vida'],
   ['Chefe','Explosão'],['Chefe','Regeneração'],['Chefe','Drena MP'],
@@ -433,8 +376,6 @@ function genProcEnemy(floor, isElite=false){
   const arch=pick(PROC_ARCHETYPES);
   const mod1=pick(PROC_MODIFIERS);
   const ngMult=G?.ngMult||1;
-
-  // Elite usa dois modificadores e escala maior
   let mod2=null;
   if(isElite){
     mod2=pick(PROC_MODIFIERS);
@@ -446,7 +387,6 @@ function genProcEnemy(floor, isElite=false){
   const atkM=isElite?mod1.atkM*mod2.atkM:mod1.atkM;
   const defM=isElite?mod1.defM*mod2.defM*1.2:mod1.defM;
   const xpM =isElite?mod1.xpM*mod2.xpM:mod1.xpM;
-
   const hp =Math.round(arch.hp *hpM *total);
   const atk=Math.round(arch.atk*atkM*total);
   const def=Math.round(arch.def*defM*(1+(floor-1)*0.12));
@@ -454,14 +394,12 @@ function genProcEnemy(floor, isElite=false){
   const gold=isElite
     ?[Math.round((5+floor*2)*total), Math.round((10+floor*3)*total)]
     :[Math.round((2+floor)*total),   Math.round((5+floor*2)*total)];
-
-  const badges=isElite
+    const badges=isElite
     ?[...new Set(['Elite',...arch.badges,...mod1.badges,...mod2.badges])]
     :[...new Set([...arch.badges,...mod1.badges])];
   if(!isElite&&floor>=5&&Math.random()<0.4)
     badges.push(pick(['Fúria','Resistência','Certeiro','Drena MP']));
-
-  const prefix=isElite?pick(ELITE_PREFIXES):null;
+    const prefix=isElite?pick(ELITE_PREFIXES):null;
   return {
     id:(isElite?'elite_':'proc_')+r(99999),
     name:isElite?`★ ${prefix} ${arch.name}`:`${mod1.prefix} ${arch.name}`,
@@ -483,22 +421,16 @@ function genBoss(floor){
   const badges=pick(BOSS_BADGES_POOL);
   const scale=floorScale(floor);
   const ngMult=G?.ngMult||1;
-
   const hp  = Math.round(80  * Math.pow(floor,1.4) * ngMult);
   const atk = Math.round(8   * floor * scale * ngMult);
   const def = Math.round(3   * floor * (1+(floor-1)*0.1) * ngMult);
   const xp  = Math.round(60  * floor * 1.3);
   const gold= [Math.round(20*floor*ngMult), Math.round(35*floor*ngMult)];
-
-  // Adiciona badge extra a partir do andar 5
   if(floor>=5) badges.push(pick(['Fúria','Maldição','Drena MP','Explosão']));
-
-  // Ataque especial baseado nas badges
   const atkSpecial=badges.includes('Sopro de fogo')||badges.includes('Queimadura')?'boss2':
                    badges.includes('Maldição')||badges.includes('Imortal')?'boss3':'boss1';
-
-  return {
-    id:atkSpecial, // reutiliza ataque especial existente
+ return {
+    id:atkSpecial,
     name:`${title} ${epithet}`,
     ico,
     sub:`⚠ CHEFE — Andar ${floor}`,
@@ -509,9 +441,6 @@ function genBoss(floor){
     _atkSpecialId: atkSpecial,
   };
 }
-
-
-/* ═══ ITEMS ═══ */
 const ITEMS_POOL=[
   {id:'potion',    name:'Poção Menor',      ico:'🧪',rarity:'common', uses:1, slot:null,   desc:'Recupera HP',              fn:G=>{const h=r(15)+10;G.hp=Math.min(G.hpMax,G.hp+h);toast(`+${h} HP!`);}},
   {id:'potion2',   name:'Poção Maior',      ico:'🍶',rarity:'rare',   uses:1, slot:null,   desc:'Recupera mais HP',         fn:G=>{const h=r(25)+25;G.hp=Math.min(G.hpMax,G.hp+h);toast(`+${h} HP!`);}},
@@ -538,7 +467,6 @@ const ITEMS_POOL=[
   {id:'boots',cls:'rogue',     name:'Botas Ágeis',       ico:'👟',rarity:'common', uses:null,slot:'feet', bonus:{spd:3},                desc:'+3 VEL'},
   {id:'amulet',    name:'Amuleto Vital',     ico:'❤️',rarity:'rare',   uses:null,slot:null,   bonus:{hpMax:20},             desc:'+20 HP MAX'},
   {id:'ring',      name:'Anel de Poder',     ico:'💍',rarity:'epic',   uses:null,slot:null,   bonus:{atk:5,mag:5},          desc:'+5 ATK +5 MAG'},
-  // ═══ ITENS ESPECIAIS ═══
   {id:'treasure_map',name:'Mapa do Tesouro',    ico:'🗺️',rarity:'epic',     uses:1,slot:null,desc:'Revela baús na próxima sala de tesouro.',
     fn:G=>{G.passives.push('treasure_map');toast('🗺️ Próxima sala de tesouro revelada!');}},
   {id:'master_key',  name:'Chave Mestre',        ico:'🗝️',rarity:'rare',     uses:1,slot:null,desc:'Abre qualquer baú sem risco.',
@@ -558,10 +486,10 @@ const ITEMS_POOL=[
       const sk2=G.cls.skill2;
       if(!sk2){toast('Sua classe não tem skill extra!');return;}
       if(G.skills.some(s=>s.type===sk2.type)){toast('Skill já conhecida!');return;}
-      // Substitui o slot 2 se existir; caso contrário adiciona (máx 2 skills visíveis)
+      
       if(G.skills.length>=2) G.skills[1]={...sk2};
       else G.skills.push({...sk2});
-      G.memories=G.skills; // mantém sincronizado
+      G.memories=G.skills;
       toast(`📕 ${sk2.name} aprendida no slot 2!`);
     }},
   {id:'lucky_coin',    name:'Moeda da Sorte',      ico:'🪙',rarity:'uncommon',uses:1,slot:null,desc:'50% dobrar ouro atual, 50% perder 30%.',
@@ -572,18 +500,12 @@ const ITEMS_POOL=[
     fn:G=>{G.mp=G.mpMax;upd();toast('💎 MP totalmente restaurado!');}},
   {id:'guardian_eye',  name:'Olho do Guardião',    ico:'👁️',rarity:'epic',   uses:null,slot:null,bonus:{},desc:'Revela atributos do inimigo antes do combate.',
     fn:G=>{G.passives.push('guardian_eye');toast('👁️ Você agora vê os atributos dos inimigos!');}},
-
-  // ═══ ITENS EXCLUSIVOS POR CLASSE ═══
-
-  // ── Paladino (warrior) ──
   {id:'holy_sword',    cls:'warrior',name:'Espada Sagrada',     ico:'✝️⚔️',rarity:'rare',   uses:null,slot:'weapon',bonus:{atk:9,def:3},            desc:'+9 ATK +3 DEF'},
   {id:'divine_shield_item',cls:'warrior',name:'Escudo Divino',  ico:'🛡️✨',rarity:'epic',   uses:null,slot:'chest', bonus:{def:14,hp:25},            desc:'+14 DEF +25 HP'},
   {id:'paladin_helm',  cls:'warrior',name:'Elmo do Paladino',   ico:'⛑️✝️',rarity:'rare',   uses:null,slot:'head',  bonus:{def:6,hp:12},             desc:'+6 DEF +12 HP'},
   {id:'sacred_boots',  cls:'warrior',name:'Botas Sagradas',     ico:'👢✝️',rarity:'common', uses:null,slot:'feet',  bonus:{spd:2,def:2},             desc:'+2 VEL +2 DEF'},
   {id:'holy_potion',   cls:'warrior',name:'Bálsamo Sagrado',    ico:'🏺',  rarity:'common', uses:1,   slot:null,    desc:'Cura 35 HP e remove veneno',fn:G=>{const h=35;G.hp=Math.min(G.hpMax,G.hp+h);G.poisonTurns=0;toast(`✝️ +${h} HP, veneno removido!`);}},
   {id:'crusader_ring', cls:'warrior',name:'Anel do Cruzado',    ico:'💍✝️',rarity:'epic',   uses:null,slot:null,   bonus:{atk:6,def:4,hp:15},        desc:'+6 ATK +4 DEF +15 HP'},
-
-  // ── Mago ──
   {id:'arcane_wand',   cls:'mage',  name:'Varinha Arcana',      ico:'🪄✨',rarity:'common', uses:null,slot:'weapon',bonus:{mag:6},                  desc:'+6 MAG'},
   {id:'void_staff',    cls:'mage',  name:'Cajado do Vazio',     ico:'🌑🪄',rarity:'epic',   uses:null,slot:'weapon',bonus:{mag:16,mp:15,spd:-1},     desc:'+16 MAG +15 MP -1 VEL'},
   {id:'mage_robe',     cls:'mage',  name:'Manto Arcano',        ico:'🥻',  rarity:'common', uses:null,slot:'chest', bonus:{mag:4,mp:10},             desc:'+4 MAG +10 MP'},
@@ -591,16 +513,12 @@ const ITEMS_POOL=[
   {id:'mana_boots',    cls:'mage',  name:'Botas da Concentração',ico:'👟💙',rarity:'rare',  uses:null,slot:'feet',  bonus:{mag:4,spd:1},             desc:'+4 MAG +1 VEL'},
   {id:'spell_scroll',  cls:'mage',  name:'Pergaminho de Feitiço',ico:'📜🔮',rarity:'rare',  uses:1,   slot:null,    desc:'Dano mágico imediato (40-60)',fn:(G,ctx)=>{if(!ctx?.combat||!ctx?.E){toast('Só em combate!');return;}const d=r(20)+40;ctx.E.hpCur=Math.max(0,ctx.E.hpCur-d);toast(`📜 -${d} HP mágico!`);updateCombatUI();}},
   {id:'mage_ring',     cls:'mage',  name:'Anel do Arcano',      ico:'💍🔮',rarity:'epic',   uses:null,slot:null,   bonus:{mag:8,mp:20},              desc:'+8 MAG +20 MP'},
-
-  // ── Ladino/Assassino (rogue) ──
   {id:'shadow_blade',  cls:'rogue', name:'Lâmina das Sombras',  ico:'🌑🗡️',rarity:'rare',  uses:null,slot:'weapon',bonus:{atk:7,crit:.1,spd:2},     desc:'+7 ATK +10% CRIT +2 VEL'},
   {id:'rogue_armor',   cls:'rogue', name:'Armadura do Ladrão',  ico:'🥷🎭',rarity:'rare',   uses:null,slot:'chest', bonus:{def:5,dodge:.06},          desc:'+5 DEF +6% ESQUIVA'},
   {id:'assassin_mask', cls:'rogue', name:'Máscara do Assassino',ico:'🎭🌑',rarity:'epic',   uses:null,slot:'head',  bonus:{crit:.12,dodge:.05},       desc:'+12% CRIT +5% ESQUIVA'},
   {id:'swift_boots',   cls:'rogue', name:'Botas Velozes',       ico:'👟💨',rarity:'common', uses:null,slot:'feet',  bonus:{spd:4,dodge:.03},          desc:'+4 VEL +3% ESQUIVA'},
   {id:'poison_vial',   cls:'rogue', name:'Ampola de Veneno',    ico:'🐍💉',rarity:'epic',   uses:1,   slot:null,    desc:'Veneno forte (6dmg/turno, 5t)',fn:(G,ctx)=>{if(!ctx?.combat||!ctx?.E){toast('Só em combate!');return;}ctx.E.poisonDmg=6;ctx.E.poisonTurns=5;toast('🐍 Veneno forte aplicado!');}},
   {id:'rogue_ring',    cls:'rogue', name:'Anel do Ladrão',      ico:'💍🗡️',rarity:'epic',   uses:null,slot:null,   bonus:{atk:4,crit:.08,spd:2},     desc:'+4 ATK +8% CRIT +2 VEL'},
-
-  // ── Druida ──
   {id:'nature_staff',  cls:'druid', name:'Cajado da Natureza',  ico:'🌿🪄',rarity:'rare',   uses:null,slot:'weapon',bonus:{mag:7,hp:10},             desc:'+7 MAG +10 HP'},
   {id:'bark_armor',    cls:'druid', name:'Armadura de Casca',   ico:'🌳🛡️',rarity:'common', uses:null,slot:'chest', bonus:{def:5,hp:8},              desc:'+5 DEF +8 HP'},
   {id:'druid_crown',   cls:'druid', name:'Coroa das Raízes',    ico:'🌿👑',rarity:'epic',   uses:null,slot:'head',  bonus:{mag:8,hp:15},             desc:'+8 MAG +15 HP'},
@@ -608,8 +526,6 @@ const ITEMS_POOL=[
   {id:'healing_herb',  cls:'druid', name:'Erva Curativa',       ico:'🌿💚',rarity:'common', uses:1,   slot:null,    desc:'Cura 30 HP + regen 10HP/turno por 3t',fn:G=>{const h=30;G.hp=Math.min(G.hpMax,G.hp+h);G.regenTurns=(G.regenTurns||0)+3;G.regenAmt=10;toast(`🌿 +${h} HP + regen!`);}},
   {id:'nature_ring',   cls:'druid', name:'Anel da Floresta',    ico:'💍🌿',rarity:'epic',   uses:null,slot:null,   bonus:{mag:6,hp:20},              desc:'+6 MAG +20 HP'},
   {id:'druid_tome',    cls:'druid', name:'Tomo da Natureza',    ico:'📗🌿',rarity:'legendary',uses:1,  slot:null,   desc:'+15 HP máx e +5 MAG permanente',fn:G=>{G.hpMax+=15;G.hp=Math.min(G.hpMax,G.hp+15);G.mag+=5;upd();toast('📗 Poder da Natureza absorvido!');}},
-
-  // ── Caçador ──
   {id:'hunter_bow',    cls:'hunter',name:'Arco do Caçador',     ico:'🏹',  rarity:'common', uses:null,slot:'weapon',bonus:{atk:5,spd:2},             desc:'+5 ATK +2 VEL'},
   {id:'longbow',       cls:'hunter',name:'Arco Longo Reforçado',ico:'🏹💥',rarity:'epic',   uses:null,slot:'weapon',bonus:{atk:12,crit:.08,spd:1},   desc:'+12 ATK +8% CRIT +1 VEL'},
   {id:'hunter_vest',   cls:'hunter',name:'Colete do Caçador',   ico:'🎯🥋',rarity:'rare',   uses:null,slot:'chest', bonus:{def:4,dodge:.05,spd:1},   desc:'+4 DEF +5% ESQUIVA +1 VEL'},
@@ -617,8 +533,6 @@ const ITEMS_POOL=[
   {id:'ranger_boots',  cls:'hunter',name:'Botas do Ranger',     ico:'🥾🏹',rarity:'common', uses:null,slot:'feet',  bonus:{spd:4,dodge:.02},          desc:'+4 VEL +2% ESQUIVA'},
   {id:'beast_trap',    cls:'hunter',name:'Armadilha de Fera',   ico:'🪤',  rarity:'epic',   uses:1,   slot:null,    desc:'Imobiliza inimigo por 2 turnos',fn:(G,ctx)=>{if(!ctx?.combat||!ctx?.E){toast('Só em combate!');return;}ctx.E.freezeTurns=(ctx.E.freezeTurns||0)+2;toast('🪤 Inimigo imobilizado!');}},
   {id:'hunter_ring',   cls:'hunter',name:'Anel da Presa',       ico:'💍🏹',rarity:'epic',   uses:null,slot:null,   bonus:{atk:5,crit:.07,spd:1},     desc:'+5 ATK +7% CRIT +1 VEL'},
-
-  // ── Feiticeiro ──
   {id:'chaos_orb',     cls:'sorcerer',name:'Orbe do Caos',      ico:'🌀🔮',rarity:'rare',   uses:null,slot:'weapon',bonus:{mag:9,mp:5},              desc:'+9 MAG +5 MP'},
   {id:'storm_staff',   cls:'sorcerer',name:'Cajado da Tempestade',ico:'⚡🪄',rarity:'epic',  uses:null,slot:'weapon',bonus:{mag:15,mp:20},            desc:'+15 MAG +20 MP'},
   {id:'arcane_robe',   cls:'sorcerer',name:'Manto Caótico',     ico:'🌀🥻',rarity:'common', uses:null,slot:'chest', bonus:{mag:5,mp:12},             desc:'+5 MAG +12 MP'},
@@ -626,8 +540,6 @@ const ITEMS_POOL=[
   {id:'sorc_boots',    cls:'sorcerer',name:'Botas Arcanas',     ico:'👟🌀',rarity:'common', uses:null,slot:'feet',  bonus:{mag:3,spd:1},             desc:'+3 MAG +1 VEL'},
   {id:'chaos_elixir',  cls:'sorcerer',name:'Elixir do Caos',    ico:'⚗️🌀',rarity:'epic',   uses:1,   slot:null,    desc:'+12 MAG temporário por 3 salas',fn:G=>{G.mag+=12;G.tmpBuffs.push({stat:'mag',val:12,rooms:3});toast('🌀 +12 MAG caótico!');}},
   {id:'sorc_ring',     cls:'sorcerer',name:'Anel da Tempestade',ico:'💍⚡',rarity:'epic',   uses:null,slot:null,   bonus:{mag:9,mp:15},              desc:'+9 MAG +15 MP'},
-
-  // ── Bárbaro ──
   {id:'great_axe',     cls:'barbarian',name:'Grande Machado',   ico:'🪓💥',rarity:'common', uses:null,slot:'weapon',bonus:{atk:9,spd:-1},            desc:'+9 ATK -1 VEL'},
   {id:'war_hammer',    cls:'barbarian',name:'Martelo de Guerra',ico:'🔨',  rarity:'epic',   uses:null,slot:'weapon',bonus:{atk:16,def:4,spd:-2},     desc:'+16 ATK +4 DEF -2 VEL'},
   {id:'berserk_armor', cls:'barbarian',name:'Armadura Bárbara', ico:'🔴🛡️',rarity:'rare',   uses:null,slot:'chest', bonus:{def:8,hp:20,atk:3},       desc:'+8 DEF +20 HP +3 ATK'},
@@ -635,31 +547,22 @@ const ITEMS_POOL=[
   {id:'berserker_boots',cls:'barbarian',name:'Botas do Bárbaro',ico:'👢🔴',rarity:'common', uses:null,slot:'feet',  bonus:{spd:2,atk:2},             desc:'+2 VEL +2 ATK'},
   {id:'rage_potion',   cls:'barbarian',name:'Poção de Fúria',   ico:'🍺🔴',rarity:'rare',   uses:1,   slot:null,    desc:'+10 ATK temporário por 2 salas',fn:G=>{G.atk+=10;G.tmpBuffs.push({stat:'atk',val:10,rooms:2});toast('🍺 FÚRIA! +10 ATK!');}},
   {id:'barb_ring',     cls:'barbarian',name:'Anel do Guerreiro',ico:'💍🔴',rarity:'epic',   uses:null,slot:null,   bonus:{atk:8,hp:20},              desc:'+8 ATK +20 HP'},
-
-  // ── Assassino ──
   {id:'poison_dagger', cls:'assassin_cls',name:'Adaga Envenenada',ico:'🗡️🐍',rarity:'rare', uses:null,slot:'weapon',bonus:{atk:7,crit:.09},          desc:'+7 ATK +9% CRIT'},
   {id:'shadow_cloak',  cls:'assassin_cls',name:'Manto das Sombras',ico:'🌑🥷',rarity:'epic', uses:null,slot:'chest', bonus:{dodge:.1,spd:2},           desc:'+10% ESQUIVA +2 VEL'},
   {id:'death_hood',    cls:'assassin_cls',name:'Capuz da Morte',  ico:'💀🎭',rarity:'epic',  uses:null,slot:'head',  bonus:{crit:.13,dodge:.04},       desc:'+13% CRIT +4% ESQUIVA'},
   {id:'shadow_boots',  cls:'assassin_cls',name:'Botas Silenciosas',ico:'👟🌑',rarity:'common',uses:null,slot:'feet', bonus:{spd:4,dodge:.04},           desc:'+4 VEL +4% ESQUIVA'},
   {id:'smoke_bomb',    cls:'assassin_cls',name:'Bomba de Névoa',  ico:'💨🌑',rarity:'rare',  uses:1,   slot:null,    desc:'30% chance inimigo errar por 3t',fn:(G,ctx)=>{if(!ctx?.combat||!ctx?.E){toast('Só em combate!');return;}ctx.E._foggedTurns=3;toast('💨 Névoa das sombras!');}},
   {id:'assassin_ring', cls:'assassin_cls',name:'Anel do Assassino',ico:'💍🌑',rarity:'epic', uses:null,slot:null,   bonus:{crit:.1,spd:3,atk:3},       desc:'+10% CRIT +3 VEL +3 ATK'},
-
-  // ═══ SETS DE ARMADURA ═══
-  // Set do Caçador (Ladino)
   {id:'set_hunter_bow',cls:'rogue',  name:'Arco Longo',          ico:'🏹',rarity:'epic',  uses:null,slot:'weapon',set:'hunter',bonus:{atk:7,spd:2},          desc:'+7 ATK +2 VEL | Set Caçador'},
   {id:'set_hunter_hood',cls:'rogue', name:'Capuz do Caçador',    ico:'🎯',rarity:'epic',  uses:null,slot:'head',  set:'hunter',bonus:{dodge:.08},             desc:'+8% ESQUIVA | Set Caçador'},
   {id:'set_hunter_boots',cls:'rogue',name:'Botas do Caçador',    ico:'🥾',rarity:'epic',  uses:null,slot:'feet',  set:'hunter',bonus:{spd:3},                 desc:'+3 VEL | Set Caçador'},
-  // Set do Mago Ancestral (Mago)
   {id:'set_mage_staff',cls:'mage',  name:'Cajado Ancestral+',   ico:'🔱',rarity:'epic',  uses:null,slot:'weapon',set:'mage_anc',bonus:{mag:10},              desc:'+10 MAG | Set Mago Ancestral'},
   {id:'set_mage_robe',cls:'mage',   name:'Túnica Arcana',       ico:'🥻',rarity:'epic',  uses:null,slot:'chest', set:'mage_anc',bonus:{mag:6,mp:10},         desc:'+6 MAG +10 MP | Set Mago Ancestral'},
   {id:'set_mage_crown',cls:'mage',  name:'Coroa da Sabedoria',  ico:'👑',rarity:'epic',  uses:null,slot:'head',  set:'mage_anc',bonus:{mag:8,mp:20},         desc:'+8 MAG +20 MP | Set Mago Ancestral'},
-  // Set do Berserker (Guerreiro)
   {id:'set_bsk_axe',cls:'warrior',     name:'Machado Duplo',       ico:'🪓',rarity:'epic',  uses:null,slot:'weapon',set:'berserker',bonus:{atk:14,spd:-3},      desc:'+14 ATK -3 VEL | Set Berserker'},
   {id:'set_bsk_armor',cls:'warrior',   name:'Armadura do Berserker',ico:'🔴',rarity:'epic', uses:null,slot:'chest', set:'berserker',bonus:{atk:5,def:-2},       desc:'+5 ATK -2 DEF | Set Berserker'},
   {id:'set_bsk_helm',cls:'warrior',    name:'Elmo do Berserker',   ico:'🪖',rarity:'epic',  uses:null,slot:'head',  set:'berserker',bonus:{atk:6,def:-2},       desc:'+6 ATK -2 DEF | Set Berserker'},
 ];
-
-/* ═══ UPGRADES ═══ */
 const UPGRADES=[
   {id:'vigor',    name:'Vigor',          ico:'❤️', desc:'+20 HP máximo',            tag:'def',  fn:G=>{G.hpMax+=20;G.hp=Math.min(G.hp+20,G.hpMax);}},
   {id:'focus',    name:'Foco',           ico:'🔵', desc:'+15 MP máximo',            tag:'magic',fn:G=>{G.mpMax+=15;G.mp=Math.min(G.mp+15,G.mpMax);}},
@@ -686,17 +589,13 @@ const UPGRADES=[
   {id:'mpregen3', name:'Reservatório',   ico:'🌀', desc:'+4 MP/sala (requer Canalização)', tag:'magic',req:'mpregen2',fn:G=>{G.mpRegen+=4;toast('MP/sala: '+G.mpRegen+'🔵');}},
   {id:'mpregen4', name:'Fonte Arcana',   ico:'⚡', desc:'+6 MP/sala (requer Reservatório)', tag:'magic',req:'mpregen3',fn:G=>{G.mpRegen+=6;toast('MP/sala: '+G.mpRegen+'🔵');}},
 ];
-
-/* ═══ ELEMENTOS ═══ */
 const ELEMENTS=[
-  // Tier 0 — Primordiais
   {id:'tempo',     name:'Tempo',         ico:'⏳',tier:0, mult:2.5, desc:'Manipula a causalidade.'},
   {id:'vacuo',     name:'Vácuo',         ico:'🌑',tier:0, mult:2.5, desc:'Aniquila o espaço.'},
   {id:'gravidade', name:'Gravidade',     ico:'🌀',tier:0, mult:2.5, desc:'Colapsa matéria.'},
   {id:'espaco',    name:'Espaço',        ico:'🌌',tier:0, mult:2.5, desc:'Dobra a realidade.'},
   {id:'materia_escura',name:'Matéria Escura',ico:'🕳️',tier:0,mult:2.5,desc:'Dissolve a existência.'},
   {id:'caos',      name:'Caos',          ico:'🌀',tier:0, mult:2.5, desc:'Força primordial que distorce toda ordem e realidade.'},
-  // Tier 1 — Energias Puras
   {id:'eter',      name:'Éter',          ico:'✨',tier:1, mult:2.1, desc:'Energia primordial.'},
   {id:'vida',      name:'Vida',          ico:'💚',tier:1, mult:2.1, desc:'Força vital que sustenta e regenera tudo.'},
   {id:'raio',      name:'Raio',          ico:'⚡',tier:1, mult:2.1, desc:'Destruição instantânea.'},
@@ -705,7 +604,6 @@ const ELEMENTS=[
   {id:'magma',     name:'Magma',         ico:'🌋',tier:1, mult:2.1, desc:'Rocha incandescente.'},
   {id:'plasma',    name:'Plasma',        ico:'💫',tier:1, mult:2.1, desc:'Estado energético puro.'},
   {id:'radiacao',  name:'Radiação',      ico:'☢️',tier:1, mult:2.1, desc:'Penetra qualquer matéria.'},
-  // Tier 2 — Entrópicos
   {id:'necrose',   name:'Necrose',       ico:'🦠',tier:2, mult:1.8, desc:'Corrompe a vida.'},
   {id:'morte',     name:'Morte',         ico:'💀',tier:2, mult:1.8, desc:'Fim absoluto de qualquer existência viva.'},
   {id:'veneno',    name:'Veneno',        ico:'🐍',tier:2, mult:1.8, desc:'Dissolve o organismo.'},
@@ -714,7 +612,6 @@ const ELEMENTS=[
   {id:'podridao',  name:'Podridão',      ico:'💀',tier:2, mult:1.8, desc:'Decompõe tudo.'},
   {id:'virus',     name:'Vírus',         ico:'🧬',tier:2, mult:1.8, desc:'Infecta e replica.'},
   {id:'carie',     name:'Cárie',         ico:'🦷',tier:2, mult:1.8, desc:'Corrói por dentro.'},
-  // Tier 3 — Condutores
   {id:'mercurio',  name:'Mercúrio',      ico:'🪞',tier:3, mult:1.5, desc:'Metal tóxico fluido.'},
   {id:'som',       name:'Som',           ico:'🔊',tier:3, mult:1.5, desc:'Vibração devastadora.'},
   {id:'gelo',      name:'Gelo',          ico:'❄️',tier:3, mult:1.5, desc:'Congela e fragmenta.'},
@@ -725,7 +622,6 @@ const ELEMENTS=[
   {id:'vidro',     name:'Vidro',         ico:'🔮',tier:3, mult:1.5, desc:'Fragmentos cortantes.'},
   {id:'oleo',      name:'Óleo',          ico:'🛢️',tier:3, mult:1.5, desc:'Inflamável e escorregadio.'},
   {id:'espuma',    name:'Espuma',        ico:'🫧',tier:3, mult:1.5, desc:'Aprisiona e sufoca.'},
-  // Tier 4 — Materiais Nobres
   {id:'diamante',  name:'Diamante',      ico:'💎',tier:4, mult:1.3, desc:'Perfura qualquer coisa.'},
   {id:'platina',   name:'Platina',       ico:'🥈',tier:4, mult:1.3, desc:'Conduz e reflete.'},
   {id:'ouro',      name:'Ouro',          ico:'🥇',tier:4, mult:1.3, desc:'Conduz e estabiliza.'},
@@ -735,7 +631,6 @@ const ELEMENTS=[
   {id:'aco',       name:'Aço',           ico:'⚔️',tier:4, mult:1.3, desc:'Resistência extrema.'},
   {id:'obsidiana', name:'Obsidiana',     ico:'🖤',tier:4, mult:1.3, desc:'Absorve impactos.'},
   {id:'marmore',   name:'Mármore',       ico:'🗿',tier:4, mult:1.3, desc:'Defesa absoluta.'},
-  // Tier 5 — Elementais Básicos
   {id:'terra',     name:'Terra',         ico:'🌍',tier:5, mult:1.0, desc:'Fundação do mundo.'},
   {id:'ar',        name:'Ar',            ico:'🌬️',tier:5, mult:1.0, desc:'Onipresente e invisível.'},
   {id:'agua',      name:'Água',          ico:'💧',tier:5, mult:1.0, desc:'Adapta-se a tudo.'},
@@ -748,41 +643,28 @@ const ELEMENTS=[
   {id:'espinho',   name:'Espinho',       ico:'🌵',tier:5, mult:1.0, desc:'Perfura e sangra.'},
   {id:'raiz',      name:'Raiz',          ico:'🪨',tier:5, mult:1.0, desc:'Prende e sufoca.'},
 ];
-
-/* ═══ FUSÕES ═══ */
 const ELEM_TYPE = {
-  // Primordiais / espaço-tempo
   tempo:'temporal',    espaco:'espacial',   gravidade:'gravitacional',
   vacuo:'vacuo',       materia_escura:'escuro_cosmico', caos:'caotico',
-  // Energias puras
   eter:'arcano',       vida:'vital',        raio:'voltaico',
   luz:'luminoso',      fogo:'igneo',        magma:'magmatico',
   plasma:'eletrico',   radiacao:'radioativo',
-  // Entrópicos
   necrose:'necrotico',morte:'mortal',      veneno:'toxico',
   acido:'corrosivo',   escuridao:'sombrio', podridao:'corruptivo',
   virus:'toxico',      carie:'corrosivo',
-  // Condutores
   mercurio:'mercurial',   som:'sonico',        gelo:'gelido',
   sangue:'vital',      sombra:'sombrio',    fumaca:'gasoso',
   areia:'arenoso',    vidro:'abrasivo',    oleo:'inflamavel',
   espuma:'espumoso',     osso:'osseo',
-  // Materiais
   diamante:'solido',   platina:'solido',    ouro:'solido',
   metal:'solido',      cristal:'solido',    titanio:'solido',
   aco:'metalico',      obsidiana:'vulcanico', marmore:'pedroso',
-  // Elementais básicos
   terra:'terreo',      ar:'gasoso',         agua:'aquatico',
   flora:'natural',     lodo:'terreo',       cinzas:'cinzas',
   argila:'terreo',     nevoa:'nebuloso',      poeira:'abrasivo',
   espinho:'natural',   raiz:'radicular',
 };
-
-// Regras de fusão: par de tipos → {name, ico, desc, tierOffset, multBonus}
-// tierOffset: reduz o tier médio (resultado mais poderoso que a média)
-// multBonus: somado ao mult calculado
 const FUSION_RULES = {
-  // Par canonizado (a <= b alfabeticamente) → resultado
   'abrasivo+abrasivo':   {name:'Tempestade de Lâminas',ico:'🌪️', desc:'Fragmentos cortantes em alta velocidade rasgam qualquer defesa.'},
   'abrasivo+aquatico':   {name:'Areia Abrasiva',       ico:'🏖️', desc:'Pasta corrosiva que penetra armaduras e irrita tecidos.'},
   'abrasivo+gasoso':     {name:'Nuvem Cortante',       ico:'💨', desc:'Névoa de partículas que lacera pulmões e olhos.'},
@@ -869,20 +751,15 @@ const FUSION_RULES = {
   'terreo+igneo':        {name:'Cerâmica',             ico:'🏺', desc:'Cascas defensivas que endurecem sob calor extremo.'},
   'terreo+vital':        {name:'Fertilidade',          ico:'🌱', desc:'Torna o solo fértil instantaneamente; faz plantas crescerem em segundos.'},
   'toxico+vital':        {name:'Mutação',              ico:'🧬', desc:'Crescimento grotesco e acelerado; organismos tornam-se predadores imprevisíveis.'},
-
-  // ═══ NOVAS FUSÕES ═══
-  // Tier 0 — Cósmicas
   'escuro_cosmico+gravitacional': {name:'Singularidade',          ico:'🕳️', desc:'Colapso gravitacional infinito que apaga dimensões inteiras; nada — nem luz, nem conceito — escapa.'},
   'espacial+vacuo':          {name:'Horizonte de Eventos',   ico:'🌌', desc:'Fronteira além da qual as leis da física deixam de existir; criaturas aprisionadas perdem toda forma e memória.'},
   'caotico+gravitacional':   {name:'Vetor do Caos',          ico:'🌀', desc:'Distorce a força gravitacional de forma imprevisível, podendo inverter a atração de planetas ou fragmentar estrelas.'},
-  // Tier 1 — Energéticas
   'eletrico+radioativo':     {name:'Pulsar',                 ico:'💫', desc:'Emissão rítmica de energia em ondas que destroem circuitos biológicos e tecnológicos em raio continental.'},
   'gasoso+magmatico':        {name:'Névoa Ardente',          ico:'🌋', desc:'Cortina de gases superaquecidos que carbonizam pulmões; avança lentamente mas é impossível de conter.'},
   'eletrico+igneo':          {name:'Coroa Solar',            ico:'☀️', desc:'Anel de plasma solar que incendeia a atmosfera local; tudo no raio se torna combustível.'},
   'arcano+gasoso':           {name:'Vórtice Etéreo',         ico:'🌀', desc:'Redemoinho de energia pura que suga a vontade dos oponentes, dissolvendo magias e intenções antes de agir.'},
   'radioativo+voltaico':     {name:'Tempestade Gamma',       ico:'⚡', desc:'Descarga ionizante que queima por dentro e por fora simultaneamente; tecidos e armaduras viram pó em segundos.'},
   'eletrico+natural':        {name:'Espinho Solar',          ico:'🌵', desc:'Lanças de plasma vegetais que penetram qualquer escudo mágico; combinam o orgânico com o cósmico.'},
-  // Tier 2 — Corrupção e matéria
   'corruptivo+gasoso':       {name:'Hálito Pútrido',         ico:'🌬️', desc:'Vento que carrega a decomposição — cada respiração avança a necrose nos tecidos vivos.'},
   'gelido+sombrio':          {name:'Lâmina de Sombra',       ico:'🌑', desc:'Fragmentos de escuridão solidificada que cortam tanto a carne quanto o espírito projetado do alvo.'},
   'necrotico+vital':         {name:'Coágulo Sombrio',        ico:'🩸', desc:'O sangue para de fluir e se solidifica em grumos que pressionam os órgãos por dentro.'},
@@ -893,7 +770,6 @@ const FUSION_RULES = {
   'corrosivo+terreo':        {name:'Lodo Corrosivo',         ico:'🟫', desc:'Pasta viscosa ácida que gruda e corrói simultaneamente; impossível de remover sem piorar o dano.'},
   'natural+sonico':          {name:'Grito da Floresta',      ico:'🌿', desc:'Resonância vegetal que libera esporos explosivos ao atingir frequência crítica — detonação orgânica em cadeia.'},
   'nebuloso+toxico':         {name:'Nevoeiro Venenoso',      ico:'🐍', desc:'Névoa que entrega veneno diretamente pelo trato respiratório; difícil de detectar e impossível de evitar.'},
-  // Tier 3 — Híbridas
   'osseo+sonico':            {name:'Ressonância Óssea',      ico:'💀', desc:'Vibração calibrada para a frequência dos ossos do alvo; fraturas internas sem nenhum contato físico visível.'},
   'abrasivo+luminoso':       {name:'Vitral',                 ico:'🔮', desc:'Refração controlada que cria ilusões perfeitas e lasers de precisão cirúrgica a partir de qualquer fonte luminosa.'},
   'igneo+mercurial':         {name:'Mercúrio Ardente',       ico:'🔥', desc:'Metal líquido em chamas que adere à pele e não pode ser apagado com água — expande ao tentar remover.'},
@@ -902,32 +778,27 @@ const FUSION_RULES = {
   'gasoso+gelido':           {name:'Seda de Gelo',           ico:'❄️', desc:'Fumaça que congela instantaneamente em contato com o alvo, criando uma armadura de prisão de gelo.'},
   'cinzas+gasoso':           {name:'Véu de Cinzas',          ico:'🌫️', desc:'Nuvem de cinzas suspensas que abafa fogo, bloqueia visão e sufoca — perfeita para emboscadas lentas.'},
   'radicular+terreo':        {name:'Raiz de Pedra',          ico:'🌱', desc:'Raízes que perfuram e fragmentam rochas; podem minar fundações de castelos ou prender gigantes.'},
-  // Tier 4 — Materiais raros
   'gasoso+solido':           {name:'Platina Espelhada',      ico:'✨', desc:'Névoa metálica que endurece ao contato com energia mágica, formando armaduras espontâneas.'},
   'vulcanico+gasoso':        {name:'Obsidiana Fumacenta',    ico:'🌑', desc:'Fragmentos de vidro vulcânico suspensos em fumaça — uma nuvem de navalhas invisíveis.'},
   'metalico+sombrio':        {name:'Aço Sombrio',            ico:'⚔️', desc:'Metal que absorve luz e ataques mágicos; torna armas feitas com ele imperceptíveis no escuro.'},
   'radioativo+solido':       {name:'Âmbar Radioativo',       ico:'💎', desc:'Cristais translúcidos que emitem radiação focada; belas e mortais, usadas como prisões ou armadilhas.'},
   'metalico+terreo':         {name:'Coluna de Titânio',      ico:'🏛️', desc:'Pilares de metal emergem do chão de forma instantânea; podem murar cidades ou esmagar alvos verticalmente.'},
   'gelido+pedroso':          {name:'Mármore Gelado',         ico:'🪨', desc:'Superfície perfeitamente polida e congelante; propaga o frio por contato e reflete impactos com dureza máxima.'},
-
   'vacuo+vital':         {name:'Vácuo Vital',          ico:'🌑', desc:'Drena a força vital ao criar vácuo interno nos tecidos do alvo.'},
   'sombrio+sombrio':      {name:'Abismo Sombrio',        ico:'🌑', desc:'Cria uma região de escuridão absoluta onde as sombras se tornam entidades hostis, drenando vida e causando medo.'},
 }
 
 function tryFuse(id1, id2){
-  // Geração procedural: lookup pelo par de tipos canonizado
   const t1=ELEM_TYPE[id1]||'desconhecido';
   const t2=ELEM_TYPE[id2]||'desconhecido';
   const key=[t1,t2].sort().join('+');
   const rule=FUSION_RULES[key];
   if(!rule) return null;
-  // Calcula tier e mult a partir da média dos elementos originais
   const el1=[...ELEMENTS].find(e=>e.id===id1);
   const el2=[...ELEMENTS].find(e=>e.id===id2);
   if(!el1||!el2) return null;
   const avgTier=Math.floor((el1.tier+el2.tier)/2);
   const avgMult=+((el1.mult+el2.mult)/2).toFixed(2);
-  // Tier menor = mais poderoso; combinar dois baixos tiers produz resultado forte
   const tier=Math.max(0,avgTier-1);
   const mult=+(avgMult+0.2).toFixed(2);
   return {
@@ -941,7 +812,6 @@ function tryFuse(id1, id2){
   };
 }
 
-// Gera TODAS as fusões possíveis entre todos os elementos do jogo (para debug)
 function getAllFusions(){
   const allIds=ELEMENTS.map(e=>e.id);
   const results=[];
@@ -957,10 +827,7 @@ function getAllFusions(){
   }
   return results.sort((a,b)=>a.tier-b.tier);
 }
-
-// Array global de todas as fusões possíveis — gerado a partir de FUSION_RULES + ELEMENTS
 const FUSIONS = getAllFusions();
-
 function getAvailFusions(excludeOwned=true){
   const owned=G.elements.map(e=>e.id);
   const results=[];
@@ -978,22 +845,14 @@ function getAvailFusions(excludeOwned=true){
   return results.sort((a,b)=>a.tier-b.tier);
 };
 
-/* ═══ SISTEMA DE ELEMENTOS ═══ */
-
-// Retorna a fusão disponível entre dois elementos, se existir
-// tryFuse definida acima (sistema procedural)
-
-// Verifica se o jogador já possui o elemento ou fusão
 function hasElement(id){
   return G.elements.some(e=>e.id===id);
 }
 
-// Aplica dano elemental baseado no MAG e multiplicador do tier
 function elementDmg(el){
   return Math.round(Math.max(4, G.mag * el.mult + r(10)));
 }
 
-// Evento de livro — oferece 3 elementos aleatórios não aprendidos
 function showBookEvent(sc){
   const learned = G.elements.map(e=>e.id);
   const available = ELEMENTS.filter(e=>!learned.includes(e.id));
@@ -1035,20 +894,16 @@ function showBookEvent(sc){
   scrollBot(sc);
 }
 
-// Tela de seleção de elemento ativo (abre na aba Skills)
 function renderElementPicker(sc){
   sc.innerHTML='';
   const card = mkCard('explore');
   const tierNames=['Primordial','Energia Pura','Entrópico','Condutor','Material Nobre','Elemental Básico'];
   const tierColors=['#ff6b35','#f1c40f','#9b59b6','#3498db','#95a5a6','#27ae60'];
-
-  // Agrupa por tier
   const byTier={};
   G.elements.forEach(el=>{
     if(!byTier[el.tier])byTier[el.tier]=[];
     byTier[el.tier].push(el);
   });
-
   let html=`<div class="panel-title">🔮 ELEMENTOS CONHECIDOS</div>`;
   if(!G.elements.length){
     html+=`<div style="color:var(--txt2);font-style:italic;text-align:center;padding:20px;">Nenhum elemento aprendido ainda.<br>Encontre Tomos Elementais explorando.</div>`;
@@ -1065,8 +920,6 @@ function renderElementPicker(sc){
       });
       html+=`</div>`;
     });
-
-    // Seção de fusões disponíveis
     const availFusions=getAvailFusions(true);
     if(availFusions.length){
       html+=`<div style="font-family:var(--cinzel);font-size:9px;color:var(--gold);letter-spacing:2px;margin:14px 0 8px;padding-top:10px;border-top:1px solid var(--brd);">⚗️ FUSÕES DISPONÍVEIS</div>`;
@@ -1104,7 +957,6 @@ function setActiveElement(id, origin='picker'){
 
 function fuseElements(fusionId, origin='picker'){
   if(hasElement(fusionId))return;
-  // Buscar pelo id exato na lista de fusões disponíveis
   const f=getAvailFusions(false).find(x=>x.id===fusionId);
   if(!f||!hasElement(f.e1)||!hasElement(f.e2))return;
   G.elements.push({...f});
@@ -1113,7 +965,6 @@ function fuseElements(fusionId, origin='picker'){
   else renderElementPicker($('scroll'));
 }
 
-/* ═══ EVENTS ═══ */
 const EVENTS=[
   {id:'camp',type:'explore',title:'Acampamento Abandonado',ico:'🏕️',body:'Uma fogueira ainda quente. Mochila rasgada ao lado.',narr_key:'',
    choices:[{txt:'Verificar a mochila',hint:'Pode conter itens',fn:'search_camp'},{txt:'Descansar na fogueira',hint:'Recupera HP e MP',fn:'rest_camp',hintcls:'ok'},{txt:'Seguir em frente',hint:'',fn:'pass'}]},
@@ -1147,7 +998,6 @@ const EVENTS=[
    {txt:'Estudar os tomos',hint:'Aprenda um novo elemento',fn:'book_event'},
    {txt:'Ignorar',hint:'',fn:'pass'},
  ]},
-  // ══ FERREIRO ══
   {id:'blacksmith',type:'shop',title:'Ferreiro Errante',ico:'⚒️',
    body:'Um ferreiro enorme ocupa um canto da masmorra, bigorna e forja improvisadas. <b>"Trago o ofício comigo. Ouro aceito, reclamação não."</b>',narr_key:'',
    choices:[
@@ -1158,7 +1008,6 @@ const EVENTS=[
      {txt:'Comprar/Vender itens',hint:'Troca de mercadorias',fn:'smith_trade'},
      {txt:'Dispensar',hint:'',fn:'pass'},
    ]},
-  // ══ EVENTOS EM CADEIA ══
   {id:'chain_oracle',type:'story',title:'A Oráculo das Ruínas',ico:'🔮',
    body:'Uma figura encurvada bloqueia a passagem. Olhos brancos e vazios. <b>"Eu vejo o que você esconde, viajante."</b> Ela ergue uma mão — à esquerda, névoa; à direita, chamas.',narr_key:'',
    chain:true,
@@ -1184,22 +1033,13 @@ const EVENTS=[
      {txt:'Ignorá-lo',hint:'Talvez seja uma armadilha',fn:'chain_prisoner_ignore'},
    ]},
 ];
-
-/* ═══ STATE ═══ */
 let G=null,CE=null,combatLog=[],pendingLevelUp=false,pendingSubclass=false;
 
 function newG(soulData){
-  // soulData: { name, vigor, forca, arcano, espirito }
-  // Cada ponto distribuído vale:
-  //   vigor   → +20 HP máx
-  //   forca   → +4 ATK
-  //   arcano  → +5 MAG, +10 MP
-  //   espirito→ +3 DEF, +5% dodge
   const vigor   = soulData.vigor   || 0;
   const forca   = soulData.forca   || 0;
   const arcano  = soulData.arcano  || 0;
   const espirito= soulData.espirito|| 0;
-
   const baseHP  = 80  + vigor   * 20;
   const baseMP  = 60  + arcano  * 10;
   const baseATK = 8   + forca   * 4;
@@ -1207,30 +1047,20 @@ function newG(soulData){
   const baseMAG = 6   + arcano  * 5;
   const baseSPD = 6;
   const baseDodge = 0.05 + espirito * 0.05;
-
   G={
-    // Identidade
     soulName: soulData.name || 'Alma Sem Nome',
-    cls:{id:'soul',name:'Alma',ico:'👻'}, // compatibilidade
+    cls:{id:'soul',name:'Alma',ico:'👻'},
     soulBuild: {vigor, forca, arcano, espirito},
-
-    // Vitais
     hp:baseHP, hpMax:baseHP,
     mp:baseMP, mpMax:baseMP,
     atk:baseATK, def:baseDEF, mag:baseMAG, spd:baseSPD,
     crit:0.08, dodge:Math.min(0.40, baseDodge),
     lifesteal:0, critMult:2.0,
-
-    // Progressão
     xp:0, xpNext:40, level:1, gold:20,
     floor:1, room:0, maxRooms:10,
     kills:0, totalDmg:0, events:0,
-    karma:0, // novo — karma mitológico
-
-    // Memórias (substituem skills)
+    karma:0,
     memories: [],
-
-    // Estado
     passives:[], inv:[],
     equip:{head:null,chest:null,weapon:null,feet:null},
     elements:[], activeElement:null,
@@ -1240,36 +1070,24 @@ function newG(soulData){
     mpDiscount:0,
     view:'explore', inCombat:false,
     t0:Date.now(), tmpBuffs:[],
-
-    // Missões
     missions:[], missionsCompleted:0,
-
-    // Sets
     activeSets:{},
-
-    // Estado de itens especiais
     compassNextRoom:null,
     arcanaReady:true, arcanaCombatsSince:0,
     phoenixUsed:false,
     warcryTurns:0,
     specialMerchantSeen:false,
     challengeRoomDoneThisFloor:false,
-
-    // Compatibilidade legado
     subclass:null,
     skills:[],
   };
-
-  // Memórias iniciais — 2 aleatórias baseadas no build
   assignStartingMemories();
   generateMissions();
 }
 
 function assignStartingMemories(){
-  // Pool de memórias iniciais baseado nos atributos mais altos
   const build = G.soulBuild;
   const all = [...MEMORIES];
-  // Prioriza memórias compatíveis com o build
   const preferred = all.filter(m=>{
     if(build.forca>=3  && m.affinity==='forca')  return true;
     if(build.arcano>=3 && m.affinity==='arcano')  return true;
@@ -1280,11 +1098,8 @@ function assignStartingMemories(){
   const pool = preferred.length >= 2 ? preferred : all;
   const chosen = [...pool].sort(()=>Math.random()-.5).slice(0,2);
   G.memories = chosen.map(m=>({...m}));
-  // Compatibilidade: skills aponta para memories
   G.skills = G.memories;
 }
-
-/* ═══ HELPERS ═══ */
 const r=n=>Math.floor(Math.random()*n)+1;
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const pct=(v,m)=>Math.max(0,Math.min(100,Math.round(v/m*100)))+'%';
@@ -1294,8 +1109,6 @@ const hide=id=>$(id).classList.add('off');
 const tagLbl=t=>({combat:'Combate',explore:'Exploração',story:'História',shop:'Comércio',rest:'Descanso'}[t]||t);
 const mkCard=type=>{const d=document.createElement('div');d.className='card '+({combat:'ec',explore:'ee',story:'es',shop:'esh',rest:'er',boss:'eb',elite:'elite'}[type]||'ee');return d;};
 const scrollBot=el=>setTimeout(()=>{if(el)el.scrollTop=el.scrollHeight;},80);
-
-/* ═══ SISTEMA DE MISSÕES ═══ */
 const MISSION_POOL=[
   {id:'kill5',   desc:'Derrote 5 inimigos neste andar',    check:G=>G.kills>=G._mKillBase+5,  reward:{gold:30,xp:50}},
   {id:'kill3elite',desc:'Derrote 2 inimigos Elite',       check:G=>G._mElites>=2,            reward:{gold:40,xp:60}},
@@ -1341,8 +1154,6 @@ function renderMissions(container){
       </div>`).join('')}
   </div>`;
 }
-
-/* ═══ SISTEMA DE SETS ═══ */
 const SET_DEFS={
   hunter:{
     name:'Caçador',cls:'rogue',
@@ -1365,20 +1176,16 @@ const SET_DEFS={
 };
 
 function evaluateSets(){
-  // Conta peças equipadas por set
   const counts={};
   Object.values(G.equip).forEach(item=>{
     if(item&&item.set){counts[item.set]=(counts[item.set]||0)+1;}
   });
-  // Aplica/remove bônus
   Object.entries(SET_DEFS).forEach(([setId,def])=>{
     const prev=G.activeSets[setId]||0;
     const curr=counts[setId]||0;
     if(curr===prev)return;
-    // Remove bônus antigos
     if(prev>=2)reverseSetBonus(setId,2);
     if(prev>=3)reverseSetBonus(setId,3);
-    // Aplica novos
     if(curr>=2){def.bonus2.fn(G);toast(`✨ Set ${def.name} (2 peças): ${def.bonus2.desc}`,2200);}
     if(curr>=3){def.bonus3.fn(G);toast(`🌟 Set ${def.name} (3 peças): ${def.bonus3.desc}`,2500);}
     G.activeSets[setId]=curr;
@@ -1387,15 +1194,12 @@ function evaluateSets(){
 }
 
 function reverseSetBonus(setId,tier){
-  // Reverte passivos/bônus de set ao desequipar peça
-  // Math.max garante que nenhum stat fique negativo
   if(setId==='hunter'&&tier===2)  G.crit=Math.max(0,+(G.crit-.10).toFixed(4));
   if(setId==='hunter'&&tier===3){ const i=G.passives.indexOf('sure_hit');if(i>=0)G.passives.splice(i,1);}
   if(setId==='mage_anc'&&tier===2)G.mpDiscount=Math.max(0,(G.mpDiscount||0)-2);
   if(setId==='mage_anc'&&tier===3){const i=G.passives.indexOf('arcana_explosion');if(i>=0)G.passives.splice(i,1);}
   if(setId==='berserker'&&tier===2){const i=G.passives.lastIndexOf('dbl');if(i>=0)G.passives.splice(i,1);}
   if(setId==='berserker'&&tier===3){const i=G.passives.indexOf('bsk_set');if(i>=0)G.passives.splice(i,1);}
-  // Garante que stats base nunca fiquem negativos após reversão
   G.crit   =Math.max(0,   G.crit||0);
   G.dodge  =Math.max(0,   G.dodge||0);
   G.atk    =Math.max(1,   G.atk||1);
@@ -1404,7 +1208,6 @@ function reverseSetBonus(setId,tier){
   G.mpDiscount=Math.max(0,G.mpDiscount||0);
 }
 
-/* ═══ MENUS ESPECIAIS ═══ */
 function openTalentSwap(){
   const ov=document.createElement('div');ov.id='talent-swap-ov';
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9500;display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -1422,7 +1225,6 @@ function openTalentSwap(){
     btn.onclick=()=>{
       G.upgrades.splice(idx,1);
       ov.remove();
-      // Abre level up para escolher novo
       renderLevelUp($('scroll'));
       toast('🔵 Talento removido. Escolha um novo!');
     };
@@ -1453,8 +1255,6 @@ function compassChoose(type){
   const ov=$('compass-ov');if(ov)ov.remove();
   toast(`🧭 Próxima sala: ${type}!`);
 }
-
-/* ═══ VFX ═══ */
 let _tt=null;
 function toast(msg,ms=1800){const el=$('toast');if(!el)return;el.textContent=msg;el.classList.remove('hide');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.add('hide'),ms);}
 function floatDmg(txt,color,x,y){
@@ -1463,11 +1263,9 @@ function floatDmg(txt,color,x,y){
   el.textContent=txt;document.body.appendChild(el);setTimeout(()=>el.remove(),950);
 }
 function screenShake(){const sc=$('scroll');if(!sc)return;sc.classList.remove('shake');void sc.offsetWidth;sc.classList.add('shake');setTimeout(()=>sc.classList.remove('shake'),400);}
+
 function lvFlash(){const sg=$('s-game');if(!sg)return;sg.classList.remove('lvflash');void sg.offsetWidth;sg.classList.add('lvflash');setTimeout(()=>sg.classList.remove('lvflash'),700);}
 
-/* ═══════════════════════════════════════════
-   SISTEMA DE ÁUDIO — Web Audio API
-═══════════════════════════════════════════ */
 let _actx=null;
 let _sfxMuted=false;
 
@@ -1482,7 +1280,6 @@ function sfx(type){
   const ac=getACtx();if(!ac)return;
   const t=ac.currentTime;
   const SFX={
-    // Ataque físico — impacto percussivo seco
     atk:()=>{
       const b=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
       b.type='sawtooth';b.frequency.setValueAtTime(180,t);b.frequency.exponentialRampToValueAtTime(60,t+.08);
@@ -1491,7 +1288,6 @@ function sfx(type){
       b.connect(f);f.connect(g);g.connect(ac.destination);
       b.start(t);b.stop(t+.15);
     },
-    // Crítico — impacto mais agudo e brilhante
     crit:()=>{
       const b=ac.createOscillator(),g=ac.createGain();
       const b2=ac.createOscillator(),g2=ac.createGain();
@@ -1502,14 +1298,12 @@ function sfx(type){
       b.connect(g);g.connect(ac.destination);b2.connect(g2);g2.connect(ac.destination);
       b.start(t);b.stop(t+.2);b2.start(t);b2.stop(t+.12);
     },
-    // Dano recebido — tom baixo dissonante
     hit:()=>{
       const b=ac.createOscillator(),g=ac.createGain();
       b.type='sawtooth';b.frequency.setValueAtTime(120,t);b.frequency.exponentialRampToValueAtTime(55,t+.15);
       g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.22);
       b.connect(g);g.connect(ac.destination);b.start(t);b.stop(t+.25);
     },
-    // Skill elemental — sweep ressonante
     elemental:()=>{
       const b=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
       b.type='sine';b.frequency.setValueAtTime(320,t);b.frequency.exponentialRampToValueAtTime(680,t+.15);b.frequency.exponentialRampToValueAtTime(420,t+.35);
@@ -1517,7 +1311,6 @@ function sfx(type){
       g.gain.setValueAtTime(.0,t);g.gain.linearRampToValueAtTime(.5,t+.05);g.gain.exponentialRampToValueAtTime(.001,t+.4);
       b.connect(f);f.connect(g);g.connect(ac.destination);b.start(t);b.stop(t+.42);
     },
-    // Carga elemental ×3 — acorde energético
     charge:()=>{
       [[330,0],[415,.04],[495,.08],[660,.14]].forEach(([freq,delay])=>{
         const b=ac.createOscillator(),g=ac.createGain();
@@ -1526,7 +1319,6 @@ function sfx(type){
         b.connect(g);g.connect(ac.destination);b.start(t+delay);b.stop(t+delay+.45);
       });
     },
-    // Fusão elemental — arpejo mágico ascendente
     fusion:()=>{
       [261,329,392,523,659].forEach((freq,i)=>{
         const b=ac.createOscillator(),g=ac.createGain();
@@ -1536,7 +1328,6 @@ function sfx(type){
         b.connect(g);g.connect(ac.destination);b.start(t+d);b.stop(t+d+.38);
       });
     },
-    // Level up — fanfarra curta ascendente
     levelup:()=>{
       [[262,.0],[330,.1],[392,.2],[523,.3],[659,.4],[784,.5]].forEach(([freq,d])=>{
         const b=ac.createOscillator(),g=ac.createGain();
@@ -1545,7 +1336,6 @@ function sfx(type){
         b.connect(g);g.connect(ac.destination);b.start(t+d);b.stop(t+d+.32);
       });
     },
-    // Chefe derrotado — impacto pesado + decaimento lento
     boss_die:()=>{
       const b=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
       const b2=ac.createOscillator(),g2=ac.createGain();
@@ -1558,7 +1348,6 @@ function sfx(type){
       b2.connect(g2);g2.connect(ac.destination);
       b.start(t);b.stop(t+.95);b2.start(t);b2.stop(t+.55);
     },
-    // Item lendário/épico — sino cristalino
     legendary:()=>{
       [1047,1319,1568,2093].forEach((freq,i)=>{
         const b=ac.createOscillator(),g=ac.createGain();
@@ -1568,21 +1357,18 @@ function sfx(type){
         b.connect(g);g.connect(ac.destination);b.start(t+d);b.stop(t+d+.75);
       });
     },
-    // Morte do herói — tom grave descendente
     death:()=>{
       const b=ac.createOscillator(),g=ac.createGain();
       b.type='sine';b.frequency.setValueAtTime(220,t);b.frequency.exponentialRampToValueAtTime(55,t+1.2);
       g.gain.setValueAtTime(.5,t);g.gain.linearRampToValueAtTime(.4,t+.3);g.gain.exponentialRampToValueAtTime(.001,t+1.4);
       b.connect(g);g.connect(ac.destination);b.start(t);b.stop(t+1.5);
     },
-    // Click de navegação — sutil
     click:()=>{
       const b=ac.createOscillator(),g=ac.createGain();
       b.type='sine';b.frequency.setValueAtTime(800,t);b.frequency.exponentialRampToValueAtTime(500,t+.04);
       g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);
       b.connect(g);g.connect(ac.destination);b.start(t);b.stop(t+.07);
     },
-    // Subclasse escolhida — acorde majestoso
     subclass:()=>{
       [[196,0],[247,.08],[294,.16],[392,.24],[494,.32]].forEach(([freq,d])=>{
         const b=ac.createOscillator(),g=ac.createGain();
@@ -1591,14 +1377,12 @@ function sfx(type){
         b.connect(g);g.connect(ac.destination);b.start(t+d);b.stop(t+d+.55);
       });
     },
-    // Fuga — whoosh descendente
     flee:()=>{
       const b=ac.createOscillator(),g=ac.createGain();
       b.type='sawtooth';b.frequency.setValueAtTime(600,t);b.frequency.exponentialRampToValueAtTime(150,t+.2);
       g.gain.setValueAtTime(.25,t);g.gain.exponentialRampToValueAtTime(.001,t+.22);
       b.connect(g);g.connect(ac.destination);b.start(t);b.stop(t+.25);
     },
-    // Overlay aberto — tom suave
     open:()=>{
       const b=ac.createOscillator(),g=ac.createGain();
       b.type='sine';b.frequency.setValueAtTime(440,t);b.frequency.linearRampToValueAtTime(550,t+.1);
@@ -1615,13 +1399,8 @@ function toggleMute(){
   const btn=$('mute-btn');
   if(btn)btn.textContent=_sfxMuted?'🔇':'🔊';
 }
-
-// Carrega preferência salva
 try{if(localStorage.getItem('cronista_muted')==='1')_sfxMuted=true;}catch(e){}
 
-/* ═══════════════════════════════════════════
-   SISTEMA DE VFX — Partículas + Flash
-═══════════════════════════════════════════ */
 function spawnParticles(count=10,color='#e74c3c',originEl=null){
   const origin=originEl||document.querySelector('.enemy-block')||document.body;
   const rect=origin.getBoundingClientRect();
@@ -1661,7 +1440,6 @@ function pulseEnemyIco(){
   setTimeout(()=>ico.classList.remove('enemy-pulse'),400);
 }
 
-/* ═══ HUD ═══ */
 function upd(){
   if(!G)return;
   if(G.tmpBuffs){G.tmpBuffs=G.tmpBuffs.filter(b=>{if(b.rooms<=0){G[b.stat]-=b.val;return false;}b.rooms--;return true;});}
@@ -1686,7 +1464,6 @@ function upd(){
     ${subBadge}<div class="fbadge">Sala ${G.room}/${G.maxRooms}</div>`;
 }
 
-/* ═══ XP / LEVEL ═══ */
 function logRun(ico,txt,type='neutral'){
   if(!G||!G.runLog)return;
   G.runLog.push({ico,txt,type,floor:G.floor,room:G.room,level:G.level});
@@ -1704,10 +1481,9 @@ function addXP(n){
   }
   upd();
 }
+
 function addGold(n){if(G.passives.includes('loot'))n=Math.round(n*1.5);G.gold=Math.max(0,G.gold+n);upd();}
 
-/* ═══ TITLE ═══ */
-// ── Sistema de criação de alma ──
 let _soulPoints = {vigor:0,forca:0,arcano:0,espirito:0};
 const SOUL_TOTAL_POINTS = 10;
 const SOUL_ATTRS = [
@@ -1724,10 +1500,8 @@ function buildTitle(){
 function renderSoulCreation(){
   const grid = $('class-grid');
   if(!grid) return;
-
   const used = ()=>Object.values(_soulPoints).reduce((a,b)=>a+b,0);
   const remaining = ()=>SOUL_TOTAL_POINTS - used();
-
   const render = ()=>{
     const rem = remaining();
     grid.innerHTML = `
@@ -1769,7 +1543,6 @@ function renderSoulCreation(){
       </div>`;
     checkSoulReady();
   };
-
   render();
   window._soulRender = render;
 }
@@ -1811,14 +1584,11 @@ function goTitle(){
   renderSoulCreation();
 }
 
-/* ═══ SAFE RENDER ═══ */
 function safeRender(fn,...args){try{fn(...args);}catch(e){console.error(e);toast('Erro na interface.',3000);if(G&&!G.inCombat)setTimeout(()=>navTo('explore'),300);}}
 
-/* ═══ NAV ═══ */
 function navTo(v) {
   sfx('click');
   const sc = $("scroll");
-  // Conteúdo longo (combate, inv, skills, stats) = alinha ao topo
   const longViews = ["inv","skills","stats"];
   sc.classList.toggle("has-combat", v !== "explore" || G.inCombat);
   ["explore","inv","skills","stats"].forEach(n => $("nb-"+n).classList.toggle("active", n === v));
@@ -1832,7 +1602,6 @@ function navTo(v) {
   }
 }
 
-/* ═══ EXPLORE ═══ */
 function renderExplore(sc){
   sc.innerHTML='';
   if(G.passives.includes('regen'))G.hp=Math.min(G.hpMax,G.hp+3);
@@ -1842,20 +1611,14 @@ function renderExplore(sc){
   if(pendingSubclass){pendingSubclass=false;renderSubclass(sc);return;}
   if(pendingLevelUp){pendingLevelUp=false;renderLevelUp(sc);return;}
   G.room++;G.events++;
-  G._mNoDmg=true; // reset por sala; vira false se levar dano
+  G._mNoDmg=true;
   if(G.room>G.maxRooms){G.room=G.maxRooms;startBoss(sc);return;}
-
-  // ── Sala de Desafio — aparece na sala 5 de cada andar (se não feita ainda) ──
   if(G.room===5&&!G.challengeRoomDoneThisFloor){
     showChallengeRoomOffer(sc);return;
   }
-
-  // ── Mercador Especial — andar 3+, sala 4, só uma vez por run ──
   if(G.floor>=3&&G.room===4&&!G.specialMerchantSeen){
     showSpecialMerchant(sc);return;
   }
-
-  // Bússola Mágica — força tipo de sala
   let chosen='explore';
   if(G.compassNextRoom){
     chosen=G.compassNextRoom;G.compassNextRoom=null;
@@ -1867,14 +1630,11 @@ function renderExplore(sc){
     let rn=r(total);
     for(let i=0;i<types.length;i++){rn-=w[i];if(rn<=0){chosen=types[i];break;}}
   }
-
-  // Eventos em cadeia têm chance de aparecer em vez de eventos normais de story/explore
-  if((chosen==='story'||chosen==='explore')&&Math.random()<0.35){
+    if((chosen==='story'||chosen==='explore')&&Math.random()<0.35){
     const chainEvs=EVENTS.filter(e=>e.chain&&e.type===chosen);
     if(chainEvs.length){showEvent(pick(chainEvs),sc);return;}
   }
-
-  if(chosen==='combat'){
+    if(chosen==='combat'){
     let enemy;
     if(Math.random()<.12){
       enemy=genElite(G.floor);
@@ -1883,11 +1643,9 @@ function renderExplore(sc){
     }
     startCombat(enemy,sc);
   } else {
-    // Ferreiro: 20% de chance em eventos shop, a partir do andar 2
     if(chosen==='shop'&&G.floor>=2&&Math.random()<.20){
       showEvent(EVENTS.find(e=>e.id==='blacksmith'),sc);return;
     }
-    // Mapa do Tesouro — força evento de baú
     if(G.passives.includes('treasure_map')&&chosen==='explore'){
       const idx=G.passives.indexOf('treasure_map');G.passives.splice(idx,1);
       showChestGame(sc,true);return;
@@ -1904,11 +1662,9 @@ function makeElite(e){
   e.gold=[e.gold[0]*2,e.gold[1]*3];e.badges=['Elite',...e.badges];
 }
 
-/* ═══ SALA DE DESAFIO ═══ */
 function showChallengeRoomOffer(sc){
   sc.innerHTML='';
   const card=mkCard('boss');
-  // Gera inimigo de desafio: élite super-buffado do andar atual
   const pool=ENEMIES.filter(e=>e.floor<=G.floor&&!e.boss);
   const base={...pick(pool)};
   const floorMult=1+(G.floor-1)*0.25;
@@ -1922,9 +1678,7 @@ function showChallengeRoomOffer(sc){
   base.badges=['Desafio','Elite',...(base.badges||[])];
   base.xp=Math.round(base.xp*3);
   base.gold=[base.gold[0]*3,base.gold[1]*4];
-  // Armazena temporariamente
   G._challengeEnemy=base;
-
   card.innerHTML=`
     <div class="ctag"><div class="ctag-dot" style="background:#ff6b35"></div><span class="ctag-txt" style="color:#ff6b35">SALA DE DESAFIO</span></div>
     <div class="ctitle" style="color:#ff9055">⚔️ Porta do Desafio</div>
@@ -1954,21 +1708,18 @@ function enterChallengeRoom(){
 }
 
 function skipChallengeRoom(){
-  G.challengeRoomDoneThisFloor=true; // não pode voltar
+  G.challengeRoomDoneThisFloor=true;
   G._challengeEnemy=null;
   toast('Você ignora a porta. Ela desaparece.',1800);
   nextRoom();
 }
 
-// Hook pós-combate para dar recompensa da sala de desafio
-// Chamado em checkEnd após vitória
 function grantChallengeReward(){
   if(!G._inChallengeRoom)return;
   G._inChallengeRoom=false;
   logRun('⚔️','Sala de Desafio concluída!','crit');
   const it1=randItemByRarity('rare+');
   const it2=randItemByRarity('rare+');
-  // Garante pelo menos um lendário/épico
   const guaranteed=Math.random()<0.4?
     {...ITEMS_POOL.filter(i=>i.rarity==='legendary')[Math.floor(Math.random()*ITEMS_POOL.filter(i=>i.rarity==='legendary').length)],id:'chal_'+r(99999)}:
     {...ITEMS_POOL.filter(i=>i.rarity==='epic')[Math.floor(Math.random()*ITEMS_POOL.filter(i=>i.rarity==='epic').length)],id:'chal_'+r(99999)};
@@ -1979,10 +1730,9 @@ function grantChallengeReward(){
   toast(`🏆 Recompensa do Desafio: ${it1.ico} + ${guaranteed.ico} + ${xpBonus}XP!`,3000);
 }
 
-/* ═══ EVENT ═══ */
 function showEvent(ev,sc){
   G.currentEvent=ev;
-  if(ev && ev.id && ev.title) tomoRecordEvent(ev.id, ev.title, ev.ico||'🗺️'); // Tomo: registra evento
+  if(ev && ev.id && ev.title) tomoRecordEvent(ev.id, ev.title, ev.ico||'🗺️');
   sc.innerHTML='';
   const card=mkCard(ev.type);
   card.innerHTML=`
@@ -1993,7 +1743,6 @@ function showEvent(ev,sc){
     <div class="choices" id="ev-choices"></div>`;
   sc.appendChild(card);
   const cw=card.querySelector('#ev-choices');
-  // Tomo: adicionar opção secreta se evento visitado 2+ vezes
   const tomoSecrets={
     camp:     {txt:'Vasculhar com experiência',hint:'✦ Cronista — +25 HP e item garantido',fn:'tomo_camp_expert'},
     shrine:   {txt:'Invocar pela memória',hint:'✦ Cronista — bênção poderosa garantida',fn:'tomo_shrine_memory'},
@@ -2014,7 +1763,7 @@ function showEvent(ev,sc){
       <div class="chinner"><span class="chtxt">${ch.txt}</span>
       ${ch.hint?`<span class="chhint ${ch.hintcls||''}">${ch.hint}</span>`:''}</div>`;
     btn.onclick=()=>{
-      // Ferreiro: não trava os outros botões — permite navegar livremente entre serviços
+      
       if(ev.id!=='blacksmith'){
         card.querySelectorAll('.chbtn').forEach(b=>{b.disabled=true;b.style.opacity=b===btn?'1':'0.25';b.style.transform='none';});
         btn.style.borderColor='rgba(200,168,75,.6)';btn.style.background='rgba(200,168,75,.08)';
@@ -2037,7 +1786,6 @@ function payCost(cost){
   upd();
 }
 
-/* ═══ OUTCOME ═══ */
 function outcome(sc,type,ico,lbl,txt,tags,narrKey){
   upd();
   if(G.hp<=0){setTimeout(()=>showDeath('Caiu em evento.'),400);return;}
@@ -2053,13 +1801,11 @@ function outcome(sc,type,ico,lbl,txt,tags,narrKey){
 }
 const nextRoom = () => { G.currentEvent = null; navTo('explore'); };
 
-/* ═══ CHOICE HANDLERS ═══ */
 function doChoice(ev,ch,sc){
   if(ch.cost)payCost(ch.cost);
   const oc=(type,ico,lbl,txt,tags,nk='')=>outcome(sc,type,ico,lbl,txt,tags,nk);
   const F={
     pass:()=>oc('neutral','🚶','Passou','Você segue em frente sem se envolver.',[],ev.narr_key),
-    // ── Opções secretas do Tomo ──
     tomo_camp_expert:()=>{const h=25;G.hp=Math.min(G.hpMax,G.hp+h);const it=randItemByRarity('rare+');addItemToInv(it);oc('crit','📖','Memória do Cronista','Seu conhecimento guia cada movimento neste lugar familiar.',[{c:'heal',t:'+'+h+' HP'},{c:'item '+it.rarity,t:it.ico+' '+it.name}]);},
     tomo_shrine_memory:()=>{const h=r(40)+30;G.hp=Math.min(G.hpMax,G.hp+h);G.mp=Math.min(G.mpMax,G.mp+30);G.atk+=2;oc('crit','📖','Memória do Cronista','Os espíritos reconhecem o Cronista. A bênção é total.',[{c:'heal',t:'+'+h+' HP'},{c:'mp',t:'+30 MP'},{c:'xp',t:'+2 ATK'}]);},
     tomo_merchant_expert:()=>{const it=randItemByRarity('rare+');addItemToInv(it);oc('crit','📖','Memória do Cronista','O mercador respeita quem conhece o valor das coisas.',[{c:'item '+it.rarity,t:it.ico+' '+it.name}],'buy');},
@@ -2102,28 +1848,21 @@ function doChoice(ev,ch,sc){
     help_survivor:()=>{const it=randItemByRarity('common');addItemToInv(it);oc('win','🤝','Grato','Ele te entrega o que tem.',[{c:'item',t:it.ico+' '+it.name}],'help');},
     steal_survivor:()=>{const it=randItemByRarity('common');addItemToInv(it);oc('neutral','😔','Pegou','O item é seu. A consciência pesa.',[{c:'item',t:it.ico+' '+it.name}],'abandon');},
     book_event: ()=> showBookEvent(sc),
-
-    // ══ EVENTOS EM CADEIA — ORÁCULO ══
     chain_oracle_brave:()=>showChainStep(sc,'oracle_brave'),
     chain_oracle_gold: ()=>showChainStep(sc,'oracle_gold'),
     chain_oracle_flee: ()=>showChainStep(sc,'oracle_flee'),
-    // ══ EVENTOS EM CADEIA — RUÍNAS ══
     chain_ruins_dive:   ()=>showChainStep(sc,'ruins_dive'),
     chain_ruins_climb:  ()=>showChainStep(sc,'ruins_climb'),
     chain_ruins_read:   ()=>showChainStep(sc,'ruins_read'),
-    // ══ EVENTOS EM CADEIA — PRISIONEIRO ══
     chain_prisoner_force:  ()=>showChainStep(sc,'prisoner_force'),
     chain_prisoner_search: ()=>showChainStep(sc,'prisoner_search'),
     chain_prisoner_ignore: ()=>showChainStep(sc,'prisoner_ignore'),
-    // ══ MERCADOR ESPECIAL ══
     special_merchant: ()=>showSpecialMerchant(sc),
   };
   (F[ch.fn]||F.pass)();
 }
 
-/* ═══ CHEST MINI-GAME ═══ */
 function showChestGame(sc, revealed=false){
-  // Chave Mestre — garante o prêmio, sem armadilha
   const hasMasterKey=G.passives.includes('master_key');
   if(hasMasterKey){
     const idx=G.passives.indexOf('master_key');G.passives.splice(idx,1);
@@ -2133,27 +1872,20 @@ function showChestGame(sc, revealed=false){
       [{c:'item '+it.rarity,t:it.ico+' '+it.name},{c:'gold',t:'+'+g+'💰'}],'item_rare');
     return;
   }
-
   sc.innerHTML='';
   const card=mkCard('explore');
-  // 3 prêmios fixos por rodada
   const prizes=[
     ()=>{const it=randItemByRarity('rare+');addItemToInv(it);return{good:true,emoji:'✨',txt:`${it.ico} ${it.name} encontrado!`,tags:[{c:'item '+it.rarity,t:it.ico+' '+it.name}],nk:'item_rare'};},
     ()=>{const g=r(40)+20;addGold(g);return{good:true,emoji:'💰',txt:`${g} moedas de ouro!`,tags:[{c:'gold',t:'+'+g+'💰'}],nk:''};},
     ()=>{const d=r(20)+10;G.hp=Math.max(0,G.hp-d);screenShake();return{good:false,emoji:'💀',txt:`Maldição! -${d} HP`,tags:[{c:'dmg',t:'-'+d+' HP'}],nk:'curse'};},
   ];
-  // Posições embaralhadas: posição[i] = índice do prêmio no baú i
   const prizeMap=[0,1,2].sort(()=>Math.random()-.5);
   let chosen=false;
-
-  const bodyTxt=revealed
+    const bodyTxt=revealed
     ?'O Mapa do Tesouro revelou o conteúdo de cada baú. Escolha com sabedoria.'
     :'Três baús. Um tesouro. Dois problemas. A escolha é sua.';
-
-  // Rótulos revelados para cada baú (só visíveis com Mapa do Tesouro)
   const revealLabels=prizeMap.map(pi=>['✨ Raro','💰 Ouro','⚠️ Armadilha'][pi]);
-
-  card.innerHTML=`
+    card.innerHTML=`
     <div class="ctag"><div class="ctag-dot"></div><span class="ctag-txt">${revealed?'🗺️ Baú Revelado':'Baú Misterioso'}</span></div>
     <div class="ctitle">Escolha um Baú</div>
     <div class="cbody">${bodyTxt}</div>
@@ -2161,12 +1893,10 @@ function showChestGame(sc, revealed=false){
     <div id="chest-result"></div>`;
   sc.appendChild(card);
   const cg=card.querySelector('#chest-grid');
-
-  prizeMap.forEach((prizeIdx,i)=>{
+    prizeMap.forEach((prizeIdx,i)=>{
     const box=document.createElement('div');
     box.className='chest-box';
     if(revealed){
-      // Mapa do Tesouro — mostra conteúdo
       const lbl=revealLabels[i];
       box.innerHTML=`<div style="font-size:28px;">${['✨','💰','⚠️'][prizeIdx]}</div><div style="font-size:9px;font-family:var(--cinzel);color:${prizeIdx===2?'var(--red2)':'var(--gold)'};margin-top:3px;">${lbl}</div>`;
       box.style.border=prizeIdx===2?'1px solid rgba(192,57,43,.4)':'1px solid rgba(200,168,75,.4)';
@@ -2178,7 +1908,6 @@ function showChestGame(sc, revealed=false){
       const result=prizes[prizeIdx]();
       box.innerHTML=`<div style="font-size:32px;">${result.emoji}</div>`;
       box.classList.add('revealed',result.good?'win':'lose');
-      // Revela os outros
       cg.querySelectorAll('.chest-box').forEach((b,j)=>{
         if(j!==i)setTimeout(()=>{
           const ri=prizeMap[j];
@@ -2199,11 +1928,7 @@ function showChestGame(sc, revealed=false){
   });
   scrollBot(sc);
 }
-
-
-/* ═══ EVENTOS EM CADEIA ═══ */
 const CHAIN_STEPS={
-  // ── ORÁCULO ──
   oracle_brave:{
     ico:'🔮',title:'A Oráculo — Fase 2',
     body:'Você a enfrenta diretamente. Ela sorri, revelando dentes de pedra. <b>"Coragem. Rara."</b> Visões fragmentadas invadem sua mente — dor, glória, o andar seguinte.',
@@ -2228,7 +1953,6 @@ const CHAIN_STEPS={
       {txt:'Continuar correndo',hint:'Garantidamente seguro',fn:'oracle_f_run'},
     ]
   },
-  // Fase 3 — Oráculo
   oracle_b_absorb:{
     ico:'💫',title:'A Oráculo — Revelação Final',
     body:'A dor é real — como fogo dentro do crânio. Mas depois vem a clareza. Você vê o mapa do andar. Os inimigos. O chefe. Tudo por um instante.',
@@ -2285,8 +2009,7 @@ const CHAIN_STEPS={
     body:'Você corre. O riso dela ecoa, mas nada te atinge. Às vezes a melhor decisão é simplesmente sair.',
     resolve:(sc)=>{outcome(sc,'neutral','💨','Fugiu em Paz','A sabedoria está em saber quando recuar.',[],'abandon');}
   },
-
-  // ── RUÍNAS ──
+  
   ruins_dive:{
     ico:'🏛️',title:'Ruínas — Fase 2: Câmara Alagada',
     body:'Água fria até os joelhos. Na câmara submersa, estantes cobertas de musgo guardam objetos envoltos em luz. Mas o chão cede — você percebe que há algo se movendo abaixo.',
@@ -2311,7 +2034,6 @@ const CHAIN_STEPS={
       {txt:'Usar o conhecimento para evitar perigos',hint:'Bônus passivo neste andar',fn:'ruins_r_wisdom'},
     ]
   },
-  // Fase 3 — Ruínas
   ruins_d_fast:{
     ico:'💧',title:'Ruínas — Resultado',
     body:'Você pega dois objetos antes da criatura emergir. O frio te acompanha por um tempo.',
@@ -2364,13 +2086,11 @@ const CHAIN_STEPS={
     ico:'📜',title:'Ruínas — Sabedoria Aplicada',
     body:'Você usa as inscrições para navegar com segurança. Armadilhas evitadas. Tempo poupado.',
     resolve:(sc)=>{
-      G.passives.push('ruins_wisdom');// bônus: próximo combate com vantagem
+      G.passives.push('ruins_wisdom');
       const g=r(20)+10;addGold(g);
       outcome(sc,'win','📜','Navegação Segura','Conhecimento como escudo.',[{c:'gold',t:'+'+g+'💰'},{c:'xp',t:'🛡️ Vantagem no próximo combate'}]);
     }
   },
-
-  // ── PRISIONEIRO ──
   prisoner_force:{
     ico:'⛓️',title:'Prisioneiro — Fase 2: Libertado',
     body:'A porta cede com um golpe. O mago sai cambaleando. <b>"Obrigado. Tenho algo para você — mas me dê um momento."</b>',
@@ -2395,7 +2115,6 @@ const CHAIN_STEPS={
       {txt:'Continuar ignorando',hint:'Seguro, mas vazio',fn:'prisoner_i_pass'},
     ]
   },
-  // Fase 3 — Prisioneiro
   prisoner_f_wait:{
     ico:'🧙',title:'Prisioneiro — Gratidão Verdadeira',
     body:'O mago retorna suas forças e te presenteia com um encantamento que ele carregava há anos.',
@@ -2410,7 +2129,7 @@ const CHAIN_STEPS={
     body:'O mago recua, assustado, e lança um feitiço defensivo antes de fugir. Você leva o impacto.',
     resolve:(sc)=>{
       const d=r(18)+8;G.hp=Math.max(0,G.hp-d);screenShake();
-      const g=r(15)+5;addGold(g); // ele jogou moedas ao fugir
+      const g=r(15)+5;addGold(g);
       outcome(sc,'lose','😤','Mal Recebido','Às vezes a pressa nos custia o prêmio.',[{c:'dmg',t:'-'+d+' HP'},{c:'gold',t:'+'+g+'💰'}],'abandon');
     }
   },
@@ -2448,9 +2167,7 @@ const CHAIN_STEPS={
 function showChainStep(sc, stepKey){
   const step=CHAIN_STEPS[stepKey];
   if(!step){nextRoom();return;}
-  // Se tem resolve() é etapa final
   if(step.resolve){step.resolve(sc);return;}
-  // Senão é etapa intermediária — renderiza nova tela de escolhas
   sc.innerHTML='';
   const card=mkCard('story');
   card.innerHTML=`
@@ -2470,7 +2187,6 @@ function showChainStep(sc, stepKey){
       card.querySelectorAll('.chbtn').forEach(b=>{b.disabled=true;b.style.opacity=b===btn?'1':'0.25';b.style.transform='none';});
       btn.style.borderColor='rgba(200,168,75,.6)';btn.style.background='rgba(200,168,75,.08)';
       if(ch.cost)payCost(ch.cost);
-      // Vai direto para a etapa final (fase 3)
       showChainStep(sc,ch.fn);
     };
     cw.appendChild(btn);
@@ -2478,25 +2194,16 @@ function showChainStep(sc, stepKey){
   scrollBot(sc);
 }
 
-
-/* ═══════════════════════════════════════════════════════
-   FERREIRO
-═══════════════════════════════════════════════════════ */
-
 function openSmith(sc){
-  // Reabre o ferreiro
   showEvent(EVENTS.find(e=>e.id==='blacksmith'),sc);
 }
 
-// ─── Melhorar item equipado ───
 function smithUpgrade(){
   const sc=$('scroll');
   const equipped=Object.entries(G.equip||{}).filter(([slot,it])=>it&&it.bonus);
   if(!equipped.length){toast('Nenhum item equipado para melhorar!');return;}
-
   const costs={common:30,rare:60,epic:100,legendary:150};
   const gains={common:2,rare:3,epic:4,legendary:5};
-
   const card=document.createElement('div');card.className='card esh';
   const rows=equipped.map(([slot,it])=>{
     const cost=costs[it.rarity]||60;
@@ -2515,8 +2222,7 @@ function smithUpgrade(){
       </div>
     </div>`;
   }).join('');
-
-  card.innerHTML=`
+    card.innerHTML=`
     <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">MELHORAR ITEM</span></div>
     <div class="ctitle">⚒️ Fortalecer Equipamento</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">${rows||'<div style="color:var(--txt2);font-size:12px;">Nenhum item equipado.</div>'}</div>
@@ -2524,12 +2230,8 @@ function smithUpgrade(){
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
 }
 
-
-
-// ─── Fundir dois itens ───
 function smithFuse(doFuse){
   const sc=$('scroll');
-  // Executar a fusão
   if(doFuse===true){
     const sel=G._smithFuseSelected;
     if(!sel||sel.length!==2){toast('Selecione 2 itens!');return;}
@@ -2538,7 +2240,6 @@ function smithFuse(doFuse){
     const it2=G.inv[sel[1]];
     if(!it1||!it2){toast('Itens inválidos!');return;}
     G.gold-=80;
-    // Fusão: combina bonus dos dois itens
     const rarityOrder=['common','uncommon','rare','epic','legendary'];
     const r1=rarityOrder.indexOf(it1.rarity||'common');
     const r2=rarityOrder.indexOf(it2.rarity||'common');
@@ -2557,7 +2258,6 @@ function smithFuse(doFuse){
       bonus:Object.keys(combinedBonus).length?combinedBonus:null,
       uses:null,fn:null,
     };
-    // Remove os dois itens (do maior índice para não deslocar)
     const idxs=[sel[0],sel[1]].sort((a,b)=>b-a);
     idxs.forEach(i=>G.inv.splice(i,1));
     addItemToInv(fused);
@@ -2568,7 +2268,6 @@ function smithFuse(doFuse){
   }
   if(G.inv.length<2){toast('Precisa de pelo menos 2 itens no inventário!');return;}
   G._smithFuseSelected=[];
-
   const card=document.createElement('div');card.className='card esh';
   card.id='smith-fuse-card';
 
@@ -2582,7 +2281,6 @@ function smithFuse(doFuse){
         ${sel?'<span style="color:var(--acc);font-size:18px;">✓</span>':''}
       </div>`;
     }).join('');
-
     const canFuse=G._smithFuseSelected.length===2;
     card.innerHTML=`
       <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">FUNDIR ITENS</span></div>
@@ -2592,7 +2290,6 @@ function smithFuse(doFuse){
       <button class="btn-next" style="margin-bottom:8px;${canFuse?'':'opacity:.4;pointer-events:none;'}" onclick="smithFuse(true)">⚒️ Fundir (80💰)</button>
       <button class="btn-next" style="background:transparent;border-color:var(--brd2);color:var(--txt2);" onclick="openSmith($('scroll'))">← Voltar</button>`;
   }
-
   renderFuseCard();
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
   G._renderFuseCard=renderFuseCard;
@@ -2607,14 +2304,10 @@ function toggleSmithFuse(i){
   if(G._renderFuseCard) G._renderFuseCard();
 }
 
-
-
-// ─── Reparar item maldito ───
 function smithRepair(){
   const sc=$('scroll');
   const cursed=G.inv.filter(it=>it.bonus&&Object.values(it.bonus).some(v=>v<0));
   if(!cursed.length){toast('Nenhum item com penalidades no inventário!');return;}
-
   const card=document.createElement('div');card.className='card esh';
   const rows=cursed.map((it,i)=>{
     const negStats=Object.entries(it.bonus).filter(([k,v])=>v<0).map(([k,v])=>`${k.toUpperCase()} ${v}`).join(', ');
@@ -2625,8 +2318,7 @@ function smithRepair(){
       <div style="font-family:var(--cinzel);font-size:12px;color:var(--gold);">💰50</div>
     </div>`;
   }).join('');
-
-  card.innerHTML=`
+    card.innerHTML=`
     <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">REPARAR ITEM</span></div>
     <div class="ctitle">⚒️ Remover Penalidades</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">${rows}</div>
@@ -2634,11 +2326,7 @@ function smithRepair(){
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
 }
 
-
-
-// ─── Craftar item novo ───
 function smithCraft(execSlot){
-  // Com argumento: executa o craft. Sem argumento: exibe o painel.
   if(execSlot!==undefined){
     if(G.gold<70){toast('Ouro insuficiente!');return;}
     G.gold-=70;
@@ -2672,7 +2360,7 @@ function smithCraft(execSlot){
     };
     addItemToInv(crafted);upd();
     toast(`⚒️ ${crafted.name} (${rarity}) forjado!`,2500);
-    smithCraft(); return; // recarrega o painel
+    smithCraft(); return;
   }
   const sc=$('scroll');
   if(G.gold<70){toast('Ouro insuficiente! (70💰)');return;}
@@ -2697,15 +2385,10 @@ function smithCraft(execSlot){
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
 }
 
-
-
-// ─── Comprar/Vender ───
 function smithTrade(){
   const sc=$('scroll');
   const card=document.createElement('div');card.className='card esh';
   card.id='smith-trade-card';
-
-  // Pool de compra: itens aleatórios por andar
   if(!G._smithShopItems){
     const pool=ITEMS_POOL.filter(i=>i.rarity!=='legendary');
     G._smithShopItems=[...pool].sort(()=>Math.random()-.5).slice(0,5).map(i=>({
@@ -2728,7 +2411,6 @@ function smithTrade(){
         </div>
       </div>`;
     }).join('');
-
     const sellRows=G.inv.slice(0,12).map((it,i)=>{
       const sellPrice=Math.max(5,Math.round(({common:10,uncommon:18,rare:30,epic:50,legendary:90}[it.rarity]||15)*0.6));
       return `<div class="special-merch-item" onclick="doSmithSell(${i},${sellPrice})">
@@ -2741,7 +2423,6 @@ function smithTrade(){
         </div>
       </div>`;
     }).join('');
-
     card.innerHTML=`
       <div class="ctag"><div class="ctag-dot" style="background:#e67e22"></div><span class="ctag-txt" style="color:#e67e22">COMPRAR / VENDER</span></div>
       <div class="ctitle">⚒️ Mercadoria do Ferreiro</div>
@@ -2751,7 +2432,6 @@ function smithTrade(){
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">${sellRows||'<div style="color:var(--txt2);font-size:11px;">Inventário vazio.</div>'}</div>
       <button class="btn-next" style="background:transparent;border-color:var(--brd2);color:var(--txt2);" onclick="openSmith($('scroll'))">← Voltar</button>`;
   }
-
   renderTrade();
   sc.innerHTML='';sc.appendChild(card);scrollBot(sc);
   G._renderTradeCard=renderTrade;
@@ -2774,18 +2454,14 @@ function doSmithSell(i,price){
   G.inv.splice(i,1);
   addGold(price);
   upd();toast(`💰 +${price} — ${it.name} vendido!`,2000);
-  G._smithShopItems=null; // reseta loja ao vender
+  G._smithShopItems=null;
   smithTrade();
 }
 
-// ─── Handler de choices do ferreiro ───
-
-/* ═══ MERCADOR ESPECIAL (andar 3+) ═══ */
 function showSpecialMerchant(sc){
   G.specialMerchantSeen=true;
   sc.innerHTML='';
   const card=mkCard('shop');
-  // Gera 3 itens lendários/épicos e 2 elementos raros para venda
   const legendaryItems=ITEMS_POOL.filter(i=>['legendary','epic'].includes(i.rarity));
   const shopItems=[
     ...[...legendaryItems].sort(()=>Math.random()-.5).slice(0,3).map(i=>({...i,price:i.rarity==='legendary'?120:75})),
@@ -2793,8 +2469,7 @@ function showSpecialMerchant(sc){
   const elPool=ELEMENTS.filter(e=>!G.elements.some(x=>x.id===e.id)&&e.tier<=2).sort(()=>Math.random()-.5).slice(0,2);
   const elItems=elPool.map(e=>({isElement:true,el:e,name:e.name,ico:e.ico,rarity:'epic',price:90,desc:'Tier '+e.tier+' — '+e.desc}));
   const allItems=[...shopItems,...elItems];
-
-  let itemsHtml=allItems.map((it,i)=>{
+    let itemsHtml=allItems.map((it,i)=>{
     const canBuy=G.gold>=it.price;
     const rarColor={legendary:'var(--legendary)',epic:'var(--epic)',rare:'var(--rare)'}[it.rarity]||'var(--acc)';
     return `<div class="special-merch-item ${canBuy?'':'disabled'}" id="smi-${i}" onclick="buySpecialItem(${i})">
@@ -2809,8 +2484,7 @@ function showSpecialMerchant(sc){
       </div>
     </div>`;
   }).join('');
-
-  card.innerHTML=`
+    card.innerHTML=`
     <div class="ctag"><div class="ctag-dot" style="background:var(--gold)"></div><span class="ctag-txt" style="color:var(--gold)">MERCADOR LENDÁRIO</span></div>
     <div class="ctitle">🧿 Bartholomew, o Coleccionador</div>
     <div class="cillo">🧿</div>
@@ -2818,7 +2492,6 @@ function showSpecialMerchant(sc){
     <div id="smerch-items" style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">${itemsHtml}</div>
     <button class="btn-next" onclick="nextRoom()">Dispensar e seguir →</button>`;
   sc.appendChild(card);
-  // Guarda os itens no estado temporário para compra
   G._specialMerchItems=allItems;
   scrollBot(sc);
 }
@@ -2837,13 +2510,10 @@ function buySpecialItem(i){
     addItemToInv(copy);applyBonus(copy);
     toast(`${it.ico} ${it.name} adquirido!`,2200);
   }
-  // Remove item do grid
   const el=$('smi-'+i);if(el){el.style.opacity='0.3';el.style.pointerEvents='none';el.querySelector&&(el.style.textDecoration='line-through');}
 }
 
-/* ═══ SUBCLASS ═══ */
 function renderSubclass(sc){
-  // No novo sistema, subclasse = ganhar uma Memória Épica ou Rara exclusiva
   sc.innerHTML='';
   const card=mkCard('explore');
   card.innerHTML=`
@@ -2852,11 +2522,9 @@ function renderSubclass(sc){
     <div class="lvup-sub">"${narr('subclass')}"</div>
     <div class="subcls-grid" id="subcls-grid"></div>`;
   sc.appendChild(card);
-  // Oferecer 2 Memórias raras/épicas que a alma ainda não tem
   const owned = new Set(G.memories.map(m=>m.id));
   const opts = MEMORIES.filter(m=>!owned.has(m.id)&&(m.rarity==='rare'||m.rarity==='epic'))
     .sort(()=>Math.random()-.5).slice(0,2);
-  // Fallback: qualquer memória não possuída
   const fallback = MEMORIES.filter(m=>!owned.has(m.id)).sort(()=>Math.random()-.5).slice(0,2);
   const choices = opts.length>=2 ? opts : fallback;
   choices.forEach(m=>{
@@ -2864,7 +2532,7 @@ function renderSubclass(sc){
     d.innerHTML=`<div class="subcls-ico">${m.ico}</div><div class="subcls-name">${m.name}</div><div class="subcls-desc">${m.desc}</div><div class="subcls-bonus">${m.rarity.toUpperCase()} · ${m.affinity}</div>`;
     d.onclick=()=>{
       G.memories.push({...m});
-      G.skills=G.memories; // compatibilidade
+      G.skills=G.memories;
       G.subclass={name:m.name};
       upd();logRun('🌟',`Memória: ${m.name}`,'win');sfx('subclass');
       toast('🌟 '+m.name+' memorado!',2500);lvFlash();nextRoom();
@@ -2873,21 +2541,19 @@ function renderSubclass(sc){
   });
 }
 
-/* ═══ LEVEL UP ═══ */
 function renderLevelUp(sc){
   sc.innerHTML='';lvFlash();
   const card=mkCard('explore');
   const bonus=G.bonusUpgrades||0;
   const count=3+bonus;
   if(bonus>0){G.bonusUpgrades=0;toast('⭐ Fragmento de Estrela: +1 opção de talento!',2000);}
-  // Filtra upgrades: remove já adquiridos e os que têm req não cumprido
   const acquired=new Set(G.upgrades.map(u=>typeof u==='string'?u:u));
   const acquiredIds=new Set(
     UPGRADES.filter(u=>G.upgrades.includes(u.name)).map(u=>u.id)
   );
   const eligible=UPGRADES.filter(u=>{
-    if(acquiredIds.has(u.id)) return false; // já tem
-    if(u.req&&!acquiredIds.has(u.req)) return false; // pré-requisito não cumprido
+    if(acquiredIds.has(u.id)) return false;
+    if(u.req&&!acquiredIds.has(u.req)) return false;
     return true;
   });
   const pool=(eligible.length>=count?eligible:[...eligible,...UPGRADES.filter(u=>!acquiredIds.has(u.id))])
@@ -2907,38 +2573,26 @@ function renderLevelUp(sc){
   });
 }
 
-/* ═══ STATUS DE COMBATE ═══ */
-// Estrutura de status: {poison, burn, freeze} com turns e dmg
-// Aplicável a CE (inimigo) e G (jogador) — acumulam simultaneamente
-
 function applyStatus(target, type, turns, dmg){
-  // type: 'poison'|'burn'|'freeze'
-  // acumula — não sobrescreve, soma turnos se já ativo
   if(type==='poison'){
     target.poisonTurns=(target.poisonTurns||0)+turns;
-    target.poisonDmg=Math.max(target.poisonDmg||0, dmg); // usa o maior dano
+    target.poisonDmg=Math.max(target.poisonDmg||0, dmg);
   } else if(type==='burn'){
     target.burnTurns=(target.burnTurns||0)+turns;
     target.burnDmg=Math.max(target.burnDmg||0, dmg);
   } else if(type==='freeze'){
     target.freezeTurns=(target.freezeTurns||0)+turns;
-    // congelamento não tem dmg, só efeito de chance de pular turno
   }
 }
 
 function tickStatus(target, isPlayer=false){
-  // target: CE (inimigo) ou G (jogador)
-  // Retorna true se o alvo morreu (só relevante para inimigo)
   const hpKey  = isPlayer?'hp':'hpCur';
   const hpMax  = isPlayer?target.hpMax:target.hp;
   const label  = isPlayer?'você':target.name;
   const logLvl = isPlayer?'le':'li';
   let died=false;
-
-  // Veneno
   if(target.poisonTurns>0){
     let d=target.poisonDmg||(isPlayer?3:0);
-    // Resistência do Tomo — reduz dano de veneno em 40%
     if(isPlayer && G.passives.includes('tomo_res_poison')) d=Math.max(1,Math.round(d*0.6));
     target[hpKey]=Math.max(0,target[hpKey]-d);
     target.poisonTurns--;
@@ -2946,10 +2600,8 @@ function tickStatus(target, isPlayer=false){
       target[hpKey]<=0?'ls':logLvl);
     if(target[hpKey]<=0) died=true;
   }
-  // Queimadura — decrementa por turno (máx 5 turnos por aplicação)
   if(!died&&target.burnTurns>0){
     let d=target.burnDmg||(isPlayer?4:0);
-    // Resistência do Tomo — reduz dano de queimadura em 40%
     if(isPlayer && G.passives.includes('tomo_res_burn')) d=Math.max(1,Math.round(d*0.6));
     target[hpKey]=Math.max(0,target[hpKey]-d);
     target.burnTurns--;
@@ -2957,9 +2609,7 @@ function tickStatus(target, isPlayer=false){
       target[hpKey]<=0?'ls':logLvl);
     if(target[hpKey]<=0) died=true;
   }
-  // Congelamento (só no jogador — decai aqui, efeito tratado em enemyTurn)
   if(isPlayer&&target.freezeTurns>0) target.freezeTurns--;
-
   if(isPlayer&&target.passives?.includes('godmode')) target.hp=target.hpMax;
   return died;
 }
@@ -2986,13 +2636,7 @@ function buildStatusBadges(target, isPlayer=false){
   return html;
 }
 
-/* ═══ BARRA DE PRONTIDÃO ═══ */
-// Apenas chefes e elites possuem barra de prontidão
-// Cada inimigo tem: readyMax (turnos para encher), readyCur (progresso atual)
-// Quando cheia: dispara ataque especial
-
 const READY_ATTACKS={
-  // Definidos por id do inimigo ou tipo
   boss1:{name:'Invocar Mortos',ico:'💀',status:'poison',statusTurns:3,statusDmg:5,
     desc:'Invoca uma horda! Aplica Veneno.',dmgMult:1.8},
   boss2:{name:'Sopro de Fogo',ico:'🔥',status:'burn',statusTurns:5,statusDmg:8,
@@ -3005,7 +2649,7 @@ const READY_ATTACKS={
 
 function initReadyBar(enemy){
   if(!enemy.boss&&!enemy.elite)return;
-  enemy.readyMax=enemy.boss?4:5; // boss carrega em 4 turnos, elite em 5
+  enemy.readyMax=enemy.boss?4:5;
   enemy.readyCur=0;
 }
 
@@ -3026,12 +2670,9 @@ function getReadyAttack(){
 
 function fireReadyAttack(){
   const atk=getReadyAttack();
-  // 50/50: jogador esquiva ou leva dano pesado
   const dodged=Math.random()<0.5;
   const baseDmg=Math.max(8,Math.round((CE.atk-(G.def*.4)+r(10))*atk.dmgMult));
-
   clog(`⚡ ${CE.name} usa ${atk.ico} ${atk.name}!`,'ln');
-
   if(dodged){
     clog(`✨ Você desviou do ataque especial!`,'ls');
     floatDmg('DESVIOU','#f1c40f',45,45);
@@ -3041,42 +2682,37 @@ function fireReadyAttack(){
     clog(`💥 ${atk.desc} -${baseDmg} HP!`,'le');
     floatDmg('-'+baseDmg,'#c0392b',38,50);
     screenShake();
-    // Aplica status se houver
     if(atk.status){
       applyStatus(G,atk.status,atk.statusTurns,atk.statusDmg);
       const sNames={poison:'Veneno 🐍',burn:'Queimadura 🔥',freeze:'Congelamento ❄️'};
       clog(`${sNames[atk.status]} aplicado!`,'le');
     }
-    // Atordoamento sempre no ataque especial
-    CE.stunned=false; // inimigo não se atordoa, mas o jogador pode ter freeze
-    // Aplica atordoamento no próprio inimigo como "recarga" — ele fica 1 turno sem agir
+    
+    CE.stunned=false;
   }
   resetReadyBar();
-  G._mNoDmg=dodged&&G._mNoDmg; // perde missão de "sem dano" se levar
+  G._mNoDmg=dodged&&G._mNoDmg;
   if(G.passives.includes('bsk_set')&&G.hp/G.hpMax<.3)G.hp=Math.min(G.hpMax,G.hp+5);
 }
 
-// Reduz barra de prontidão quando jogador causa dano
 function dentReadyBar(dmg){
   if(!CE||CE.readyMax===undefined||CE.readyCur<=0)return;
-  // Baseado no HP atual — mais interativo para danos variados
   const hpAtual=Math.max(1,CE.hpCur);
   const pct=dmg/hpAtual;
   let reducao=0;
-  if(pct>=0.25) reducao=2;       // dano >= 25% HP atual → reduz 2 ticks
-  else if(pct>=0.10) reducao=1;  // dano >= 10% HP atual → reduz 1 tick
+  if(pct>=0.25) reducao=2;
+  else if(pct>=0.10) reducao=1;
   if(reducao>0){
     CE.readyCur=Math.max(0,CE.readyCur-reducao);
     clog(`⚡ Barra de prontidão interrompida${reducao>1?' (forte)':''}!`,'ls');
   }
 }
 
-/* ═══ COMBAT ═══ */
 function startCombat(enemy,sc,disadv=false){
   G.inCombat=true;
-  G._shadowUsed=false;       // Assassino: reseta primeiro golpe a cada combate
-  G.divineShield=false;      // Paladino: reseta escudo
-  G._itemUsedThisCombat=false; // Missão noitem: reseta uso de item por combate
+  G._shadowUsed=false;
+  G.divineShield=false;
+  G._itemUsedThisCombat=false
   CE={...enemy,hpCur:enemy.hp,stunned:false,poisonTurns:0,burnTurns:0,freezeTurns:0,_marked:false,_markedTurns:0,_foggedTurns:0,_roaredTurns:0,_roaredAtk:0};
   combatLog=[];
   initReadyBar(CE);
@@ -3087,10 +2723,9 @@ function startCombat(enemy,sc,disadv=false){
 }
 
 function startBoss(sc){
-  // Boss fixo para andares 1-3, procedural para andares 4+
   const fixedBoss=ENEMIES.find(e=>e.id==='boss'+G.floor);
   const boss=fixedBoss||genBoss(G.floor);
-  G._currentBoss=boss; // salva referência para o combate
+  G._currentBoss=boss;
   sc.innerHTML='';
   const card=mkCard('boss');
   const floorLabel=G.floor>3?`Andar ${G.floor} — Profundidades ∞`:`Andar ${G.floor}`;
@@ -3109,8 +2744,6 @@ function renderCombat(sc){
   const card=mkCard(CE.elite?'elite':'combat');
   const el=CE.elite;
   const activeEl=G.activeElement;
-  // Skill primária: sempre mostra a skill da classe (Bola de Fogo, etc.)
-  // A Magia Elemental foi movida para o botão sk2 (Fusão Elemental)
   const sk=G.skills[0];
   const isMageEl=activeEl&&G.cls.id==='mage';
   const skIco=sk.ico;
@@ -3119,17 +2752,13 @@ function renderCombat(sc){
   const rawMp=sk.mp;
   const skMp=Math.max(0,rawMp-(G.mpDiscount||0));
   const skType=sk.type;
-  // Carga elemental — indicador de progresso (mantido para referência visual)
   const chargeCount=G._elChargeCount||0;
   const isCharging=isMageEl&&G._elChargeEl===activeEl?.id&&chargeCount>0;
   const chargePips=isMageEl?`<span class="charge-pips">${[1,2,3].map(i=>`<span class="cpip${chargeCount>=i?' active':''}${chargeCount>=3?' full':''}"></span>`).join('')}</span>`:'';
-
-  // Skill 2 (se tiver)
   const sk2=G.skills[1];
   let sk2Btn='';
   if(sk2){
     const isMageFusion=G.cls.id==='mage';
-    // Para o mago, o botão sk2 vira Fusão Elemental
     const availFusions=isMageFusion?FUSIONS.filter(f=>
       G.elements.some(e=>e.id===f.e1)&&G.elements.some(e=>e.id===f.e2)
     ):[];
@@ -3151,8 +2780,6 @@ function renderCombat(sc){
       </button>`;
     }
   }
-
-  // Explosão Arcana (set mago 3 peças)
   const arcanaReady=G.passives.includes('arcana_explosion')&&G.arcanaReady;
   const arcanaCd=G.passives.includes('arcana_explosion')&&!G.arcanaReady;
   const arcanaBtn=G.passives.includes('arcana_explosion')?`<button class="cbtn carcana${arcanaReady?'':' cd'}" id="cb-arc" onclick="ca('arcana')" ${arcanaReady?'':'disabled'}>
@@ -3160,17 +2787,11 @@ function renderCombat(sc){
     <span class="cbtn-lbl">Explosão Arcana</span>
     <span class="cbtn-sub">${arcanaReady?'Disponível':'CD: '+(3-G.arcanaCombatsSince)+' vitórias'}</span>
   </button>`:'';
-
-  // Exibir atributos do inimigo se tiver Olho do Guardião
   const _enemyStudied = tomoIsEnemyStudied(CE.id||CE.name);
   const eyeInfo=(G.passives.includes('guardian_eye')||_enemyStudied)?
     `<div style="font-size:10px;color:var(--txt2);font-family:var(--cinzel);margin-top:4px;opacity:.8;">${_enemyStudied?'📖 ':''}ATK ${CE.atk} | DEF ${CE.def} | XP ${CE.xp}</div>`:'';
-
-  // Status do inimigo (badges dinâmicos)
   const badges=(CE.badges||[]).map(b=>`<span class="ebadge${el?' elite-badge':''}">${b}</span>`).join('');
   const enemyStatusBadges=buildStatusBadges(CE);
-
-  // Barra de prontidão (só chefe/elite)
   const hasReady=CE.readyMax!==undefined;
   const readyCur=CE.readyCur||0;
   const readyPct=hasReady?Math.round((readyCur/CE.readyMax)*100):0;
@@ -3186,12 +2807,8 @@ function renderCombat(sc){
         <div class="ready-fill${readyFull?' ready-fill-full':''}" id="rdyf" style="width:${readyPct}%"></div>
       </div>
     </div>`:'';
-
-  // Status do jogador (exibido acima do log)
   const playerStatusHtml=buildPlayerStatusHtml();
-
   const logs=combatLog.slice(-6).map(l=>`<div class="${l.c}">${l.t}</div>`).join('');
-
   card.innerHTML=`
     <div class="ctag"><div class="ctag-dot"></div><span class="ctag-txt">${el?'Elite':'Combate'}</span></div>
     <div class="enemy-block${el?' elite-block':''}${readyFull?' ready-block-alert':''}">
@@ -3223,7 +2840,6 @@ function renderCombat(sc){
     </div>`;
   sc.appendChild(card);scrollBot(sc);lockBtns(250);
 }
-
 const clog=(t,c='li')=>{combatLog.push({t,c});if(combatLog.length>100)combatLog.shift();};
 
 function buildPlayerStatusHtml(){
@@ -3241,7 +2857,6 @@ function updateCombatUI(){
   if(f)f.style.width=pct(CE.hpCur,CE.hp);
   if(t)t.textContent=CE.hpCur+'/'+CE.hp+' HP';
   if(l){l.innerHTML=combatLog.slice(-6).map(x=>`<div class="${x.c}">${x.t}</div>`).join('');l.scrollTop=l.scrollHeight;}
-  // ── Atualiza indicador de carga elemental sem re-render completo ──
   const skBtn=$('cb-sk');
   if(skBtn&&G.activeElement&&G.cls.id==='mage'){
     const cc=G._elChargeCount||0;
@@ -3253,7 +2868,6 @@ function updateCombatUI(){
     }
     skBtn.classList.toggle('charged', cc>=3);
   }
-  // Atualiza barra de prontidão sem re-render completo
   const rdyf=$('rdyf');
   if(rdyf&&CE&&CE.readyMax!==undefined){
     const cur=CE.readyCur||0;
@@ -3268,12 +2882,10 @@ function updateCombatUI(){
         pctEl.textContent=cur>=CE.readyMax?'⚡ CUIDADO!':cur+'/'+CE.readyMax;
         pctEl.className='ready-pct'+(cur>=CE.readyMax?' ready-alert':'');
       }
-      // Alerta visual no bloco do inimigo
       const eb=document.querySelector('.enemy-block');
       if(eb){eb.classList.toggle('ready-block-alert',cur>=CE.readyMax);}
     }
   }
-  // Atualiza status do jogador
   const ps=$('pstatus');
   const newPsHtml=buildPlayerStatusHtml();
   if(ps)ps.outerHTML=newPsHtml||'';
@@ -3281,7 +2893,6 @@ function updateCombatUI(){
     const logEl=$('clog');
     if(logEl)logEl.insertAdjacentHTML('beforebegin',newPsHtml);
   }
-  // Atualiza badges de status do inimigo
   const ebadges=document.querySelector('.ebadges');
   if(ebadges&&CE){
     const baseBadges=(CE.badges||[]).map(b=>`<span class="ebadge${CE.elite?' elite-badge':''}">${b}</span>`).join('');
@@ -3334,7 +2945,6 @@ function ca(action){
     if(r(20)+G.spd>=14){
       sfx('flee');
       G._mFled=true;
-      // limpa status do jogador ao fugir
       clearCombatStatus(G);
       clog('Você foge!','ls');G.inCombat=false;CE=null;combatLog=[];
       outcome($('scroll'),'neutral','💨','Fugiu','Escape pela calada.',[]);return;
@@ -3345,7 +2955,6 @@ function ca(action){
 }
 
 function pAtk(bonus=0,forceCrit=false){
-  // sure_hit (set caçador) garante acerto
   if(!G.passives.includes('sure_hit')&&CE&&Math.random()<(CE.dodge||0)){
     clog(CE.name+' esquivou do seu ataque!','li');updateCombatUI();return;
   }
@@ -3357,7 +2966,7 @@ function pAtk(bonus=0,forceCrit=false){
   pulseEnemyIco();
   dmg+=bonus;
   CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-  dentReadyBar(dmg); // reduz barra de prontidão proporcional ao dano
+  dentReadyBar(dmg);
   if(G.lifesteal>0)G.hp=Math.min(G.hpMax,G.hp+Math.round(dmg*G.lifesteal));
   if(G.passives.includes('vamp'))G.hp=Math.min(G.hpMax,G.hp+5);
   if(G.passives.includes('manaburn')&&CE.hpCur>0){CE.mp=(CE.mp||30);CE.mp=Math.max(0,CE.mp-3);}
@@ -3370,393 +2979,617 @@ function pAtk(bonus=0,forceCrit=false){
   updateCombatUI();
 }
 
-function doSkill(type){
-  // Memórias — tipos novos
-  if(type==='mem_warrior'){
-    const dmg=Math.round(Math.max(8,G.atk*1.8+r(10)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    dentReadyBar(dmg);floatDmg('⚔️'+dmg,'#e74c3c');spawnParticles(10,'#e74c3c');
-    clog(`⚔️ Memória do Guerreiro: ${dmg} dano físico!`,'lc');
-    updateCombatUI();return;
-  }
-  if(type==='mem_berserker'){
-    const dmg1=Math.round(Math.max(6,G.atk*1.4+r(8)));
-    const dmg2=Math.round(Math.max(6,G.atk*1.4+r(8)));
-    const selfDmg=Math.round(G.hp*0.10);
-    CE.hpCur=Math.max(0,CE.hpCur-dmg1-dmg2);G.totalDmg+=dmg1+dmg2;
-    G.hp=Math.max(1,G.hp-selfDmg);
-    dentReadyBar(dmg1+dmg2);floatDmg('🪓'+(dmg1+dmg2),'#c0392b');spawnParticles(14,'#c0392b');
-    clog(`🪓 Berserker: ${dmg1}+${dmg2} dano! (-${selfDmg} HP próprio)`,'lc');
-    updateCombatUI();return;
-  }
-  if(type==='mem_knight'){
-    G.tmpBuffs.push({stat:'def',val:3,turns:2});
-    G._shieldNext=true;
-    clog('🛡️ Cavaleiro: bloqueio ativado! +3 DEF por 2 turnos.','lh');
-    updateCombatUI();return;
-  }
-  if(type==='mem_mage'){
-    const dmg=Math.round(Math.max(10,G.mag*2.2+r(12)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    dentReadyBar(dmg);floatDmg('🔥'+dmg,'#e67e22');spawnParticles(12,'#e67e22');flashCard('rgba(230,126,34,.3)',280);
-    clog(`🔥 Memória do Mago: ${dmg} dano mágico!`,'lc');
-    updateCombatUI();return;
-  }
-  if(type==='mem_oracle'){
-    const dmg=Math.round(Math.max(6,G.mag*1.2+r(8)));
-    const heal=Math.round(dmg*0.5);
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    G.hp=Math.min(G.hpMax,G.hp+heal);
-    dentReadyBar(dmg);floatDmg('🔮'+dmg,'#9b59b6');
-    clog(`🔮 Oráculo: ${dmg} dano + ${heal} HP curado!`,'lh');
-    updateCombatUI();return;
-  }
-  if(type==='mem_necro'){
-    CE._atkDebuff=(CE._atkDebuff||0)+4;CE.atk=Math.max(1,CE.atk-4);
-    clog('💀 Necromante: inimigo enfraquecido! -4 ATK por 3 turnos.','lh');
-    updateCombatUI();return;
-  }
-  if(type==='mem_healer'){
-    const heal=Math.round(Math.max(15,G.mag*1.5+r(10)));
-    G.hp=Math.min(G.hpMax,G.hp+heal);
-    floatDmg('💚+'+heal,'#27ae60');sfx('heal'||'open');
-    clog(`💚 Curandeiro: +${heal} HP restaurado!`,'lh');
-    updateCombatUI();return;
-  }
-  if(type==='mem_bard'){
-    G.tmpBuffs.push({stat:'atk',val:4,turns:3},{stat:'def',val:4,turns:3});
-    clog('🎵 Trovador: +4 ATK e +4 DEF por 3 turnos!','lh');
-    updateCombatUI();return;
-  }
-  if(type==='mem_titan'){
-    const dmg=Math.round(Math.max(12,G.atk*2.0+r(8)));
-    const heal=10;
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;G.hp=Math.min(G.hpMax,G.hp+heal);
-    dentReadyBar(dmg);floatDmg('💪'+dmg,'#e67e22');spawnParticles(12,'#f39c12');
-    clog(`💪 Titã: ${dmg} dano + ${heal} HP recuperado!`,'lh');
-    updateCombatUI();return;
-  }
-  if(type==='mem_monk'){
-    const hits=[r(6)+G.atk,r(6)+G.atk,r(6)+G.atk];
-    const total=hits.reduce((a,b)=>a+b,0);
-    CE.hpCur=Math.max(0,CE.hpCur-total);G.totalDmg+=total;
-    dentReadyBar(total);floatDmg('🥋'+total,'#f1c40f');spawnParticles(16,'#f1c40f');
-    clog(`🥋 Monge: ${hits.join('+')}=${total} dano!`,'lc');
-    updateCombatUI();return;
-  }
-  if(type==='mem_dragon'){
-    const dmg=Math.round(Math.max(20,G.mag*3.0+r(15)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    dentReadyBar(dmg);floatDmg('🐉'+dmg,'#e74c3c');spawnParticles(20,'#e74c3c');flashCard('rgba(231,76,60,.4)',400);
-    clog(`🐉 Dragão: ${dmg} dano elemental! (ignora DEF)`,'lc');
-    updateCombatUI();return;
-  }
-  if(type==='mem_valkyrie'){
-    const dmg=Math.round(Math.max(15,(G.atk+G.mag)*1.5+r(12)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    if(!G._valkyrieUsed){G._valkyrieUsed=true;G.passives.push('phoenix_once');}
-    dentReadyBar(dmg);floatDmg('⚡'+dmg,'#f1c40f');spawnParticles(16,'#f1c40f');flashCard('rgba(241,196,15,.3)',300);
-    clog(`⚡ Valquíria: ${dmg} dano! Ressurreição ativada.`,'lc');
-    updateCombatUI();return;
-  }
-  if(type==='mem_anubis'){
-    const dmg=Math.round(Math.max(10,(G.karma||0)*3+G.mag));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    dentReadyBar(dmg);floatDmg('⚖️'+dmg,'#9b59b6');spawnParticles(14,'#9b59b6');
-    clog(`⚖️ Anúbis: ${dmg} dano do julgamento! (karma: ${G.karma||0})`,'lc');
-    updateCombatUI();return;
-  }
-  if(type==='brutal'){
-    const dmg=Math.round(Math.max(1,G.atk*1.7+r(12)-Math.floor(CE.def*.4)));
-    const stun=Math.random()<.40;if(stun)CE.stunned=true;
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`💥 Golpe Brutal: ${dmg}${stun?' — Atordoado!':''}!`,'lc');floatDmg('💥'+dmg,'#ff6b35',55,35);
-  } else if(type==='warcry'){
-    G.atk+=6;G.warcryTurns=3;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog('📯 Grito de Guerra! +6 ATK por 3 turnos!','lc');floatDmg('📯+6ATK','#f1c40f',50,30);
-    updateCombatUI();return;
-  } else if(type==='fireball'){
-    const dmg=Math.round(Math.max(4,G.mag*1.6+r(14)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`🔥 Bola de Fogo: ${dmg} mágico!`,'lc');floatDmg('🔥'+dmg,'#ff8c35',55,35);
-  } else if(type==='sneak'){
-    const dmg=Math.round(Math.max(1,G.atk*2.3+r(10)-Math.floor(CE.def*.3)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`🌑 Furtivo: ${dmg} (crítico garantido!)!`,'lc');floatDmg('🌑'+dmg,'#9b59b6',55,35);
-  } else if(type==='poison'){
-    // Veneno via Ladino: aplica acumulando
-    const pdmg=Math.max(3,Math.round(G.atk*.3));
-    applyStatus(CE,'poison',4,pdmg);
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`🐍 Veneno aplicado! ${pdmg} dano/turno por 4 turnos!`,'lc');floatDmg('🐍','#27ae60',55,35);
-  } else if(type==='elemental'){
-    const el=G.activeElement;
-    if(!el){toast('Nenhum elemento ativo!');return;}
-
-    // ── Carga Elemental ──
-    if(G._elChargeEl===el.id){
-      G._elChargeCount=(G._elChargeCount||0)+1;
-    } else {
-      G._elChargeEl=el.id;
-      G._elChargeCount=1;
+function dealDamage(target, amount, source = 'player', effects = {}) {
+  const isPlayerTarget = target === G;
+  const finalDmg = Math.max(1, Math.round(amount));
+  if (isPlayerTarget) {
+    G.hp = Math.max(0, G.hp - finalDmg);
+    if (G.passives.includes('godmode')) G.hp = G.hpMax;
+    if (finalDmg > 0) G._mNoDmg = false;
+    if (effects.screenShake !== false && finalDmg >= 15) screenShake();
+    if (effects.showDmg !== false) floatDmg('-' + finalDmg, '#c0392b', 40, 55);
+    sfx('hit');
+    flashPlayerHit();
+    clog(`${source === 'enemy' ? CE.name : 'Algo'} causou ${finalDmg} HP de dano.`, 'le');
+  } else {
+    CE.hpCur = Math.max(0, CE.hpCur - finalDmg);
+    G.totalDmg += finalDmg;
+    dentReadyBar(finalDmg);
+    if (effects.pulseEnemy !== false) pulseEnemyIco();
+    if (effects.showDmg !== false) {
+      const color = effects.dmgColor || '#e74c3c';
+      floatDmg('-' + finalDmg, color, 55, 36);
     }
-    const isCharged=G._elChargeCount>=3;
-    if(isCharged) G._elChargeCount=0; // reseta após disparar
-
-    const chargeMult=isCharged?1.8:1;
-    const dmg=Math.round(Math.max(4,G.mag*el.mult*chargeMult+r(10)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    dentReadyBar(dmg);
-    G._mSkillUses=(G._mSkillUses||0)+1;
-
-    // Aplica status elemental baseado no tipo do elemento
-    const elStatus={
-      fogo:'burn',magma:'burn',plasma:'burn',fogo_fatuo:'burn',fenix:'burn',
-      veneno:'poison',toxina_mortal:'poison',toxina_liq:'poison',
-      gelo:'freeze',nevoeiro_gelido:'freeze',frio_da_morte:'freeze',preservacao:'freeze',
-    };
-    const statusType=elStatus[el.id]||null;
-    if(isCharged){
-      // Versão potencializada: log especial + status ampliado
-      clog(`⚡ CARGA ELEMENTAL! ${el.ico} ${el.name}: ${dmg} dano potencializado!`,'lc');
-      floatDmg('⚡'+el.ico+dmg,'#f1c40f',50,33);
-      screenShake();sfx('charge');spawnParticles(20,'#f1c40f');flashCard('rgba(241,196,15,.4)',350);pulseEnemyIco();
-      if(statusType){
-        const sTurns=statusType==='burn'?0:4;
-        const sDmg=statusType==='burn'?Math.round(G.mag*.45):statusType==='poison'?Math.round(G.mag*.38):0;
-        applyStatus(CE,statusType,sTurns,sDmg);
-        const sLabel={burn:'🔥 Queimadura Intensa',poison:'🐍 Veneno Letal',freeze:'❄️ Congelamento Profundo'};
-        clog(`${sLabel[statusType]} aplicado!`,'lc');
-      }
-    } else {
-      if(statusType){
-        const sTurns=statusType==='burn'?0:2;
-        const sDmg=statusType==='burn'?Math.round(G.mag*.25):statusType==='poison'?Math.round(G.mag*.2):0;
-        applyStatus(CE,statusType,sTurns,sDmg);
-        const sLabel={burn:'🔥 Queimadura',poison:'🐍 Veneno',freeze:'❄️ Congelamento'};
-        clog(`${el.ico} ${el.name}: ${dmg} dano + ${sLabel[statusType]}!`,'lc');
-      } else {
-        const tierLabel=['Primordial','Energia','Entrópico','Condutor','Nobre','Básico'][el.tier]||'';
-        clog(`${el.ico} ${el.name} (${tierLabel}): ${dmg} dano elemental!`,'lc');
-      }
-      floatDmg(el.ico+dmg,'#c39bd3',55,35);sfx('elemental');spawnParticles(10,'#9b59b6');flashCard('rgba(155,89,182,.3)',220);pulseEnemyIco();
+    if (effects.spawnParticles) {
+      spawnParticles(effects.particleCount || 8, effects.particleColor || '#e74c3c');
     }
-  } else if(type==='arcana'){
-    const dmg=Math.round(Math.max(8,G.mag*2.2+r(20)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    G.arcanaReady=false;G.arcanaCombatsSince=0;
-    clog(`💜 Explosão Arcana: ${dmg} dano massivo!`,'lc');floatDmg('💜'+dmg,'#9b59b6',55,33);
-    screenShake();
-  // ═══ PALADINO ═══
-  } else if(type==='holy_strike'){
-    const dmg=Math.round(Math.max(1,G.atk*1.5+r(10)-Math.floor(CE.def*.3)));
-    const heal=8+(G.passives.includes('holy_dmg')?4:0);
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    G.hp=Math.min(G.hpMax,G.hp+heal);
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`✨ Golpe Sagrado: ${dmg} dano + curou ${heal} HP!`,'lc');floatDmg('✨'+dmg,'#f1c40f',55,35);floatDmg('+'+heal+'❤️','#2ecc71',35,55);
-    upd();
-  } else if(type==='divine_shield'){
-    G.divineShield=true;G.def+=4;G._divineShieldTurns=2;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog('🛡️ Escudo Divino ativado! Próximo ataque bloqueado. +4 DEF por 2 turnos!','lc');floatDmg('🛡️ Bloqueio','#f1c40f',40,30);
-    updateCombatUI();return;
-  // ═══ DRUIDA ═══
-  } else if(type==='thorns'){
-    const dmg=Math.round(Math.max(3,G.mag*1.3+r(8)));
-    const turns=G.passives.includes('long_poison')?6:3;
-    const pdmg=Math.max(3,Math.round(G.mag*.28));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    applyStatus(CE,'poison',turns,pdmg);
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`🌿 Espinhos da Floresta: ${dmg} dano + veneno ${pdmg}/turno por ${turns} turnos!`,'lc');floatDmg('🌿'+dmg,'#27ae60',55,35);
-    spawnParticles(8,'#27ae60');
-  } else if(type==='vital_pulse'){
-    const heal=Math.round(G.hpMax*.25);
-    G.hp=Math.min(G.hpMax,G.hp+heal);
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`💚 Pulso Vital: curou ${heal} HP!`,'lc');floatDmg('+'+heal+'💚','#2ecc71',45,35);
-    upd();updateCombatUI();return;
-  // ═══ CAÇADOR ═══
-  } else if(type==='precise_arrow'){
-    const marked=CE._marked||false;
-    const mult=marked?1.8:1.3;
-    const dmg=Math.round(Math.max(1,G.atk*mult+r(12)-Math.floor(CE.def*.2)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    if(marked){clog(`🏹 Flecha Certeira na PRESA MARCADA: ${dmg} dano!`,'lc');floatDmg('🎯'+dmg,'#e67e22',55,35);}
-    else{clog(`🏹 Flecha Certeira: ${dmg} dano!`,'lc');floatDmg('🏹'+dmg,'#e67e22',55,35);}
-    G._mSkillUses=(G._mSkillUses||0)+1;
-  } else if(type==='mark_prey'){
-    CE._marked=true;CE._markedTurns=3;
-    if(G.passives.includes('trap_master'))CE.stunned=true;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`🎯 Presa Marcada! +25% dano recebido por 3 turnos${G.passives.includes('trap_master')?' + Paralisia':''}!`,'lc');floatDmg('🎯 MARCADO','#e67e22',40,30);
-    updateCombatUI();return;
-  // ═══ FEITICEIRO ═══
-  } else if(type==='chaos_bolt'){
-    const hasChaos=G.passives.includes('chaos_master');
-    let mult;
-    const roll=Math.random();
-    if(hasChaos){mult=roll<.10?0:roll<.40?3.0:1.8;}
-    else{mult=roll<.20?0.4:roll<.55?1.2:2.4;}
-    const dmg=Math.round(Math.max(0,G.mag*mult+r(18)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    if(mult===0||mult===0.4){clog(`⚡ Descarga Caótica... falhooou! Apenas ${dmg} dano!`,'li');floatDmg('⚡FALHA','#95a5a6',50,35);}
-    else if(mult>=2.4||mult>=3.0){clog(`⚡ DESCARGA CAÓTICA MASSIVA: ${dmg} dano!!!`,'lc');floatDmg('⚡'+dmg,'#f1c40f',55,33);screenShake();spawnParticles(15,'#f39c12');}
-    else{clog(`⚡ Descarga Caótica: ${dmg} dano mágico!`,'lc');floatDmg('⚡'+dmg,'#9b59b6',55,35);}
-  } else if(type==='arcane_surge'){
-    const selfDmg=15;
-    G.hp=Math.max(1,G.hp-selfDmg);
-    const dmg=Math.round(Math.max(6,G.mag*2.0+r(16)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`🌀 Surto Arcano: ${dmg} dano massivo! (Custou ${selfDmg} HP)!`,'lc');floatDmg('🌀'+dmg,'#8e44ad',55,33);floatDmg('-'+selfDmg+'❤️','#e74c3c',35,55);
-    screenShake();spawnParticles(12,'#8e44ad');upd();
-  // ═══ BÁRBARO ═══
-  } else if(type==='frenzy'){
-    const lowHp=G.hp/G.hpMax<.35;
-    const hits=lowHp?3:2;
-    let total=0;
-    for(let i=0;i<hits;i++){
-      const dmg=Math.round(Math.max(1,G.atk*(lowHp?1.4:1.1)+r(8)-Math.floor(CE.def*.2)));
-      CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;total+=dmg;
+    if (effects.flashCard) {
+      flashCard(effects.flashColor || 'rgba(231,76,60,.3)', effects.flashDuration || 200);
     }
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`🪓 Frenesi: ${hits} golpes! ${total} dano total${lowHp?' (FÚRIA MÁXIMA!)':''}!`,'lc');floatDmg('🪓×'+hits+' '+total,'#e74c3c',55,35);
-    if(lowHp){screenShake();spawnParticles(10,'#e74c3c');}
-  } else if(type==='wild_roar'){
-    CE._roaredTurns=3;CE._roaredAtk=(CE._roaredAtk||0)+4;CE.atk=Math.max(1,CE.atk-4);
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`😤 Rugido Selvagem! Inimigo perdeu 4 ATK por 3 turnos!`,'lc');floatDmg('😤-4ATK','#e74c3c',45,30);
-    updateCombatUI();return;
-  // ═══ ASSASSINO (classe) ═══
-  } else if(type==='shadow_strike'){
-    const isFirst=!(G._shadowUsed||false);
-    const mult=isFirst?3.0:2.0;
-    G._shadowUsed=true;
-    const dmg=Math.round(Math.max(1,G.atk*mult+r(10)-Math.floor(CE.def*.15)));
-    CE.hpCur=Math.max(0,CE.hpCur-dmg);G.totalDmg+=dmg;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    if(isFirst){clog(`🌑 GOLPE DAS SOMBRAS — PRIMEIRO ATAQUE: ${dmg} dano devastador!`,'lc');floatDmg('🌑×3 '+dmg,'#9b59b6',55,33);screenShake();}
-    else{clog(`🌑 Golpe das Sombras: ${dmg} dano (x2)!`,'lc');floatDmg('🌑×2 '+dmg,'#9b59b6',55,35);}
-  } else if(type==='toxic_mist'){
-    const pdmg=Math.max(4,Math.round(G.atk*.35+G.mag*.2));
-    applyStatus(CE,'poison',3,pdmg);
-    CE._foggedTurns=3;
-    G._mSkillUses=(G._mSkillUses||0)+1;
-    clog(`☠️ Névoa Tóxica! Veneno ${pdmg}/turno + precisão reduzida por 3 turnos!`,'lc');floatDmg('☠️','#8e44ad',50,35);
-    spawnParticles(10,'#8e44ad');
+    const sourceLabel = effects.sourceLabel || 'dano';
+    clog(`${effects.logPrefix || ''} ${finalDmg} ${sourceLabel}!`, effects.logClass || 'lc');
+  }
+  if (effects.lifesteal && isPlayerTarget === false) {
+    const heal = Math.round(finalDmg * effects.lifesteal);
+    G.hp = Math.min(G.hpMax, G.hp + heal);
+    if (heal > 0) floatDmg('+' + heal + '❤️', '#2ecc71', 35, 55);
+  }
+  if (effects.manaBurn && !isPlayerTarget) {
+    CE.mp = Math.max(0, (CE.mp || 30) - effects.manaBurn);
+  }
+  if (effects.thorns && !isPlayerTarget && CE.hpCur > 0) {
+    CE.hpCur = Math.max(0, CE.hpCur - 2);
+  }
+  if (effects.applyStatus) {
+    applyStatus(target, effects.applyStatus.type, effects.applyStatus.turns, effects.applyStatus.dmg);
+    const sNames = { poison: '🐍 Veneno', burn: '🔥 Queimadura', freeze: '❄️ Congelamento' };
+    clog(`${sNames[effects.applyStatus.type] || 'Status'} aplicado!`, 'lc');
   }
   updateCombatUI();
+  return finalDmg;
 }
 
-function enemyTurn(){
-  if(!CE)return;
-
-  // ── 1. Warcry / buffs decay ──
-  if(G.warcryTurns>0){G.warcryTurns--;if(G.warcryTurns===0){G.atk-=6;clog('📯 Grito de Guerra expirou.','li');}}
-  if(G._divineShieldTurns>0&&!G.divineShield){G._divineShieldTurns--;if(G._divineShieldTurns===0){G.def-=4;clog('🛡️ Bônus de DEF do Escudo Divino expirou.','li');}}
-  if(CE._markedTurns>0){CE._markedTurns--;if(CE._markedTurns===0){CE._marked=false;clog('🎯 Marca da Presa expirou.','li');}}
-  if(CE._roaredTurns>0){CE._roaredTurns--;if(CE._roaredTurns===0){CE.atk+=CE._roaredAtk||4;CE._roaredAtk=0;clog('😤 Rugido Selvagem expirou. Inimigo recuperou ATK.','li');}}
-
-  // ── 2. Tick status no inimigo (veneno + queimadura) ──
-  const enemyDiedToStatus=tickStatusOnEnemy();
-  updateCombatUI();
-  if(enemyDiedToStatus){checkEnd();return;}
-
-  // ── 3. Tick status no jogador ──
-  tickStatusOnPlayer();
-  if(G.passives.includes('godmode'))G.hp=G.hpMax;
-  updateCombatUI();
-  if(G.hp<=0){checkEnd();return;}
-
-  // ── 4. Congelamento — inimigo pode perder o turno ──
-  if(CE.freezeTurns>0){
-    CE.freezeTurns--;
-    if(Math.random()<0.5){
-      clog(`❄️ ${CE.name} está congelado e perde o turno! (${CE.freezeTurns} rest.)`,'ls');
-      updateCombatUI();return;
-    } else {
-      clog(`❄️ ${CE.name} avança mesmo congelado! (${CE.freezeTurns} rest.)`,'li');
-    }
+function processStatusTicks(target, isPlayer = false) {
+  const hpKey = isPlayer ? 'hp' : 'hpCur';
+  let died = false;
+  let statusLog = [];
+  if (target.poisonTurns > 0) {
+    let d = target.poisonDmg || (isPlayer ? 3 : 0);
+    if (isPlayer && G.passives.includes('tomo_res_poison')) d = Math.max(1, Math.round(d * 0.6));
+    target[hpKey] = Math.max(0, target[hpKey] - d);
+    target.poisonTurns--;
+    statusLog.push({ dmg: d, type: 'poison', remaining: target.poisonTurns });
+    if (target[hpKey] <= 0) died = true;
   }
+  if (!died && target.burnTurns > 0) {
+    let d = target.burnDmg || (isPlayer ? 4 : 0);
+    if (isPlayer && G.passives.includes('tomo_res_burn')) d = Math.max(1, Math.round(d * 0.6));
+    target[hpKey] = Math.max(0, target[hpKey] - d);
+    target.burnTurns--;
+    statusLog.push({ dmg: d, type: 'burn', remaining: target.burnTurns });
+    if (target[hpKey] <= 0) died = true;
+  }
+  if (isPlayer && target.freezeTurns > 0) {
+    target.freezeTurns--;
+  }
+  statusLog.forEach(s => {
+    const emoji = s.type === 'poison' ? '🐍' : '🔥';
+    const name = isPlayer ? 'você' : (CE?.name || 'alvo');
+    clog(`${emoji} ${s.type === 'poison' ? 'Veneno' : 'Queimadura'}: -${s.dmg} HP em ${name}. (${s.remaining} rest.)`,
+      target[hpKey] <= 0 ? 'ls' : (isPlayer ? 'le' : 'li'));
+  });
+  return died;
+}
 
-  // ── 5. Atordoamento normal ──
-  if(CE.stunned){clog(CE.name+' está atordoado e perde o turno.','li');CE.stunned=false;updateCombatUI();return;}
+function fireReadyAttackEnemy() {
+  if (!CE || CE.readyMax === undefined) return false;
+  const atk = getReadyAttack();
+  const dodged = Math.random() < 0.5;
+  clog(`⚡ ${CE.name} usa ${atk.ico} ${atk.name}!`, 'ln');
+  if (dodged) {
+    clog(`✨ Você desviou do ataque especial!`, 'ls');
+    floatDmg('DESVIOU', '#f1c40f', 45, 45);
+    resetReadyBar();
+    return true;
+  }
+  const baseDmg = Math.max(8, Math.round((CE.atk - (G.def * 0.4) + r(10)) * atk.dmgMult));
+  G.hp = Math.max(0, G.hp - baseDmg);
+  if (G.passives.includes('godmode')) G.hp = G.hpMax;
+  clog(`💥 ${atk.desc} -${baseDmg} HP!`, 'le');
+  floatDmg('-' + baseDmg, '#c0392b', 38, 50);
+  screenShake();
+  if (atk.status) {
+    applyStatus(G, atk.status, atk.statusTurns, atk.statusDmg);
+    const sNames = { poison: 'Veneno 🐍', burn: 'Queimadura 🔥', freeze: 'Congelamento ❄️' };
+    clog(`${sNames[atk.status]} aplicado!`, 'le');
+  }
+  resetReadyBar();
+  if (baseDmg > 0) G._mNoDmg = false;
+  if (G.passives.includes('bsk_set') && G.hp / G.hpMax < 0.3) G.hp = Math.min(G.hpMax, G.hp + 5);
+  updateCombatUI();
+  return true;
+}
 
-  // ── 6. Barra de prontidão — tick e disparo ──
-  if(CE.readyMax!==undefined){
-    const wasFull=CE.readyCur>=CE.readyMax;
-    if(wasFull){
-      // Dispara ataque especial
-      fireReadyAttack();
+function doSkill(type) {
+  const sk = G.skills[0];
+  const sk2 = G.skills[1];
+  const activeEl = G.activeElement;
+  const isMage = G.cls.id === 'mage';
+  let skillData = null;
+  let mpCost = 0;
+  let dmgBase = 0;
+  let dmgMult = 1.0;
+  let effects = {};
+  const skillMap = {
+    'mem_warrior': () => {
+      dmgBase = Math.round(Math.max(8, G.atk * 1.8 + r(10)));
+      effects = { sourceLabel: 'dano físico', logPrefix: '⚔️ Memória do Guerreiro:', logClass: 'lc',
+                  dmgColor: '#e74c3c', spawnParticles: true, particleColor: '#e74c3c', particleCount: 10 };
+      mpCost = 10;
+    },
+    'mem_berserker': () => {
+      const dmg1 = Math.round(Math.max(6, G.atk * 1.4 + r(8)));
+      const dmg2 = Math.round(Math.max(6, G.atk * 1.4 + r(8)));
+      dmgBase = dmg1 + dmg2;
+      const selfDmg = Math.round(G.hp * 0.10);
+      G.hp = Math.max(1, G.hp - selfDmg);
+      effects = { sourceLabel: 'dano brutal', logPrefix: `🪓 Berserker: ${dmg1}+${dmg2}`, logClass: 'lc',
+                  dmgColor: '#c0392b', spawnParticles: true, particleColor: '#c0392b', particleCount: 14,
+                  extraLog: ` (-${selfDmg} HP próprio)` };
+      mpCost = 14;
+    },
+    'mem_knight': () => {
+      G.tmpBuffs.push({ stat: 'def', val: 3, turns: 2 });
+      G._shieldNext = true;
+      clog('🛡️ Cavaleiro: bloqueio ativado! +3 DEF por 2 turnos.', 'lh');
       updateCombatUI();
-      if(G.hp<=0){checkEnd();return;}
-      return; // ataque especial substitui o turno normal
-    } else {
-      tickReadyBar();
-      if(CE.readyCur>=CE.readyMax){
-        clog(`⚠️ ${CE.name} carregou ${getReadyAttack().ico} ${getReadyAttack().name}! Próximo turno será devastador!`,'ln');
+      return true;
+    },
+    'mem_mage': () => {
+      dmgBase = Math.round(Math.max(10, G.mag * 2.2 + r(12)));
+      effects = { sourceLabel: 'dano mágico', logPrefix: '🔥 Memória do Mago:', logClass: 'lc',
+                  dmgColor: '#e67e22', spawnParticles: true, particleColor: '#e67e22', particleCount: 12,
+                  flashCard: true, flashColor: 'rgba(230,126,34,.3)', flashDuration: 280 };
+      mpCost = 18;
+    },
+    'mem_oracle': () => {
+      dmgBase = Math.round(Math.max(6, G.mag * 1.2 + r(8)));
+      const heal = Math.round(dmgBase * 0.5);
+      G.hp = Math.min(G.hpMax, G.hp + heal);
+      effects = { sourceLabel: 'dano + cura', logPrefix: '🔮 Oráculo:', logClass: 'lh',
+                  dmgColor: '#9b59b6', extraLog: ` (cura +${heal} HP)` };
+      mpCost = 16;
+    },
+    'mem_necro': () => {
+      CE._atkDebuff = (CE._atkDebuff || 0) + 4;
+      CE.atk = Math.max(1, CE.atk - 4);
+      clog('💀 Necromante: inimigo enfraquecido! -4 ATK por 3 turnos.', 'lh');
+      updateCombatUI();
+      return true;
+    },
+    'mem_healer': () => {
+      const heal = Math.round(Math.max(15, G.mag * 1.5 + r(10)));
+      G.hp = Math.min(G.hpMax, G.hp + heal);
+      clog(`💚 Curandeiro: +${heal} HP restaurado!`, 'lh');
+      floatDmg('💚+' + heal, '#27ae60');
+      sfx('heal' || 'open');
+      updateCombatUI();
+      return true;
+    },
+    'mem_bard': () => {
+      G.tmpBuffs.push({ stat: 'atk', val: 4, turns: 3 }, { stat: 'def', val: 4, turns: 3 });
+      clog('🎵 Trovador: +4 ATK e +4 DEF por 3 turnos!', 'lh');
+      updateCombatUI();
+      return true;
+    },
+    'mem_titan': () => {
+      dmgBase = Math.round(Math.max(12, G.atk * 2.0 + r(8)));
+      const heal = 10;
+      G.hp = Math.min(G.hpMax, G.hp + heal);
+      effects = { sourceLabel: 'dano + vida', logPrefix: '💪 Titã:', logClass: 'lh',
+                  dmgColor: '#e67e22', spawnParticles: true, particleColor: '#f39c12', particleCount: 12,
+                  extraLog: ` (cura +${heal} HP)` };
+      mpCost = 16;
+    },
+    'mem_monk': () => {
+      const hits = [r(6) + G.atk, r(6) + G.atk, r(6) + G.atk];
+      dmgBase = hits.reduce((a, b) => a + b, 0);
+      effects = { sourceLabel: 'dano físico', logPrefix: `🥋 Monge: ${hits.join('+')}=${dmgBase}`, logClass: 'lc',
+                  dmgColor: '#f1c40f', spawnParticles: true, particleColor: '#f1c40f', particleCount: 16 };
+      mpCost = 8;
+    },
+    'mem_dragon': () => {
+      dmgBase = Math.round(Math.max(20, G.mag * 3.0 + r(15)));
+      effects = { sourceLabel: 'dano elemental (ignora DEF)', logPrefix: '🐉 Dragão:', logClass: 'lc',
+                  dmgColor: '#e74c3c', spawnParticles: true, particleColor: '#e74c3c', particleCount: 20,
+                  flashCard: true, flashColor: 'rgba(231,76,60,.4)', flashDuration: 400 };
+      mpCost = 30;
+    },
+    'mem_valkyrie': () => {
+      dmgBase = Math.round(Math.max(15, (G.atk + G.mag) * 1.5 + r(12)));
+      if (!G._valkyrieUsed) { G._valkyrieUsed = true; G.passives.push('phoenix_once'); }
+      effects = { sourceLabel: 'dano relâmpago', logPrefix: '⚡ Valquíria:', logClass: 'lc',
+                  dmgColor: '#f1c40f', spawnParticles: true, particleColor: '#f1c40f', particleCount: 16,
+                  flashCard: true, flashColor: 'rgba(241,196,15,.3)', flashDuration: 300 };
+      mpCost = 25;
+    },
+    'mem_anubis': () => {
+      dmgBase = Math.round(Math.max(10, (G.karma || 0) * 3 + G.mag));
+      effects = { sourceLabel: 'dano do julgamento', logPrefix: '⚖️ Anúbis:', logClass: 'lc',
+                  dmgColor: '#9b59b6', spawnParticles: true, particleColor: '#9b59b6', particleCount: 14 };
+      mpCost = 28;
+    },
+    'brutal': () => {
+      dmgBase = Math.round(Math.max(1, G.atk * 1.7 + r(12) - Math.floor(CE.def * 0.4)));
+      const stun = Math.random() < 0.40;
+      if (stun) CE.stunned = true;
+      effects = { sourceLabel: 'dano brutal', logPrefix: '💥 Golpe Brutal:', logClass: 'lc',
+                  dmgColor: '#ff6b35', extraLog: stun ? ' — Atordoado!' : '' };
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+    },
+    'warcry': () => {
+      G.atk += 6; G.warcryTurns = 3;
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      clog('📯 Grito de Guerra! +6 ATK por 3 turnos!', 'lc');
+      floatDmg('📯+6ATK', '#f1c40f', 50, 30);
+      updateCombatUI();
+      return true;
+    },
+    'fireball': () => {
+      dmgBase = Math.round(Math.max(4, G.mag * 1.6 + r(14)));
+      effects = { sourceLabel: 'dano mágico', logPrefix: '🔥 Bola de Fogo:', logClass: 'lc',
+                  dmgColor: '#ff8c35', spawnParticles: true, particleColor: '#ff8c35', particleCount: 8 };
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      mpCost = 18;
+    },
+    'sneak': () => {
+      dmgBase = Math.round(Math.max(1, G.atk * 2.3 + r(10) - Math.floor(CE.def * 0.3)));
+      effects = { sourceLabel: 'dano crítico garantido', logPrefix: '🌑 Furtivo:', logClass: 'lc',
+                  dmgColor: '#9b59b6', spawnParticles: true, particleColor: '#9b59b6', particleCount: 8 };
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      mpCost = 12;
+    },
+    'poison': () => {
+      const pdmg = Math.max(3, Math.round(G.atk * 0.3));
+      applyStatus(CE, 'poison', 4, pdmg);
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      clog(`🐍 Veneno aplicado! ${pdmg} dano/turno por 4 turnos!`, 'lc');
+      floatDmg('🐍', '#27ae60', 55, 35);
+      updateCombatUI();
+      return true;
+    },
+    'elemental': () => {
+      if (!activeEl) { toast('Nenhum elemento ativo!'); return true; }
+      if (G._elChargeEl === activeEl.id) {
+        G._elChargeCount = (G._elChargeCount || 0) + 1;
+      } else {
+        G._elChargeEl = activeEl.id;
+        G._elChargeCount = 1;
       }
+      const isCharged = G._elChargeCount >= 3;
+      if (isCharged) G._elChargeCount = 0;
+      const chargeMult = isCharged ? 1.8 : 1;
+      dmgBase = Math.round(Math.max(4, G.mag * activeEl.mult * chargeMult + r(10)));
+      const elStatus = {
+        fogo: 'burn', magma: 'burn', plasma: 'burn', fogo_fatuo: 'burn', fenix: 'burn',
+        veneno: 'poison', toxina_mortal: 'poison', toxina_liq: 'poison',
+        gelo: 'freeze', nevoeiro_gelido: 'freeze', frio_da_morte: 'freeze', preservacao: 'freeze'
+      };
+      const statusType = elStatus[activeEl.id] || null;
+      if (isCharged) {
+        effects = { sourceLabel: 'dano elemental potencializado', logPrefix: '⚡ CARGA ELEMENTAL!', logClass: 'lc',
+                    dmgColor: '#f1c40f', spawnParticles: true, particleColor: '#f1c40f', particleCount: 20,
+                    flashCard: true, flashColor: 'rgba(241,196,15,.4)', flashDuration: 350,
+                    screenShake: true };
+        if (statusType) {
+          const sTurns = statusType === 'burn' ? 0 : 4;
+          const sDmg = statusType === 'burn' ? Math.round(G.mag * 0.45) : statusType === 'poison' ? Math.round(G.mag * 0.38) : 0;
+          effects.applyStatus = { type: statusType, turns: sTurns, dmg: sDmg };
+        }
+      } else {
+        effects = { sourceLabel: 'dano elemental', logPrefix: `${activeEl.ico} ${activeEl.name}:`, logClass: 'lc',
+                    dmgColor: '#c39bd3', spawnParticles: true, particleColor: '#9b59b6', particleCount: 10,
+                    flashCard: true, flashColor: 'rgba(155,89,182,.3)', flashDuration: 220 };
+        if (statusType) {
+          const sTurns = statusType === 'burn' ? 0 : 2;
+          const sDmg = statusType === 'burn' ? Math.round(G.mag * 0.25) : statusType === 'poison' ? Math.round(G.mag * 0.2) : 0;
+          effects.applyStatus = { type: statusType, turns: sTurns, dmg: sDmg };
+        }
+      }
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      mpCost = 22;
+    },
+    'arcana': () => {
+      dmgBase = Math.round(Math.max(8, G.mag * 2.2 + r(20)));
+      G.arcanaReady = false; G.arcanaCombatsSince = 0;
+      effects = { sourceLabel: 'dano arcano massivo', logPrefix: '💜 Explosão Arcana:', logClass: 'lc',
+                  dmgColor: '#9b59b6', spawnParticles: true, particleColor: '#9b59b6', particleCount: 20,
+                  flashCard: true, flashColor: 'rgba(155,89,182,.3)', flashDuration: 300,
+                  screenShake: true };
+      // Sem custo de MP (skill especial)
+    },
+    'holy_strike': () => {
+      dmgBase = Math.round(Math.max(1, G.atk * 1.5 + r(10) - Math.floor(CE.def * 0.3)));
+      const heal = 8 + (G.passives.includes('holy_dmg') ? 4 : 0);
+      G.hp = Math.min(G.hpMax, G.hp + heal);
+      effects = { sourceLabel: 'dano sagrado + cura', logPrefix: '✨ Golpe Sagrado:', logClass: 'lc',
+                  dmgColor: '#f1c40f', extraLog: ` (+${heal} HP)` };
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      mpCost = 12;
+    },
+    'divine_shield': () => {
+      G.divineShield = true; G.def += 4; G._divineShieldTurns = 2;
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      clog('🛡️ Escudo Divino ativado! Próximo ataque bloqueado. +4 DEF por 2 turnos!', 'lc');
+      floatDmg('🛡️ Bloqueio', '#f1c40f', 40, 30);
+      updateCombatUI();
+      return true;
+    },
+    'thorns': () => {
+      dmgBase = Math.round(Math.max(3, G.mag * 1.3 + r(8)));
+      const turns = G.passives.includes('long_poison') ? 6 : 3;
+      const pdmg = Math.max(3, Math.round(G.mag * 0.28));
+      effects = { sourceLabel: 'dano de natureza', logPrefix: '🌿 Espinhos da Floresta:', logClass: 'lc',
+                  dmgColor: '#27ae60', spawnParticles: true, particleColor: '#27ae60', particleCount: 8 };
+      effects.applyStatus = { type: 'poison', turns: turns, dmg: pdmg };
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      mpCost = 14;
+    },
+    'vital_pulse': () => {
+      const heal = Math.round(G.hpMax * 0.25);
+      G.hp = Math.min(G.hpMax, G.hp + heal);
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      clog(`💚 Pulso Vital: curou ${heal} HP!`, 'lc');
+      floatDmg('+' + heal + '💚', '#2ecc71', 45, 35);
+      updateCombatUI();
+      return true;
+    },
+    'precise_arrow': () => {
+      const marked = CE._marked || false;
+      const mult = marked ? 1.8 : 1.3;
+      dmgBase = Math.round(Math.max(1, G.atk * mult + r(12) - Math.floor(CE.def * 0.2)));
+      effects = { sourceLabel: 'dano físico', logPrefix: marked ? '🏹 Flecha Certeira na PRESA MARCADA:' : '🏹 Flecha Certeira:',
+                  logClass: 'lc', dmgColor: '#e67e22', extraLog: marked ? ' 🎯' : '' };
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      mpCost = 10;
+    },
+    'mark_prey': () => {
+      CE._marked = true; CE._markedTurns = 3;
+      if (G.passives.includes('trap_master')) CE.stunned = true;
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      clog(`🎯 Presa Marcada! +25% dano recebido por 3 turnos${G.passives.includes('trap_master') ? ' + Paralisia' : ''}!`, 'lc');
+      floatDmg('🎯 MARCADO', '#e67e22', 40, 30);
+      updateCombatUI();
+      return true;
+    },
+    'chaos_bolt': () => {
+      const hasChaos = G.passives.includes('chaos_master');
+      let mult;
+      const roll = Math.random();
+      if (hasChaos) { mult = roll < 0.10 ? 0 : roll < 0.40 ? 3.0 : 1.8; }
+      else { mult = roll < 0.20 ? 0.4 : roll < 0.55 ? 1.2 : 2.4; }
+      dmgBase = Math.round(Math.max(0, G.mag * mult + r(18)));
+      if (mult === 0 || mult === 0.4) {
+        effects = { sourceLabel: 'dano falho', logPrefix: '⚡ Descarga Caótica... falhooou!', logClass: 'li',
+                    dmgColor: '#95a5a6', extraLog: ' Apenas ' + dmgBase + ' dano!' };
+      } else if (mult >= 2.4 || mult >= 3.0) {
+        effects = { sourceLabel: 'dano caótico MASSIVO', logPrefix: '⚡ DESCARGA CAÓTICA MASSIVA:', logClass: 'lc',
+                    dmgColor: '#f1c40f', spawnParticles: true, particleColor: '#f39c12', particleCount: 15,
+                    flashCard: true, flashColor: 'rgba(241,196,15,.3)', flashDuration: 300,
+                    screenShake: true };
+      } else {
+        effects = { sourceLabel: 'dano mágico', logPrefix: '⚡ Descarga Caótica:', logClass: 'lc',
+                    dmgColor: '#9b59b6', spawnParticles: true, particleColor: '#9b59b6', particleCount: 8 };
+      }
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      mpCost = 20;
+    },
+    'arcane_surge': () => {
+      const selfDmg = 15;
+      G.hp = Math.max(1, G.hp - selfDmg);
+      dmgBase = Math.round(Math.max(6, G.mag * 2.0 + r(16)));
+      effects = { sourceLabel: 'dano mágico massivo', logPrefix: '🌀 Surto Arcano:', logClass: 'lc',
+                  dmgColor: '#8e44ad', spawnParticles: true, particleColor: '#8e44ad', particleCount: 12,
+                  flashCard: true, flashColor: 'rgba(142,68,173,.3)', flashDuration: 300,
+                  screenShake: true, extraLog: ` (custou ${selfDmg} HP)` };
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      mpCost = 25;
+    },
+    'frenzy': () => {
+      const lowHp = G.hp / G.hpMax < 0.35;
+      const hits = lowHp ? 3 : 2;
+      let total = 0;
+      for (let i = 0; i < hits; i++) {
+        const dmg = Math.round(Math.max(1, G.atk * (lowHp ? 1.4 : 1.1) + r(8) - Math.floor(CE.def * 0.2)));
+        total += dmg;
+        dealDamage(CE, dmg, 'player', {
+          sourceLabel: 'dano físico', logPrefix: '', logClass: 'lc',
+          dmgColor: '#e74c3c', showDmg: false, pulseEnemy: false
+        });
+      }
+      clog(`🪓 Frenesi: ${hits} golpes! ${total} dano total${lowHp ? ' (FÚRIA MÁXIMA!)' : ''}!`, 'lc');
+      floatDmg('🪓×' + hits + ' ' + total, '#e74c3c', 55, 35);
+      if (lowHp) { screenShake(); spawnParticles(10, '#e74c3c'); }
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      mpCost = 8;
+      updateCombatUI();
+      return true;
+    },
+    'wild_roar': () => {
+      CE._roaredTurns = 3; CE._roaredAtk = (CE._roaredAtk || 0) + 4; CE.atk = Math.max(1, CE.atk - 4);
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      clog('😤 Rugido Selvagem! Inimigo perdeu 4 ATK por 3 turnos!', 'lc');
+      floatDmg('😤-4ATK', '#e74c3c', 45, 30);
+      updateCombatUI();
+      return true;
+    },
+    'shadow_strike': () => {
+      const isFirst = !(G._shadowUsed || false);
+      const mult = isFirst ? 3.0 : 2.0;
+      G._shadowUsed = true;
+      dmgBase = Math.round(Math.max(1, G.atk * mult + r(10) - Math.floor(CE.def * 0.15)));
+      effects = { sourceLabel: 'dano das sombras', logPrefix: isFirst ? '🌑 GOLPE DAS SOMBRAS — PRIMEIRO ATAQUE:' : '🌑 Golpe das Sombras:',
+                  logClass: 'lc', dmgColor: '#9b59b6', extraLog: isFirst ? ' ×3' : ' ×2', spawnParticles: true, particleColor: '#9b59b6', particleCount: 8 };
+      if (isFirst) effects.screenShake = true;
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      mpCost = 14;
+    },
+    'toxic_mist': () => {
+      const pdmg = Math.max(4, Math.round(G.atk * 0.35 + G.mag * 0.2));
+      applyStatus(CE, 'poison', 3, pdmg);
+      CE._foggedTurns = 3;
+      G._mSkillUses = (G._mSkillUses || 0) + 1;
+      clog(`☠️ Névoa Tóxica! Veneno ${pdmg}/turno + precisão reduzida por 3 turnos!`, 'lc');
+      floatDmg('☠️', '#8e44ad', 50, 35);
+      spawnParticles(10, '#8e44ad');
+      updateCombatUI();
+      return true;
+    }
+  };
+  if (type === 'elemental' && !G.activeElement) {
+    toast('Nenhum elemento ativo!');
+    lockBtns(0);
+    return;
+  }
+  if (type === 'fusion') {
+    return;
+  }
+  const skillFn = skillMap[type];
+  if (!skillFn) {
+    console.warn('Skill não reconhecida:', type);
+    lockBtns(0);
+    return;
+  }
+  const ret = skillFn();
+  if (ret === true) {
+    if (CE && CE.hpCur > 0) {
+      enemyTurn();
+      checkEnd();
+    }
+    return;
+  }
+  if (G.mp < mpCost && !G.passives.includes('manamode')) {
+    toast('MP insuficiente!');
+    lockBtns(0);
+    return;
+  }
+  G.mp = G.passives.includes('manamode') ? G.mpMax : G.mp - mpCost;
+  upd();
+  if (dmgBase > 0) {
+    dealDamage(CE, dmgBase, 'player', effects);
+  } else {
+    clog('⚡ O ataque falhou completamente!', 'li');
+    floatDmg('0', '#95a5a6', 55, 35);
+  }
+  updateCombatUI();
+  if (CE && CE.hpCur > 0) {
+    enemyTurn();
+    checkEnd();
+  } else {
+    checkEnd();
+  }
+}
+
+function enemyTurn() {
+  if (!CE) return;
+  if (G.warcryTurns > 0) {
+    G.warcryTurns--;
+    if (G.warcryTurns === 0) { G.atk -= 6; clog('📯 Grito de Guerra expirou.', 'li'); }
+  }
+  if (G._divineShieldTurns > 0 && !G.divineShield) {
+    G._divineShieldTurns--;
+    if (G._divineShieldTurns === 0) { G.def -= 4; clog('🛡️ Bônus de DEF do Escudo Divino expirou.', 'li'); }
+  }
+  if (CE._markedTurns > 0) {
+    CE._markedTurns--;
+    if (CE._markedTurns === 0) { CE._marked = false; clog('🎯 Marca da Presa expirou.', 'li'); }
+  }
+  if (CE._roaredTurns > 0) {
+    CE._roaredTurns--;
+    if (CE._roaredTurns === 0) { CE.atk += CE._roaredAtk || 4; CE._roaredAtk = 0; clog('😤 Rugido Selvagem expirou. Inimigo recuperou ATK.', 'li'); }
+  }
+  const enemyDiedToStatus = processStatusTicks(CE, false);
+  updateCombatUI();
+  if (enemyDiedToStatus) { checkEnd(); return; }
+  const playerDiedToStatus = processStatusTicks(G, true);
+  if (G.passives.includes('godmode')) G.hp = G.hpMax;
+  updateCombatUI();
+  if (playerDiedToStatus) { checkEnd(); return; }
+  if (CE.freezeTurns > 0) {
+    CE.freezeTurns--;
+    if (Math.random() < 0.5) {
+      clog(`❄️ ${CE.name} está congelado e perde o turno! (${CE.freezeTurns} rest.)`, 'ls');
+      updateCombatUI();
+      return;
+    } else {
+      clog(`❄️ ${CE.name} avança mesmo congelado! (${CE.freezeTurns} rest.)`, 'li');
     }
   }
-
-  // ── 7. Dodge do jogador ──
-  if(Math.random()<G.dodge){
-    clog('Você esquivou do ataque de '+CE.name+'!','ls');
-    updateCombatUI();return;
-  }
-
-  // ── 8. Efeitos de badge ──
-  if(CE.badges&&CE.badges.includes('Regeneração')&&CE.hpCur<CE.hp*.65&&Math.random()<.5){
-    const rg=r(6)+2;CE.hpCur=Math.min(CE.hp,CE.hpCur+rg);clog(CE.name+' regenera +'+rg+' HP.','li');
-  }
-  if(CE.badges&&CE.badges.includes('Drena MP')){G.mp=Math.max(0,G.mp-6);clog(CE.name+' drena 6 de Mana!','li');}
-  if(CE.badges&&CE.badges.includes('Maldição')&&Math.random()<.3){G.def=Math.max(0,G.def-1);clog('A maldição do '+CE.name+' reduz sua DEF em 1.','le');}
-
-  // ── 9. Escudo Divino — bloqueia ataque ──
-  if(G.divineShield){
-    G.divineShield=false;
-    // Não decrementa _divineShieldTurns aqui — o step 1 do próximo
-    // turno cuida do decay quando divineShield já está false.
-    clog('🛡️ Escudo Divino bloqueou o ataque de '+CE.name+'!','ls');
-    floatDmg('🛡️ BLOQUEADO','#f1c40f',40,40);
-    sfx('block'||'open');
+  if (CE.stunned) {
+    clog(CE.name + ' está atordoado e perde o turno.', 'li');
+    CE.stunned = false;
     updateCombatUI();
     return;
   }
-  // Névoa tóxica — reduz precisão do inimigo
-  if(CE._foggedTurns&&CE._foggedTurns>0){
-    CE._foggedTurns--;
-    if(Math.random()<.30){clog(CE.name+' errou o ataque por causa da névoa!','ls');updateCombatUI();return;}
+  if (CE.readyMax !== undefined) {
+    const wasFull = CE.readyCur >= CE.readyMax;
+    if (wasFull) {
+      const attacked = fireReadyAttackEnemy();
+      if (G.hp <= 0) { checkEnd(); return; }
+      return;
+    } else {
+      tickReadyBar();
+      if (CE.readyCur >= CE.readyMax) {
+        clog(`⚠️ ${CE.name} carregou ${getReadyAttack().ico} ${getReadyAttack().name}! Próximo turno será devastador!`, 'ln');
+      }
+    }
   }
-  // ── 9. Ataque normal ──
-  let dmg=Math.max(1,CE.atk-Math.floor(G.def*.6)+r(6));
-  if(CE.badges&&CE.badges.includes('Fúria')&&CE.hpCur<CE.hp*.4)dmg=Math.round(dmg*1.35);
-  const isCrit=Math.random()<.09;
-  if(isCrit)dmg=Math.round(dmg*1.65);
-  let logMsg=isCrit?`💀 ${CE.name} acerta um golpe crítico! -${dmg} HP!`:`${CE.name} ataca e causa -${dmg} HP.`;
-  if(CE.badges&&CE.badges.includes('Dreno de vida')){const dr=Math.round(dmg*.35);CE.hpCur=Math.min(CE.hp,CE.hpCur+dr);logMsg+=` (drena ${dr} HP)`;}
-  G.hp=Math.max(0,G.hp-dmg);
-  if(dmg>0)G._mNoDmg=false;
-  if(G.passives.includes('godmode'))G.hp=G.hpMax;
-  if(G.passives.includes('bsk_set')&&G.hp/G.hpMax<.3)G.hp=Math.min(G.hpMax,G.hp+5);
-  clog(logMsg,isCrit?'lc':'le');
-  if(dmg>=15)screenShake();
-  floatDmg('-'+dmg,'#c0392b',40,55);
-  sfx('hit');flashPlayerHit();
-
-  // ── Regeneração de MP por turno ──
-  const turnRegen = G.cls.id==='mage'?6 : G.cls.id==='sorcerer'?7 : G.cls.id==='druid'?5 : G.cls.id==='rogue'||G.cls.id==='assassin_cls'?3 : G.cls.id==='barbarian'?1 : 2;
+  if (Math.random() < G.dodge) {
+    clog('Você esquivou do ataque de ' + CE.name + '!', 'ls');
+    updateCombatUI();
+    return;
+  }
+  if (CE.badges && CE.badges.includes('Regeneração') && CE.hpCur < CE.hp * 0.65 && Math.random() < 0.5) {
+    const rg = r(6) + 2;
+    CE.hpCur = Math.min(CE.hp, CE.hpCur + rg);
+    clog(CE.name + ' regenera +' + rg + ' HP.', 'li');
+    updateCombatUI();
+  }
+  if (CE.badges && CE.badges.includes('Drena MP')) {
+    G.mp = Math.max(0, G.mp - 6);
+    clog(CE.name + ' drena 6 de Mana!', 'li');
+    updateCombatUI();
+  }
+  if (CE.badges && CE.badges.includes('Maldição') && Math.random() < 0.3) {
+    G.def = Math.max(0, G.def - 1);
+    clog('A maldição do ' + CE.name + ' reduz sua DEF em 1.', 'le');
+    updateCombatUI();
+  }
+  if (G.divineShield) {
+    G.divineShield = false;
+    clog('🛡️ Escudo Divino bloqueou o ataque de ' + CE.name + '!', 'ls');
+    floatDmg('🛡️ BLOQUEADO', '#f1c40f', 40, 40);
+    sfx('block' || 'open');
+    updateCombatUI();
+    return;
+  }
+  if (CE._foggedTurns && CE._foggedTurns > 0) {
+    CE._foggedTurns--;
+    if (Math.random() < 0.30) {
+      clog(CE.name + ' errou o ataque por causa da névoa!', 'ls');
+      updateCombatUI();
+      return;
+    }
+  }
+  let dmg = Math.max(1, CE.atk - Math.floor(G.def * 0.6) + r(6));
+  if (CE.badges && CE.badges.includes('Fúria') && CE.hpCur < CE.hp * 0.4) dmg = Math.round(dmg * 1.35);
+  const isCrit = Math.random() < 0.09;
+  if (isCrit) dmg = Math.round(dmg * 1.65);
+  let logMsg = isCrit ? `💀 ${CE.name} acerta um golpe crítico! -${dmg} HP!` : `${CE.name} ataca e causa -${dmg} HP.`;
+  if (CE.badges && CE.badges.includes('Dreno de vida')) {
+    const dr = Math.round(dmg * 0.35);
+    CE.hpCur = Math.min(CE.hp, CE.hpCur + dr);
+    logMsg += ` (drena ${dr} HP)`;
+  }
+  G.hp = Math.max(0, G.hp - dmg);
+  if (dmg > 0) G._mNoDmg = false;
+  if (G.passives.includes('godmode')) G.hp = G.hpMax;
+  if (G.passives.includes('bsk_set') && G.hp / G.hpMax < 0.3) G.hp = Math.min(G.hpMax, G.hp + 5);
+  clog(logMsg, isCrit ? 'lc' : 'le');
+  if (dmg >= 15) screenShake();
+  floatDmg('-' + dmg, '#c0392b', 40, 55);
+  sfx('hit');
+  flashPlayerHit();
+  updateCombatUI();
+  const turnRegen = G.cls.id === 'mage' ? 6 :
+                    G.cls.id === 'sorcerer' ? 7 :
+                    G.cls.id === 'druid' ? 5 :
+                    G.cls.id === 'rogue' || G.cls.id === 'assassin_cls' ? 3 :
+                    G.cls.id === 'barbarian' ? 1 : 2;
   const actualRegen = Math.min(turnRegen, G.mpMax - G.mp);
-  if(actualRegen > 0){
+  if (actualRegen > 0) {
     G.mp += actualRegen;
-    floatDmg('+'+actualRegen+'MP','#4488cc',30,60);
+    floatDmg('+' + actualRegen + 'MP', '#4488cc', 30, 60);
   }
 
   updateCombatUI();
@@ -3764,7 +3597,6 @@ function enemyTurn(){
 
 function checkEnd(){
   if(!CE)return;
-  // Phoenix — revive com 30% HP uma vez
   if(G.hp<=0&&G.passives.includes('phoenix')&&!G.phoenixUsed){
     G.phoenixUsed=true;
     const idx=G.passives.indexOf('phoenix');if(idx>=0)G.passives.splice(idx,1);
@@ -3786,20 +3618,16 @@ function checkEnd(){
       }
     }
     G.kills++;
-  if(CE) tomoRecordKill(CE); // Tomo: registra inimigo morto
+  if(CE) tomoRecordKill(CE);
     if(CE.elite)G._mElites=(G._mElites||0)+1;
-    // Missão noitem — incrementa se venceu sem usar item neste combate
     if(!G._itemUsedThisCombat) G._mNoItem=(G._mNoItem||0)+1;
-    // limpa status do jogador ao vencer
     clearCombatStatus(G);
-    // Arcana cooldown tracking
     if(G.passives.includes('arcana_explosion')){
       if(!G.arcanaReady){
         G.arcanaCombatsSince=(G.arcanaCombatsSince||0)+1;
         if(G.arcanaCombatsSince>=3){G.arcanaReady=true;G.arcanaCombatsSince=0;toast('💜 Explosão Arcana recarregada!',2000);}
       }
     }
-    // Post-combat regen (Totem)
     if(G.passives.includes('post_combat_regen')){
       const heal=Math.round(G.hpMax*.10);G.hp=Math.min(G.hpMax,G.hp+heal);
       clog(`🪆 Totem: +${heal} HP restaurado.`,'ls');
@@ -3821,7 +3649,6 @@ function checkEnd(){
         logRun('🏰',`Avançou para o Andar ${G.floor}`,'win');
         generateMissions();
         if(prevFloor>=3){
-          // Andares 4+: transição narrativa direta, sem tela de vitória
           const depthMsgs=[
             'As trevas se aprofundam. O silêncio pesa mais do que qualquer armadura.',
             'Você desce. A luz some. Algo lá embaixo te observa há muito tempo.',
@@ -3839,26 +3666,18 @@ function checkEnd(){
   }
 }
 
-/* ═══ COMBAT VICTORY IN-PLACE ═══ */
 function showCombatVictory(wasBoss, xg, gg) {
   const sc = $('scroll');
   if (!sc) { nextRoom(); return; }
-
-  // Encontra o card de combate ainda na tela
   const card = sc.querySelector('.card');
   if (!card) { nextRoom(); return; }
-
   const isBoss = wasBoss;
   const ico    = isBoss ? '🏆' : '⚔️';
   const title  = isBoss ? 'Chefe Derrotado!' : 'Vitória!';
   const quote  = narr(isBoss ? 'boss' : 'win_combat');
-
-  // Transição suave: card pisca dourado
   card.style.transition = 'border-color .35s, box-shadow .35s';
   card.style.borderColor = 'rgba(200,130,75,.7)';
   card.style.boxShadow   = '0 0 24px rgba(200,130,75,.3)';
-
-  // Substitui o conteúdo interno do card pelo resultado
   card.innerHTML = `
     <div class="ctag">
       <div class="ctag-dot" style="background:var(--grn2)"></div>
@@ -3897,12 +3716,10 @@ function showCombatVictory(wasBoss, xg, gg) {
   scrollBot(sc);
 }
 
-/* ═══ INVENTORY ═══ */
 function renderInv(sc){
   sc.innerHTML='';
   const card=mkCard('explore');
   const slots=[{key:'head',lbl:'Cabeça',ico:'⛑️'},{key:'chest',lbl:'Peito',ico:'🛡️'},{key:'weapon',lbl:'Arma',ico:'⚔️'},{key:'feet',lbl:'Pés',ico:'👟'}];
-
   const eSlots=slots.map(s=>{
     const eq=G.equip[s.key];
     const isSet=eq&&eq.set;
@@ -3920,13 +3737,11 @@ function renderInv(sc){
       <div class="eslot-c-name" style="color:var(--txt3);">vazio</div>
     </div>`;
   }).join('');
-
   const activeSets=Object.entries(G.activeSets||{}).filter(([,v])=>v>=2);
   const setBonusHtml=activeSets.length?`<div class="inv-set-bonus">${activeSets.map(([sid,cnt])=>{
     const def=SET_DEFS[sid];if(!def)return '';
     return `<span class="set-bonus-line">✨ ${def.name} (${cnt}p)${cnt>=2?` · ${def.bonus2.desc}`:''}${cnt>=3?` · ${def.bonus3.desc}`:''}</span>`;
   }).join('')}</div>`:'';
-
   card.innerHTML=`
     <div class="inv-header">
       <span class="panel-title" style="margin:0;font-size:12px;">🎒 EQUIPAMENTO</span>
@@ -3948,7 +3763,6 @@ function renderInv(sc){
 function renderInvGrid(grid){
   if(!grid)return;
   grid.innerHTML='';
-  // Mostra só os slots ocupados + 2 vazios de contexto (ou mínimo 4)
   const items=G.inv.slice(0,16);
   const totalShow=Math.max(items.length+2,4);
   for(let i=0;i<Math.min(totalShow,16);i++){
@@ -3989,13 +3803,10 @@ function unequip(slotKey){
   toast('Desequipado: '+eq.name);upd();safeRender(renderInv,$('scroll'));return true;
 }
 
-/* ═══ COMPARADOR DE EQUIPAMENTO ═══ */
 function openEquipComparator(newItem){
   const existing=$('equip-cmp-ov');if(existing)existing.remove();
   const current=G.equip[newItem.slot];
   const rarColor={common:'var(--acc)',rare:'var(--rare)',epic:'var(--epic)',legendary:'var(--legendary)'};
-
-  // Stats relevantes a comparar
   const STAT_LABELS={atk:'ATK',def:'DEF',mag:'MAG',spd:'VEL',hp:'HP',hpMax:'HP MÁX',mp:'MP',crit:'CRIT %',dodge:'ESQUIVA %',lifesteal:'VAMPIRISMO %'};
   const allStats=new Set([
     ...Object.keys(newItem.bonus||{}),
@@ -4063,8 +3874,7 @@ function openEquipComparator(newItem){
       </div>
     </div>`;
   document.body.appendChild(ov);
-
-  // Fechar com ESC ou clique no backdrop (fora do cmp-sheet)
+  
   const closeCmp=()=>{const o=$('equip-cmp-ov');if(o)o.remove();lockBtns(0);};
   ov.addEventListener('click',e=>{if(e.target===ov)closeCmp();});
   const escHandler=e=>{if(e.key==='Escape'){closeCmp();document.removeEventListener('keydown',escHandler);}};
@@ -4089,7 +3899,6 @@ function renderSkills(sc){
   const upHtml=G.upgrades.length?`<div style="margin-top:14px;"><div class="panel-title" style="margin-bottom:8px;">✨ TALENTOS ATIVOS</div><div class="pass-row">${G.upgrades.map(u=>`<span class="pass-tag">${u}</span>`).join('')}</div></div>`:'';
   card.innerHTML=`<div class="panel-title">✨ HABILIDADES</div><div class="sk-row">${skHtml}</div>${upHtml}`;
   if(G.cls.id==='mage'){
-    // Abas: Elementos | Grimório
     const tabCard=mkCard('explore');
     tabCard.innerHTML=`
       <div class="grimoire-tabs" id="grimoire-tabs">
@@ -4116,7 +3925,6 @@ function renderGrimoirePanel(tab){
   const panel=$('grimoire-panel');
   if(!panel)return;
   if(tab==='elements'){
-    // Renderiza o elemento picker dentro do painel
     const tierNames=['Primordial','Energia Pura','Entrópico','Condutor','Material Nobre','Elemental Básico'];
     const tierColors=['#ff6b35','#f1c40f','#9b59b6','#3498db','#95a5a6','#27ae60'];
     const byTier={};
@@ -4137,7 +3945,6 @@ function renderGrimoirePanel(tab){
         });
         html+=`</div>`;
       });
-      // Fusões disponíveis para aprender (não em combate)
       const availFusions=getAvailFusions(true);
       if(availFusions.length){
         html+=`<div style="font-family:var(--cinzel);font-size:9px;color:var(--gold);letter-spacing:2px;margin:14px 0 8px;padding-top:10px;border-top:1px solid var(--brd);">⚗️ FUSÕES PRONTAS</div>`;
@@ -4158,17 +3965,11 @@ function renderGrimoirePanel(tab){
     }
     panel.innerHTML=html;
   } else {
-    // ── GRIMÓRIO ──
     renderGrimoirePage(panel);
   }
 }
 
-
-
-
-
 function renderGrimoirePage(panel){
-  // Insere searchbar + container de resultados
   panel.innerHTML=`
     <div class="grim-search-wrap">
       <input id="grim-search" class="grim-search-input" type="text" placeholder="🔍 Buscar fusão, elemento..." oninput="filterGrimoire(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
@@ -4198,8 +3999,6 @@ function filterGrimoire(q){
       e2.name.toLowerCase().includes(query)||
       (elData(f.id)?.name||'').toLowerCase().includes(query);
   };
-
-  // Se busca ativa — mostra tudo junto sem seções
   if(query){
     const matched=FUSIONS.filter(f=>!hasElement(f.id)&&matchFusion(f));
     if(!matched.length){out.innerHTML=`<div class="grim-empty">Nenhuma fusão encontrada para "${q}".</div>`;return;}
@@ -4225,8 +4024,6 @@ function filterGrimoire(q){
     }).join('');
     return;
   }
-
-  // Sem busca — exibe seções normais compactas
   const ready=[],almost=[],locked=[];
   FUSIONS.forEach(f=>{
     if(hasElement(f.id))return;
@@ -4235,7 +4032,6 @@ function filterGrimoire(q){
     else if(hasE1||hasE2) almost.push({f,missing:hasE1?f.e2:f.e1});
     else locked.push(f);
   });
-
   const rowC=(f,state,missingId)=>{
     const e1=elData(f.e1),e2=elData(f.e2),res=elData(f.id);
     const c=tierColors[f.tier]||'#ccc';
@@ -4253,7 +4049,6 @@ function filterGrimoire(q){
       </div>
     </div>`;
   };
-
   let html='';
   html+=`<div class="grim-sec-hdr gold">⚡ PRONTAS <span class="grim-cnt">${ready.length}</span></div>`;
   html+=ready.length?ready.map(f=>rowC(f,'ready',null)).join(''):`<div class="grim-empty">Nenhuma ainda.</div>`;
@@ -4261,13 +4056,11 @@ function filterGrimoire(q){
   html+=`<div class="grim-sec-hdr purple">🔍 FALTA 1 ELEMENTO <span class="grim-cnt">${almost.length}</span></div>`;
   html+=almost.length?almost.slice(0,15).map(({f,missing})=>rowC(f,'almost',missing)).join(''):`<div class="grim-empty">Nenhuma.</div>`;
   if(almost.length>15)html+=`<div class="grim-empty">...e mais ${almost.length-15}.</div>`;
-
   const lockedShow=locked.filter(f=>f.tier<=2).slice(0,6);
   if(lockedShow.length){
     html+=`<div class="grim-sec-hdr muted">🔒 BLOQUEADAS T0–2 <span class="grim-cnt">${locked.length}</span></div>`;
     html+=lockedShow.map(f=>rowC(f,'locked',null)).join('');
   }
-
   out.innerHTML=html;
 }
 
@@ -4287,7 +4080,6 @@ function renderStats(sc){
   sc.appendChild(card);scrollBot(sc);
 }
 
-/* ═══ CHEAT MENU ═══ */
 function openCheatMenu(){
   const existing=$('cheat-overlay');if(existing)existing.remove();
   const ov=document.createElement('div');ov.id='cheat-overlay';
@@ -4360,7 +4152,6 @@ function cheatAddElement(id){
   G.elements.push({...el});toast(`${el.ico} ${el.name} aprendido!`);
 }
 
-/* ═══ ITEM OVERLAY ═══ */
 function openItemOverlay(items,inCombat){
   sfx('open');
   const grid=$('isheet-grid');grid.innerHTML='';
@@ -4369,7 +4160,7 @@ function openItemOverlay(items,inCombat){
     btn.innerHTML=`<span class="isheet-ico">${it.ico}</span><div class="isheet-info"><div class="isheet-name ${it.rarity||'common'}">${it.name}</div><div class="isheet-desc">${it.desc||''}</div></div>`;
     btn.onclick=()=>{
       closeItemOverlay();
-      if(inCombat) G._itemUsedThisCombat=true; // Missão noitem: registra uso
+      if(inCombat) G._itemUsedThisCombat=true;
       if(it.fn)it.fn(G,inCombat?{E:CE,combat:true,flee:(forced)=>{if(forced){G.inCombat=false;CE=null;combatLog=[];}}}:{});
       it.uses--;if(it.uses<=0)G.inv.splice(G.inv.indexOf(it),1);
       upd();
@@ -4381,7 +4172,6 @@ function openItemOverlay(items,inCombat){
 }
 function closeItemOverlay(){hide('item-overlay');lockBtns(0);}
 
-/* ═══ FUSION OVERLAY ═══ */
 function openFusionOverlay(fusions, mpCost){
   sfx('open');
   const grid=$('fusion-grid');
@@ -4389,10 +4179,7 @@ function openFusionOverlay(fusions, mpCost){
   grid.innerHTML='';
   const tierColors=['#ff6b35','#f1c40f','#9b59b6','#3498db','#95a5a6','#27ae60'];
   const tierNames=['Primordial','Energia Pura','Entrópico','Condutor','Material Nobre','Elemental Básico'];
-
-  // Ordena por tier (mais poderoso primeiro = menor tier)
   const sorted=[...fusions].sort((a,b)=>a.tier-b.tier);
-
   if(!sorted.length){
     grid.innerHTML='<div style="color:var(--txt2);text-align:center;padding:16px;font-family:var(--cinzel);font-size:11px;">Nenhuma fusão disponível.<br>Aprenda mais elementos para desbloquear.</div>';
   } else {
@@ -4437,8 +4224,7 @@ function closeFusionOverlay(){hide('fusion-overlay');lockBtns(0);}
 
 function doFusionSkill(f){
   if(!CE)return;
-  tomoRecordFusion(f); // Tomo: registra fusão usada
-  // Fusão destrutiva: consome os dois elementos originais
+  tomoRecordFusion(f);
   G.elements = G.elements.filter(e=>e.id!==f.e1 && e.id!==f.e2);
   if(G.activeElement && (G.activeElement.id===f.e1 || G.activeElement.id===f.e2)) G.activeElement=G.elements[0]||null;
   const baseDmg=Math.round(Math.max(6, G.mag*f.mult+r(14)));
@@ -4446,7 +4232,6 @@ function doFusionSkill(f){
   G.totalDmg+=baseDmg;
   dentReadyBar(baseDmg);
   G._mSkillUses=(G._mSkillUses||0)+1;
-  // Status baseado na fusão
   const elStatus={
     fogo:'burn',magma:'burn',plasma:'burn',fogo_fatuo:'burn',fenix:'burn',
     fenix:'burn',ceramica:'burn',po_diamante:'burn',
@@ -4468,7 +4253,6 @@ function doFusionSkill(f){
   updateCombatUI();
 }
 
-/* ═══ ITEM HELPERS ═══ */
 function randItemByRarity(mode){
   const clsId=G?.cls?.id||null;
   const classPool=ITEMS_POOL.filter(i=>!i.cls||i.cls===clsId);
@@ -4497,12 +4281,10 @@ function applyBonus(it){
   upd();
 }
 
-/* ═══ DEATH / WIN ═══ */
 function fmtTime(){const el=Math.round((Date.now()-G.t0)/1000);return Math.floor(el/60)+':'+String(el%60).padStart(2,'0');}
 function dstatRows(rows){return rows.map(([l,v])=>`<div class="dstat"><div class="dl">${l}</div><div class="dv" style="font-size:${String(v).length>6?'12':'17'}px;">${v}</div></div>`).join('');}
 function showDeath(msg){
   G.inCombat=false;
-  // Tomo: registra causa da morte
   {
     let causeType='combat', causeLabel='Morte em Combate';
     if(msg.toLowerCase().includes('veneno')||msg.toLowerCase().includes('poison')){ causeType='poison'; causeLabel='Morte por Veneno'; }
@@ -4513,7 +4295,6 @@ function showDeath(msg){
   }
   const sd=$('s-death');
   const typeColor={win:'var(--grn2)',crit:'var(--gold)',neutral:'var(--txt2)'};
-  // Build run log HTML
   const logHtml=(G.runLog&&G.runLog.length)
     ?`<div class="run-history">
         <div class="run-history-title">📜 CRÔNICA DA RUN</div>
@@ -4543,8 +4324,6 @@ function showVictory(){
   const ng=G.ngPlus||0;
   const nextNg=ng+1;
   const sc=$('s-win');
-
-  // Limpa botões antigos e reconstrói a tela
   sc.innerHTML=`
     <div class="w-star">🏆</div>
     <h2 class="w-title">VITÓRIA!</h2>
@@ -4578,7 +4357,6 @@ function showVictory(){
 
 function startNG(){
   const ng=(G.ngPlus||0)+1;
-  // Preserva o build da alma e o nome para reutilizar no NG+
   const prevBuild = G.soulBuild || {vigor:2,forca:3,arcano:3,espirito:2};
   const prevName  = G.soulName  || 'Alma Sem Nome';
   hide('s-win');
@@ -4602,8 +4380,6 @@ function continueInfinite(){
   toast(`🌀 Andar ${G.floor} — as trevas se aprofundam.`,2000);
   navTo('explore');
 }
-
-/* ═══ SISTEMA DE TEMAS ═══ */
 const THEMES = {
   grimorio: { label:'Grimório',        desc:'Âmbar & sombras clássicas' },
   ice:      { label:'Cripta de Gelo',  desc:'Azul cristalino & frio' },
@@ -4614,7 +4390,6 @@ const THEMES = {
   abyss:    { label:'Abismo Profundo', desc:'Preto, roxo & marinho' },
   dawn:     { label:'Alvorada Celeste',desc:'Branco, dourado & azul bebê' },
 };
-
 let _currentTheme = localStorage.getItem('cronista_theme') || 'grimorio';
 let _is16Bit = localStorage.getItem('cronista_16bit') === '1';
 
@@ -4654,7 +4429,6 @@ function closeThemeOverlay() {
   hide('theme-overlay');
 }
 
-/* ═══ INIT ═══ */
 applyTheme(_currentTheme);
 apply16Bit();
 buildTitle();
